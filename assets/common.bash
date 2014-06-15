@@ -3,6 +3,10 @@ function start_docker() {
     return 0
   fi
 
+  # set up cgroups
+  mkdir -p /sys/fs/cgroup
+  cgroups-mount
+
   # make /dev/shm larger
   mount -t tmpfs -o remount,size=1G none /dev/shm
 
@@ -19,5 +23,5 @@ function start_docker() {
 }
 
 function docker_image() {
-  docker images "$1" | awk "{if (\$2 == "$2") print \$3}"
+  docker images "$1" | awk "{if (\$2 == \"$2\") print \$3}"
 }
