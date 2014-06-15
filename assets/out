@@ -34,7 +34,7 @@ username=$(jq -r '.params.username // ""' < $payload)
 password=$(jq -r '.params.password // ""' < $payload)
 email=$(jq -r '.params.email // ""' < $payload)
 
-if [ -z "$username"] || [ -z "$password" ] || [ -z "$email" ]; then
+if [ -z "$username" ] || [ -z "$password" ] || [ -z "$email" ]; then
   echo "must specify username, password, and email params"
   exit 1
 fi
