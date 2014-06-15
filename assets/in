@@ -29,10 +29,20 @@ tag="$(jq -r '.source.tag // "latest"' < $payload)"
 
 docker pull "${repository}:${tag}"
 
+image=$(docker_image "$repository" "$tag")
+if [ -z "$image" ]; then
+  echo "failed to determine image id :("
+  exit 1
+fi
+
 mkdir -p $destination
+docker save -o ${destination}/image "${repository}:${tag}"
+echo "$repository" > ${destination}/repository
+echo "$tag" > ${destination}/tag
+echo "$image" > ${destination}/image-id
 
 jq -n "{
   version: {
-    image: $(docker_image "$repository" "$tag" | jq -R .)
+    image: $(echo $image | jq -R .)
   }
-}" | tee $destination/version >&3
+}" >&3

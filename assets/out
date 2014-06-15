@@ -26,12 +26,6 @@ cd $(dirname $source)
 
 start_docker
 
-pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
-pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
-build=$(jq -r '.params.build // ""' < $payload)
-
-push_repository=$(jq -r '.params.push_repository // ""' < $payload)
-push_tag=$(jq -r '.params.push_tag // "latest"' < $payload)
 username=$(jq -r '.params.username // ""' < $payload)
 password=$(jq -r '.params.password // ""' < $payload)
 email=$(jq -r '.params.email // ""' < $payload)
@@ -43,20 +37,40 @@ fi
 
 docker login -u "$username" -p "$password" -e "$email"
 
+build=$(jq -r '.params.build // ""' < $payload)
+
+load=$(jq -r '.params.load // ""' < $payload)
+
+load_file=$(jq -r '.params.load_file // ""' < $payload)
+load_repository=$(jq -r '.params.load_repository // ""' < $payload)
+load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
+
+pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
+pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
+
+repository=$(jq -r '.params.repository // ""' < $payload)
+tag=$(jq -r '.params.tag // "latest"' < $payload)
+
 if [ -n "$build" ]; then
-  docker build -t "${push_repository}:${push_tag}" "$build"
+  docker build -t "${repository}:${tag}" "$build"
+elif [ -n "$load" ]; then
+  docker load -i "${load}/image"
+  docker tag "$(cat ${load}/image-id)" "${repository}:${tag}"
+elif [ -n "$load_file" ]; then
+  docker load -i $load_file
+  docker tag "${load_repository}:${load_tag}" "${repository}:${tag}"
 elif [ -n "$pull_repository" ]; then
   docker pull "${pull_repository}:${pull_tag}"
-  docker tag "${pull_repository}:${pull_tag}" "${push_repository}:${push_tag}"
+  docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag}"
 else
   echo "must specify build or image param"
   exit 1
 fi
 
-docker push "${push_repository}:${push_tag}"
+docker push "${repository}:${tag}"
 
 jq -n "{
   version: {
-    image: $(docker_image "$push_repository" "$push_tag" | jq -R .)
+    image: $(docker_image "$repository" "$tag" | jq -R .)
   }
 }" >&3
