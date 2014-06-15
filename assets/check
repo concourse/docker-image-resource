@@ -32,5 +32,7 @@ latest_image=$(docker_image "$repository" "$tag")
 if [ -z "$latest_image" ] || [ "$latest_image" = "$image" ]; then
   echo "[]" >&3
 else
-  jq -n "[{image: $(echo $latest_image | jq -R .)}]" >&3
+  # there's no good way to have /in pull down a particular image, so just
+  # trigger it with an empty version. :(
+  echo "[{}]" >&3
 fi
