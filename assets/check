@@ -1,0 +1,31 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+source $(dirname $0)/common.bash
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$(mktemp /tmp/resource-in.XXXXX)
+cat > $payload <&0
+
+start_docker
+
+repository="$(jq -r .source.repository < $payload)"
+tag="$(jq -r '.source.tag // "latest"' < $payload)"
+image="$(jq -r .version.image < $payload)"
+
+docker pull "${repository}:${tag}"
+
+latest_image=$(docker_image "$repository" "$tag")
+
+if [ "$latest_image" = "$image" ]; then
+  echo '[]' >&3
+else
+  jq -n "[{image: $(echo $latest_image | jq -R .)}]" >&2
+fi

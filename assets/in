@@ -1,0 +1,38 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+source $(dirname $0)/common.bash
+
+destination=$1
+
+if [ -z "$destination" ]; then
+  echo "usage: $0 <path/to/destination>" >&2
+  exit 1
+fi
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$(mktemp /tmp/resource-in.XXXXX)
+
+cat > $payload <&0
+
+start_docker
+
+repository="$(jq -r '.source.repository // ""' < $payload)"
+tag="$(jq -r '.source.tag // "latest"' < $payload)"
+
+docker pull "${repository}:${tag}"
+
+mkdir -p $destination
+
+jq -n "{
+  version: {
+    image: $(docker_image "$repository" "$tag" | jq -R .)
+  }
+}" | tee $destination/version >&3

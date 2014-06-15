@@ -1,0 +1,60 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+source $(dirname $0)/common.bash
+
+source=$1
+
+if [ -z "$source" ]; then
+  echo "usage: $0 <path/to/source>"
+  exit 1
+fi
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$(mktemp /tmp/resource-in.XXXXX)
+
+cat > $payload <&0
+
+start_docker
+
+pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
+pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
+build=$(jq -r '.params.build // ""' < $payload)
+
+push_repository=$(jq -r '.params.push_repository // ""' < $payload)
+push_tag=$(jq -r '.params.push_tag // "latest"' < $payload)
+username=$(jq -r '.params.username // ""' < $payload)
+password=$(jq -r '.params.password // ""' < $payload)
+email=$(jq -r '.params.email // ""' < $payload)
+
+if [ -z "$username"] || [ -z "$password" ] || [ -z "$email" ]; then
+  echo "must specify username, password, and email params"
+  exit 1
+fi
+
+docker login -u "$username" -p "$password" -e "$email"
+
+if [ -n "$build" ]; then
+  docker build -t "${push_repository}:${push_tag}" "$build"
+elif [ -n "$pull_repository" ]; then
+  docker pull "${pull_repository}:${pull_tag}"
+  docker tag "${pull_repository}:${pull_tag}" "${push_repository}:${push_tag}"
+else
+  echo "must specify build or image param"
+  exit 1
+fi
+
+docker push "${push_repository}:${push_tag}"
+
+jq -n "{
+  version: {
+    image: $(docker_image "$push_repository" "$push_tag" | jq -R .)
+  }
+}" >&3
