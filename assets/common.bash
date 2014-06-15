@@ -1,5 +1,5 @@
 function start_docker() {
-  if [ -S /var/run/docker.sock ]; then
+  if docker info 2>/dev/null; then
     return 0
   fi
 
@@ -16,7 +16,7 @@ function start_docker() {
 
   docker -d &
 
-  until [ -S /var/run/docker.sock ]; do
+  until docker info; do
     echo waiting for docker to come up...
     sleep 0.5
   done
