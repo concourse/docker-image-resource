@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: set ft=sh
 
-set -e
+set -e -x
 
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
@@ -16,16 +16,21 @@ cat > $payload <&0
 
 start_docker
 
-repository="$(jq -r .source.repository < $payload)"
+repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
-image="$(jq -r .version.image < $payload)"
+image="$(jq -r '.version.image // ""' < $payload)"
+
+if [ -z "$repository" ]; then
+  echo "must specify repository"
+  exit 1
+fi
 
 docker pull "${repository}:${tag}"
 
 latest_image=$(docker_image "$repository" "$tag")
 
-if [ "$latest_image" = "$image" ]; then
-  echo '[]' >&3
+if [ -z "$latest_image" ] || [ "$latest_image" = "$image" ]; then
+  echo "[]" >&3
 else
-  jq -n "[{image: $(echo $latest_image | jq -R .)}]" >&2
+  jq -n "[{image: $(echo $latest_image | jq -R .)}]" >&3
 fi
