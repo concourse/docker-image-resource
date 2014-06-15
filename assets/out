@@ -22,6 +22,8 @@ payload=$(mktemp /tmp/resource-in.XXXXX)
 
 cat > $payload <&0
 
+cd $(dirname $source)
+
 start_docker
 
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
