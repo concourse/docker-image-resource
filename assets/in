@@ -36,7 +36,7 @@ if [ -z "$image" ]; then
 fi
 
 mkdir -p $destination
-docker save -o ${destination}/image "${repository}:${tag}"
+docker save -o ${destination}/image "$image"
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
 echo "$image" > ${destination}/image-id
