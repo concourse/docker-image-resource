@@ -26,7 +26,7 @@ function start_docker() {
     echo waiting for docker to come up...
     sleep 0.5
 
-    if ! kill -0 $docker_pid; then
+    if ! kill -0 $docker_pid >/dev/null 2>&1; then
       echo "docker exited."
 
       if [ -f /var/log/docker.out.log ]; then
@@ -40,6 +40,8 @@ function start_docker() {
         echo "stderr:"
         cat /var/log/docker.err.log
       fi
+
+      exit 1
     fi
   done
 }
