@@ -1,7 +1,10 @@
 function start_docker() {
-  if docker info 2>/dev/null; then
+  if [ -f /var/log/docker.pid ]; then
     return 0
   fi
+
+  mkdir -p /var/log
+  mkdir -p /var/run
 
   # set up cgroups
   mkdir -p /sys/fs/cgroup
@@ -14,11 +17,24 @@ function start_docker() {
   mkdir -p /var/lib/docker
   mount -t tmpfs -o size=1G none /var/lib/docker
 
-  docker -d &
+  docker -d >/var/log/docker.out.log 2>/var/log/docker.err.log &
+  docker_pid=$!
 
-  until docker info; do
+  echo $docker_pid > /var/run/docker.pid
+
+  until docker info >/dev/null 2>&1; do
     echo waiting for docker to come up...
     sleep 0.5
+
+    if ! kill -0 $docker_pid; then
+      echo "docker exited; logs:"
+      echo
+      echo "stdout:"
+      cat /var/log.docker.out.log
+      echo
+      echo "stderr:"
+      cat /var/log.docker.err.log
+    fi
   done
 }
 
