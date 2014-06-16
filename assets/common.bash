@@ -17,7 +17,7 @@ function start_docker() {
   mkdir -p /var/lib/docker
   mount -t tmpfs -o size=1G none /var/lib/docker
 
-  docker -d >/var/log/docker.out.log 2>/var/log/docker.err.log &
+  docker -d >>/var/log/docker.out.log 2>>/var/log/docker.err.log &
   docker_pid=$!
 
   echo $docker_pid > /var/run/docker.pid
