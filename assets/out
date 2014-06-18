@@ -37,6 +37,14 @@ fi
 
 docker login -u "$username" -p "$password" -e "$email"
 
+repository=$(jq -r '.source.repository // ""' < $payload)
+tag=$(jq -r '.source.tag // "latest"' < $payload)
+
+if [ -z "$repository" ]; then
+  echo "must specify repository"
+  exit 1
+fi
+
 build=$(jq -r '.params.build // ""' < $payload)
 
 load=$(jq -r '.params.load // ""' < $payload)
@@ -48,8 +56,6 @@ load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 
-repository=$(jq -r '.params.repository // ""' < $payload)
-tag=$(jq -r '.params.tag // "latest"' < $payload)
 
 if [ -n "$build" ]; then
   docker build -t "${repository}:${tag}" "$build"
