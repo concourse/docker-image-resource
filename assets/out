@@ -26,12 +26,12 @@ cd $(dirname $source)
 
 start_docker
 
-username=$(jq -r '.params.username // ""' < $payload)
-password=$(jq -r '.params.password // ""' < $payload)
-email=$(jq -r '.params.email // ""' < $payload)
+username=$(jq -r '.source.username // ""' < $payload)
+password=$(jq -r '.source.password // ""' < $payload)
+email=$(jq -r '.source.email // ""' < $payload)
 
 if [ -z "$username" ] || [ -z "$password" ] || [ -z "$email" ]; then
-  echo "must specify username, password, and email params"
+  echo "must specify username, password, and email"
   exit 1
 fi
 
