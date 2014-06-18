@@ -20,8 +20,6 @@ function start_docker() {
   docker -d >>/var/log/docker.out.log 2>>/var/log/docker.err.log &
   docker_pid=$!
 
-  echo $docker_pid > /var/run/docker.pid
-
   until docker info >/dev/null 2>&1; do
     echo waiting for docker to come up...
     sleep 0.5
