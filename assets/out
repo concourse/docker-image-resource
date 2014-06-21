@@ -22,7 +22,7 @@ payload=$(mktemp /tmp/resource-in.XXXXX)
 
 cat > $payload <&0
 
-cd $(dirname $source)
+cd $source
 
 start_docker
 
