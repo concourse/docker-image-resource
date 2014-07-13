@@ -41,9 +41,8 @@ mkdir -p $destination
 docker save -o ${destination}/image "$image"
 
 if [ "$rootfs" = "true" ]; then
-  mkdir ${destination}/rootfs
   docker run --cidfile=container.cid "$image" echo container created
-  docker export $(cat container.cid) | tar -C ${destination}/rootfs -xf -
+  docker export $(cat container.cid) > ${destination}/rootfs.tar
 fi
 
 echo "$repository" > ${destination}/repository
