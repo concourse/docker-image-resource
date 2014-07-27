@@ -1,5 +1,5 @@
 function start_docker() {
-  if [ -f /var/log/docker.pid ]; then
+  if /etc/init.d/docker.io status | grep "docker is running"; then
     return 0
   fi
 
@@ -17,8 +17,9 @@ function start_docker() {
   mkdir -p /var/lib/docker
   mount -t tmpfs -o size=1G none /var/lib/docker
 
-  docker -d >>/var/log/docker.out.log 2>>/var/log/docker.err.log &
-  docker_pid=$!
+  /etc/init.d/docker.io start
+
+  docker_pid=$(cat /var/run/docker.io.pid)
 
   until docker info >/dev/null 2>&1; do
     echo waiting for docker to come up...
