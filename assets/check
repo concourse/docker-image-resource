@@ -14,8 +14,6 @@ PATH=/usr/local/bin:$PATH
 payload=$(mktemp /tmp/resource-in.XXXXX)
 cat > $payload <&0
 
-start_docker
-
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 image="$(jq -r '.version.image // ""' < $payload)"
@@ -25,9 +23,10 @@ if [ -z "$repository" ]; then
   exit 1
 fi
 
-docker pull "${repository}:${tag}"
+tags=$(mktemp /tmp/resource-in-tags.XXXXX)
+curl "https://index.docker.io/v1/repositories/${repository}/tags" > $tags
 
-latest_image=$(docker_image "$repository" "$tag")
+latest_image=$(jq -r "select(.name == $(echo $tag | jq -R .))[].layer" < $tags)
 
 if [ -z "$latest_image" ] || [ "$latest_image" = "$image" ]; then
   echo "[]" >&3
