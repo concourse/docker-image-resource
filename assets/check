@@ -26,10 +26,22 @@ fi
 tags=$(mktemp /tmp/resource-in-tags.XXXXX)
 curl "https://index.docker.io/v1/repositories/${repository}/tags" > $tags
 
-latest_image=$(jq -r "map(select(.name == $(echo $tag | jq -R .)))[].layer" < $tags)
+shortened_image=$(jq -r "map(select(.name == $(echo $tag | jq -R .)))[].layer" < $tags)
+
+all_images=$(mktemp /tmp/resource-in-tags.XXXXX)
+curl "https://index.docker.io/v1/repositories/${repository}/images" > $all_images
+
+latest_image=$(jq -r "map(select(.id | startswith($(echo $shortened_image | jq -R .))))[0].id" < $all_images)
+
+if [ -z "$latest_image"] && ! [ -z "$shortened_image" ]; then
+  echo "failed to expand image id. :("
+  exit 1
+fi
 
 if [ -z "$latest_image" ] || [ "$latest_image" = "$image" ]; then
   echo "[]" >&3
 else
   jq -n "[{ image: $(echo $latest_image | jq -R .) }]" >&3
 fi
+
+rm $payload $tags $all_images

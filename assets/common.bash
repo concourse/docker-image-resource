@@ -26,5 +26,5 @@ function start_docker() {
 }
 
 function docker_image() {
-  docker images "$1" | awk "{if (\$2 == \"$2\") print \$3}"
+  docker images --no-trunc "$1" | awk "{if (\$2 == \"$2\") print \$3}"
 }
