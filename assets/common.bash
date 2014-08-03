@@ -17,7 +17,9 @@ function start_docker() {
   mkdir -p /var/lib/docker
   mount -t tmpfs -o size=1G none /var/lib/docker
 
-  /etc/init.d/docker.io start
+  /etc/init.d/docker.io start >/dev/null 2>&1
+
+  sleep 1
 
   until docker info >/dev/null 2>&1; do
     echo waiting for docker to come up...
