@@ -52,5 +52,8 @@ echo "$image" > ${destination}/image-id
 jq -n "{
   version: {
     image: $(echo $image | jq -R .)
-  }
+  },
+  metadata: [
+    { name: \"image\", value: $(echo $image | head -c 12 | jq -R .) }
+  ]
 }" >&3
