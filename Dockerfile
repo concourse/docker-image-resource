@@ -1,15 +1,14 @@
-FROM ubuntu:14.04
+FROM concourse/busyboxplus:iptables
 
-RUN apt-get update && apt-get -y install curl
+RUN for cert in `ls -1 /etc/ssl/certs/*.pem`; \
+      do cat "$cert" >> /etc/ssl/certs/ca-certificates.crt; \
+    done
 
 ADD http://stedolan.github.io/jq/download/linux64/jq /usr/local/bin/jq
 RUN chmod +x /usr/local/bin/jq
 
-RUN apt-get update && apt-get -y install docker.io
-
 ADD https://get.docker.io/builds/Linux/x86_64/docker-latest /usr/local/bin/docker
 RUN chmod +x /usr/local/bin/docker
-RUN ln -sf /usr/local/bin/docker /usr/bin/docker.io
 
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*

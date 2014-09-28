@@ -1,32 +1,32 @@
-function start_docker() {
-  if /etc/init.d/docker.io status | grep "docker is running"; then
-    return 0
-  fi
-
+start_docker() {
   mkdir -p /var/log
   mkdir -p /var/run
 
   # set up cgroups
   mkdir -p /sys/fs/cgroup
-  cgroups-mount
+  mountpoint -q /sys/fs/cgroup || \
+    mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
 
-  # make /dev/shm larger
-  mount -t tmpfs -o remount,size=1G none /dev/shm
+  for d in `sed -e '1d;s/\([^\t]\)\t.*$/\1/' /proc/cgroups`; do
+    mkdir -p /sys/fs/cgroup/$d
+    mountpoint -q /sys/fs/cgroup/$d || \
+      mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
+  done
 
   # docker graph dir
   mkdir -p /var/lib/docker
   mount -t tmpfs -o size=1G none /var/lib/docker
 
-  /etc/init.d/docker.io start >/dev/null 2>&1
+  docker -d &
 
   sleep 1
 
   until docker info >/dev/null 2>&1; do
     echo waiting for docker to come up...
-    sleep 0.5
+    sleep 1
   done
 }
 
-function docker_image() {
+docker_image() {
   docker images --no-trunc "$1" | awk "{if (\$2 == \"$2\") print \$3}"
 }
