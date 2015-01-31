@@ -24,6 +24,14 @@ cat > $payload <&0
 
 start_docker
 
+username=$(jq -r '.source.username // ""' < $payload)
+password=$(jq -r '.source.password // ""' < $payload)
+email=$(jq -r '.source.email // ""' < $payload)
+
+if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
+  docker login -u "${username}" -p "${password}" -e "${email}"
+fi
+
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
