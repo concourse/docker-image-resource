@@ -8,6 +8,8 @@ exec 1>&2 # redirect all output to stderr for logging
 
 source $(dirname $0)/common.bash
 
+curl_opts="--fail" # make curl return non-zero exit code if request fails
+
 # for jq
 PATH=/usr/local/bin:$PATH
 
@@ -23,13 +25,20 @@ if [ -z "$repository" ]; then
   exit 1
 fi
 
+username=$(jq -r '.source.username // ""' < $payload)
+password=$(jq -r '.source.password // ""' < $payload)
+
+if [ -n "${username}" ] && [ -n "${password}" ]; then
+  curl_opts="${curl_opts} -u ${username}:${password}"
+fi
+
 tags=$(mktemp /tmp/resource-in-tags.XXXXXX)
-curl "https://index.docker.io/v1/repositories/${repository}/tags" > $tags
+curl ${curl_opts} "https://index.docker.io/v1/repositories/${repository}/tags" > $tags
 
 shortened_image=$(jq -r "map(select(.name == $(echo $tag | jq -R .)))[].layer" < $tags)
 
 all_images=$(mktemp /tmp/resource-in-tags.XXXXXX)
-curl "https://index.docker.io/v1/repositories/${repository}/images" > $all_images
+curl ${curl_opts} "https://index.docker.io/v1/repositories/${repository}/images" > $all_images
 
 latest_image=$(jq -r "map(select(.id | startswith($(echo $shortened_image | jq -R .))))[0].id" < $all_images)
 
