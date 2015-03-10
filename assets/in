@@ -35,15 +35,10 @@ fi
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
-build=$(jq -r '.params.build // ""' < $payload)
 
-if [ -n "$build" ]; then
-  docker build -t "${repository}:${tag}" "$build"
-else
-  echo -n "pulling ${repository}:${tag}"
-  docker pull "${repository}:${tag}" | while read line; do echo -n .; done
-  echo
-fi
+echo -n "pulling ${repository}:${tag}"
+docker pull "${repository}:${tag}" | while read line; do echo -n .; done
+echo
 
 image=$(docker_image "$repository" "$tag")
 if [ -z "$image" ]; then
