@@ -41,6 +41,8 @@ The following files will be placed in the destination:
 
 #### Parameters
 
+* `build`: *Optional.* The path of a directory containing a `Dockerfile` to build.
+
 * `rootfs`: *Optional.* Place a `.tar` file of the image in the destination.
 
 
