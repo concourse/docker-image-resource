@@ -56,6 +56,8 @@ load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 
+push="$(jq -r '.params.push' < $payload)"
+rootfs="$(jq -r '.params.rootfs' < $payload)"
 
 if [ -n "$build" ]; then
   docker build -t "${repository}:${tag}" "$build"
@@ -73,9 +75,16 @@ else
   exit 1
 fi
 
-docker push "${repository}:${tag}"
-
 image=$(docker_image "$repository" "$tag")
+
+if [ "$rootfs" = "true" ]; then
+  docker run --cidfile=container.cid "$image" echo container created
+  docker export $(cat container.cid) > ${destination}/rootfs.tar
+fi
+
+if [ "$push" = "null" ] || [ "$push" = "true" ]; then
+  docker push "${repository}:${tag}"
+fi
 
 jq -n "{
   version: {

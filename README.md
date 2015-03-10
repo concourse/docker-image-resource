@@ -37,7 +37,8 @@ The following files will be placed in the destination:
 * `/repository`: The name of the repository that was fetched.
 * `/tag`: The tag of the repository that was fetched.
 * `/image-id`: The fetched image ID.
-* `/rootfs.tar`: If `rootfs` is `true`, the contents of the image will be provided here.
+* `/rootfs.tar`: If `rootfs` is `true`, the contents of the image will be
+provided here.
 
 #### Parameters
 
@@ -50,6 +51,11 @@ Push a Docker image to the source's repository and tag. The resulting
 version is the iamge's ID.
 
 #### Parameters
+
+* `push`: *Optional.* Default `true`. Push the image to the Docker index.
+
+* `rootfs`: *Optional.* Default `false`. Place a `.tar` file of the image in the
+destination.
 
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
 build.
