@@ -48,7 +48,7 @@ provided here.
 ### `out`: Push an image, or build and push a `Dockerfile`.
 
 Push a Docker image to the source's repository and tag. The resulting
-version is the iamge's ID.
+version is the image's ID.
 
 #### Parameters
 
