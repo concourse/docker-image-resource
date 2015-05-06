@@ -27,7 +27,7 @@ repository. If it's different from the current version, it is returned.
 ### `in`: Fetch the image from the registry.
 
 Pulls down the repository from the registry. Note that there's no way to
-fetch an image by ID from the Docker regstry, which makes the version
+fetch an image by ID from the Docker registry, which makes the version
 requested irrelevant. Instead, `in` returns the ID of the image that it
 ended up fetching as the version.
 
