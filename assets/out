@@ -30,12 +30,9 @@ username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
 
-if [ -z "$username" ] || [ -z "$password" ] || [ -z "$email" ]; then
-  echo "must specify username, password, and email"
-  exit 1
+if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
+  docker login -u "${username}" -p "${password}" -e "${email}"
 fi
-
-docker login -u "$username" -p "$password" -e "$email"
 
 repository=$(jq -r '.source.repository // ""' < $payload)
 tag=$(jq -r '.source.tag // "latest"' < $payload)
