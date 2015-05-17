@@ -35,8 +35,17 @@ if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
 fi
 
 repository=$(jq -r '.source.repository // ""' < $payload)
-tag=$(jq -r '.params.tag // ""' < $payload)
+tag_source=$(jq -r '.source.tag // ""' < $payload)
+tag_params=$(jq -r '.params.tag // ""' < $payload)
+
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
+
+tag=""
+if [ -n "$tag_params" ]; then
+  tag=$tag_params
+elif [ -n "$tag_source" ]; then
+  tag=$tag_source
+fi
 
 if [ -n "$tag" ] && [ ! -f "$tag" ]; then
   echo "tag file '$tag' does not exist"
