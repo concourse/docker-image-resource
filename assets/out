@@ -35,7 +35,20 @@ if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
 fi
 
 repository=$(jq -r '.source.repository // ""' < $payload)
-tag=$(jq -r '.source.tag // "latest"' < $payload)
+tag=$(jq -r '.params.tag // ""' < $payload)
+tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
+
+if [ -n "$tag" ] && [ ! -f "$tag" ]; then
+  echo "tag file '$tag' does not exist"
+  exit 1
+fi
+
+tag_name=""
+if [ -n "$tag" ]; then
+  tag_name="${tag_prefix}$(cat $tag)"
+else
+  tag_name="latest"
+fi
 
 if [ -z "$repository" ]; then
   echo "must specify repository"
@@ -57,22 +70,22 @@ push="$(jq -r '.params.push' < $payload)"
 rootfs="$(jq -r '.params.rootfs' < $payload)"
 
 if [ -n "$build" ]; then
-  docker build -t "${repository}:${tag}" "$build"
+  docker build -t "${repository}:${tag_name}" "$build"
 elif [ -n "$load" ]; then
   docker load -i "${load}/image"
-  docker tag "$(cat ${load}/image-id)" "${repository}:${tag}"
+  docker tag "$(cat ${load}/image-id)" "${repository}:${tag_name}"
 elif [ -n "$load_file" ]; then
   docker load -i $load_file
-  docker tag "${load_repository}:${load_tag}" "${repository}:${tag}"
+  docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
 elif [ -n "$pull_repository" ]; then
   docker pull "${pull_repository}:${pull_tag}"
-  docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag}"
+  docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag_name}"
 else
   echo "must specify build or image param"
   exit 1
 fi
 
-image=$(docker_image "$repository" "$tag")
+image=$(docker_image "$repository" "${tag_name}")
 
 if [ "$rootfs" = "true" ]; then
   docker run --cidfile=container.cid "$image" echo container created
@@ -80,7 +93,7 @@ if [ "$rootfs" = "true" ]; then
 fi
 
 if [ "$push" = "null" ] || [ "$push" = "true" ]; then
-  docker push "${repository}:${tag}"
+  docker push "${repository}:${tag_name}"
 fi
 
 jq -n "{
