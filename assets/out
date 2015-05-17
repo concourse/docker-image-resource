@@ -40,21 +40,15 @@ tag_params=$(jq -r '.params.tag // ""' < $payload)
 
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 
-tag=""
-if [ -n "$tag_params" ]; then
-  tag=$tag_params
-elif [ -n "$tag_source" ]; then
-  tag=$tag_source
-fi
-
-if [ -n "$tag" ] && [ ! -f "$tag" ]; then
-  echo "tag file '$tag' does not exist"
-  exit 1
-fi
-
 tag_name=""
-if [ -n "$tag" ]; then
-  tag_name="${tag_prefix}$(cat $tag)"
+if [ -n "$tag_params" ]; then
+  if [ ! -f "$tag_params" ]; then
+    echo "tag file '$tag_params' does not exist"
+    exit 1
+  fi
+  tag_name="${tag_prefix}$(cat $tag_params)"
+elif [ -n "$tag_source" ]; then
+  tag_name="$tag_source"
 else
   tag_name="latest"
 fi
