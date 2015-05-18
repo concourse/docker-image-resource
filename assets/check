@@ -33,13 +33,16 @@ if [ -n "${username}" ] && [ -n "${password}" ]; then
   curl_opts="${curl_opts} -u ${username}:${password}"
 fi
 
+protocol=$(jq -r 'if .source | has("registry") then "http" else "https" end' < $payload)
+uri_root="${protocol}://${registry}"
+
 tags=$(mktemp /tmp/resource-in-tags.XXXXXX)
-curl ${curl_opts} "https://index.docker.io/v1/repositories/${repository}/tags" > $tags
+curl ${curl_opts} "${uri_root}/v1/repositories/${repository}/tags" > $tags
 
 shortened_image=$(jq -r "map(select(.name == $(echo $tag | jq -R .)))[].layer" < $tags)
 
 all_images=$(mktemp /tmp/resource-in-tags.XXXXXX)
-curl ${curl_opts} "https://index.docker.io/v1/repositories/${repository}/images" > $all_images
+curl ${curl_opts} "${uri_root}/v1/repositories/${repository}/images" > $all_images
 
 latest_image=$(jq -r "map(select(.id | startswith($(echo $shortened_image | jq -R .))))[0].id" < $all_images)
 
