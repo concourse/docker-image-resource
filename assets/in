@@ -22,7 +22,9 @@ payload=$(mktemp /tmp/resource-in.XXXXXX)
 
 cat > $payload <&0
 
-start_docker
+extra_args=$(jq -r '.source.extra_args // ""' < $payload)
+
+start_docker "$extra_args"
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)

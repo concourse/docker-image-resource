@@ -17,7 +17,7 @@ start_docker() {
   mkdir -p /var/lib/docker
   mount -t tmpfs -o size=10G none /var/lib/docker
 
-  docker -d >/dev/null 2>&1 &
+  docker $1 -d >/dev/null 2>&1 &
 
   sleep 1
 
