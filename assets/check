@@ -16,6 +16,7 @@ PATH=/usr/local/bin:$PATH
 payload=$(mktemp /tmp/resource-in.XXXXXX)
 cat > $payload <&0
 
+registry=$(jq -r '.source.registry // "registry.hub.docker.com"' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 image="$(jq -r '.version.image // ""' < $payload)"
