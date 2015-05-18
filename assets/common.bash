@@ -13,7 +13,15 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
-  docker $1 -d >/dev/null 2>&1 &
+  local server_args="${1}"
+
+  if [ $(jq -r '.source | has("registry")') = "true" ]; then
+    local registry=$(jq -r '.source.registry' < "${payload}")
+
+    server_args="${server_args} --insecure-registry ${registry}"
+  fi
+
+  docker ${server_args} -d >/dev/null 2>&1 &
 
   sleep 1
 
