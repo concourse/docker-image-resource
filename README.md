@@ -15,6 +15,8 @@ Tracks and builds [Docker](https://docker.io) images.
 
 * `email`: *Optional.* The email to use when authenticating.
 
+* `server_args`: *Optional.* Additional arguments to be passed during Docker daemon start.
+
 
 ## Behavior
 
