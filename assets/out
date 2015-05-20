@@ -24,7 +24,9 @@ cat > $payload <&0
 
 cd $source
 
-start_docker
+server_args=$(jq -r '.source.server_args // ""' < $payload)
+
+start_docker "$server_args"
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
