@@ -68,6 +68,8 @@ load_file=$(jq -r '.params.load_file // ""' < $payload)
 load_repository=$(jq -r '.params.load_repository // ""' < $payload)
 load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
 
+import_file=$(jq -r '.params.import_file // ""' < $payload)
+
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 
@@ -82,6 +84,8 @@ elif [ -n "$load" ]; then
 elif [ -n "$load_file" ]; then
   docker load -i $load_file
   docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
+elif [ -n "$import_file" ]; then
+  cat $import_file | docker import - "${repository}:${tag_name}"
 elif [ -n "$pull_repository" ]; then
   docker pull "${pull_repository}:${pull_tag}"
   docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag_name}"
