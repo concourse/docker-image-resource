@@ -64,6 +64,8 @@ build.
 
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
 
+* `import_file`: *Optional.* A path to a file to `docker import` and then push.
+
 * `pull_repository`: *Optional.* A path to a repository to pull down, and
 then push to this resource.  
 
