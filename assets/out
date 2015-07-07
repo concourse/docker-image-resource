@@ -61,6 +61,7 @@ if [ -z "$repository" ]; then
 fi
 
 build=$(jq -r '.params.build // ""' < $payload)
+cache=$(jq -r '.params.cache // "true"' < $payload)
 
 load=$(jq -r '.params.load // ""' < $payload)
 
@@ -77,6 +78,7 @@ push="$(jq -r '.params.push' < $payload)"
 rootfs="$(jq -r '.params.rootfs' < $payload)"
 
 if [ -n "$build" ]; then
+  if [ "$cache" = "true" ]; then docker_pull "${repository}:${tag_name}"; fi
   docker build -t "${repository}:${tag_name}" "$build"
 elif [ -n "$load" ]; then
   docker load -i "${load}/image"

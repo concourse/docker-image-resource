@@ -62,6 +62,10 @@ destination.
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
 build.
 
+* `cache`: *Optional.* Default `true`. When the `build` parameter is set, first
+pull `image:tag` from the Docker registry (so as to use cached intermediate
+images when building).
+
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
 
 * `import_file`: *Optional.* A path to a file to `docker import` and then push.

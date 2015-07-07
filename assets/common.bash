@@ -30,3 +30,27 @@ start_docker() {
 docker_image() {
   docker images --no-trunc "$1" | awk "{if (\$2 == \"$2\") print \$3}"
 }
+
+docker_pull() {
+  GREEN='\033[0;32m'
+  RED='\033[0;31m'
+  NC='\033[0m' # No Color
+  printf "Attempting to pull ${GREEN}%s${NC}...\n" "$1"
+
+  set +e
+  pull_attempts=0
+  while [ "$pull_attempts" -lt 3 ]; do
+    echo
+    pull_attempts=$(expr "$pull_attempts" + 1)
+    docker pull "$1"
+
+    if [ "$?" -eq "0" ]; then
+      printf "\nSuccessfully pulled ${GREEN}%s${NC}.\n\n" "$1"
+      set -e
+      return
+    fi
+  done
+
+  printf "\n${RED}Failed to pull image %s." "$1"
+  exit 1
+}
