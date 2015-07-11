@@ -13,10 +13,6 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
-  # docker graph dir
-  mkdir -p /var/lib/docker
-  mount -t tmpfs -o size=10G none /var/lib/docker
-
   docker $1 -d >/dev/null 2>&1 &
 
   sleep 1
