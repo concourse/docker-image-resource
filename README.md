@@ -56,23 +56,26 @@ version is the image's ID.
 
 * `push`: *Optional.* Default `true`. Push the image to the Docker index.
 
-* `rootfs`: *Optional.* Default `false`. Place a `.tar` file of the image in the
-destination.
+* `rootfs`: *Optional.* Default `false`. Place a `.tar` file of the image in
+  the destination.
 
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
-build.
+  build.
 
-* `cache`: *Optional.* Default `true`. When the `build` parameter is set, first
-pull `image:tag` from the Docker registry (so as to use cached intermediate
-images when building).
+* `cache`: *Optional.* Default `false`. When the `build` parameter is set,
+  first pull `image:tag` from the Docker registry (so as to use cached
+  intermediate images when building).
 
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
 
 * `import_file`: *Optional.* A path to a file to `docker import` and then push.
 
-* `pull_repository`: *Optional.* A path to a repository to pull down, and
-then push to this resource.  
+* `pull_repository`: *Optional.* A path to a repository to pull down, and then
+  push to this resource.
 
-* `tag`: *Optional.* The value should be a path to a file containing the name of the tag.
+* `tag`: *Optional.* The value should be a path to a file containing the name
+  of the tag.
 
-* `tag_prefix`: *Optional.* If specified, the tag read from the file will be prepended with this string. This is useful for adding `v` in front of version numbers.
+* `tag_prefix`: *Optional.* If specified, the tag read from the file will be
+  prepended with this string. This is useful for adding `v` in front of version
+  numbers.
