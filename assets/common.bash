@@ -31,22 +31,28 @@ docker_pull() {
   GREEN='\033[0;32m'
   RED='\033[0;31m'
   NC='\033[0m' # No Color
-  printf "Attempting to pull ${GREEN}%s${NC}...\n" "$1"
 
-  set +e
-  pull_attempts=0
-  while [ "$pull_attempts" -lt 3 ]; do
-    echo
-    pull_attempts=$(expr "$pull_attempts" + 1)
-    docker pull "$1"
+  pull_attempt=1
+  max_attempts=3
+  while [ "$pull_attempt" -lt "$max_attempts" ]; do
+    printf "Pulling ${GREEN}%s${NC}" "$1"
 
-    if [ "$?" -eq "0" ]; then
+    if [ "$pull_attempt" != "1" ]; then
+      printf " (attempt %s of %s)" "$pull_attempt" "$max_attempts"
+    fi
+
+    printf "...\n"
+
+    if docker pull "$1"; then
       printf "\nSuccessfully pulled ${GREEN}%s${NC}.\n\n" "$1"
-      set -e
       return
     fi
+
+    echo
+
+    pull_attempt=$(expr "$pull_attempt" + 1)
   done
 
-  printf "\n${RED}Failed to pull image %s." "$1"
+  printf "\n${RED}Failed to pull image %s.${NC}" "$1"
   exit 1
 }
