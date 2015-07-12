@@ -61,7 +61,7 @@ if [ -z "$repository" ]; then
 fi
 
 build=$(jq -r '.params.build // ""' < $payload)
-cache=$(jq -r '.params.cache // "false"' < $payload)
+cache=$(jq -r '.params.cache' < $payload)
 
 load=$(jq -r '.params.load // ""' < $payload)
 
