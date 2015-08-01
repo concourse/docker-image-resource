@@ -15,7 +15,7 @@ start_docker() {
 
   local server_args="${1}"
 
-  if [ $(jq -r '.source | has("registry")') = "true" ]; then
+  if [ "$(jq -r '.source | has("registry")' < "${payload}")" = "true" ]; then
     local registry=$(jq -r '.source.registry' < "${payload}")
 
     server_args="${server_args} --insecure-registry ${registry}"
