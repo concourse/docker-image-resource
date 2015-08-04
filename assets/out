@@ -28,17 +28,21 @@ server_args=$(jq -r '.source.server_args // ""' < $payload)
 
 start_docker "$server_args"
 
-registry=$(jq -r '.source.registry // "registry.hub.docker.com"' < $payload)
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
 
-if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
-  docker login -u "${username}" -p "${password}" -e "${email}"
+repository=$(jq -r '.source.repository // ""' < $payload)
+if private_registry "${repository}" ; then
+  registry="$(extract_registry "${repository}")"
+else
+  registry=
 fi
 
-repository=$(jq -r '.source.repository // ""' < $payload)
-repository="${registry}/${repository}"
+if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
+  docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
+fi
+
 tag_source=$(jq -r '.source.tag // ""' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
 

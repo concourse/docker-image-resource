@@ -15,8 +15,9 @@ start_docker() {
 
   local server_args="${1}"
 
-  if [ "$(jq -r '.source | has("registry")' < "${payload}")" = "true" ]; then
-    local registry=$(jq -r '.source.registry' < "${payload}")
+  local repository=$(jq -r '.source.repository // ""' < $payload)
+  if private_registry "${repository}" ; then
+    local registry="$(extract_registry "${repository}")"
 
     server_args="${server_args} --insecure-registry ${registry}"
   fi
@@ -29,6 +30,31 @@ start_docker() {
     echo waiting for docker to come up...
     sleep 1
   done
+}
+
+private_registry() {
+  local repository="${1}"
+
+  if echo "${repository}" | fgrep -q '/' ; then
+    local registry="$(extract_registry "${repository}")"
+    if echo "${registry}" | fgrep -q '.' ; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+extract_registry() {
+  local repository="${1}"
+
+  echo "${repository}" | cut -d/ -f1
+}
+
+extract_repository() {
+  local long_repository="${1}"
+
+  echo "${long_repository}" | cut -d/ -f2
 }
 
 docker_image() {
