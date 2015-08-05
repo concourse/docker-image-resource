@@ -54,7 +54,7 @@ extract_registry() {
 extract_repository() {
   local long_repository="${1}"
 
-  echo "${long_repository}" | cut -d/ -f2
+  echo "${long_repository}" | cut -d/ -f2-
 }
 
 docker_image() {
