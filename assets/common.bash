@@ -13,7 +13,16 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
-  docker $1 -d >/dev/null 2>&1 &
+  local server_args="${1}"
+
+  local repository=$(jq -r '.source.repository // ""' < $payload)
+  if private_registry "${repository}" ; then
+    local registry="$(extract_registry "${repository}")"
+
+    server_args="${server_args} --insecure-registry ${registry}"
+  fi
+
+  docker ${server_args} -d >/dev/null 2>&1 &
 
   sleep 1
 
@@ -21,6 +30,31 @@ start_docker() {
     echo waiting for docker to come up...
     sleep 1
   done
+}
+
+private_registry() {
+  local repository="${1}"
+
+  if echo "${repository}" | fgrep -q '/' ; then
+    local registry="$(extract_registry "${repository}")"
+    if echo "${registry}" | fgrep -q '.' ; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+extract_registry() {
+  local repository="${1}"
+
+  echo "${repository}" | cut -d/ -f1
+}
+
+extract_repository() {
+  local long_repository="${1}"
+
+  echo "${long_repository}" | cut -d/ -f2-
 }
 
 docker_image() {
