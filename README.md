@@ -45,6 +45,7 @@ provided here.
 #### Parameters
 
 * `rootfs`: *Optional.* Place a `.tar` file of the image in the destination.
+* `skip_download`: *Optional.* Skip `docker pull` of image. Only `/image-id`, `/repo sitory`, and `/tag` will be populated. `/image` and `/rootfs.tar` will not be present.
 
 
 ### `out`: Push an image, or build and push a `Dockerfile`.
