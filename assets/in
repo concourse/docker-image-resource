@@ -37,22 +37,39 @@ fi
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
-
-docker_pull "${repository}:${tag}"
-
-image=$(docker_image "$repository" "$tag")
-if [ -z "$image" ]; then
-  echo "failed to determine image id :("
-  exit 1
-fi
+skip_download="$(jq -r '.params.skip_download // false' < $payload)"
 
 mkdir -p $destination
 
-docker save -o ${destination}/image "$image"
+if [ "$skip_download" = "false" ]; then
+  docker_pull "${repository}:${tag}"
 
-if [ "$rootfs" = "true" ]; then
-  docker run --cidfile=container.cid "$image" echo container created
-  docker export $(cat container.cid) > ${destination}/rootfs.tar
+  image=$(docker_image "$repository" "$tag")
+  if [ -z "$image" ]; then
+    echo "failed to determine image id :("
+    exit 1
+  fi
+
+  docker save -o ${destination}/image "$image"
+
+  if [ "$rootfs" = "true" ]; then
+    docker run --cidfile=container.cid "$image" echo container created
+    docker export $(cat container.cid) > ${destination}/rootfs.tar
+  fi
+else
+  if private_registry "${repository}"
+  then
+    registry=$(extract_registry $repository)
+    repository=$(extract_repository $repository)
+    json_selector="."
+  else
+    registry="registry.hub.docker.com"
+    json_selector=".[0].id"
+  fi
+
+  echo "Downloading ${repository}:${tag} metadata from ${registry}..."
+  image=$(curl -s -X GET http://${registry}/v1/repositories/${repository}/tags/${tag} | jq "$json_selector" | tr -d '"')
+  echo "Done"
 fi
 
 echo "$repository" > ${destination}/repository
