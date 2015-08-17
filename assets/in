@@ -41,8 +41,7 @@ skip_download="$(jq -r '.params.skip_download // false' < $payload)"
 
 mkdir -p $destination
 
-if ! $skip_download
-then
+if [ "$skip_download" = "false" ]; then
   docker_pull "${repository}:${tag}"
 
   image=$(docker_image "$repository" "$tag")
