@@ -82,3 +82,28 @@ version is the image's ID.
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
+
+## Example Configuration
+
+``` yaml
+- name: machine-image
+  type: docker-image
+  source:
+    email: docker@example.com
+    username: username
+    password: password
+```
+
+### Resource
+
+``` yaml
+  - get: git-resource
+  - put: machine-image
+    params:
+      build: git-resource
+    get_params:
+      rootfs: true
+```
+
+
+### Plan
