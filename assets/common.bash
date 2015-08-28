@@ -68,7 +68,7 @@ docker_pull() {
 
   pull_attempt=1
   max_attempts=3
-  while [ "$pull_attempt" -lt "$max_attempts" ]; do
+  while [ "$pull_attempt" -le "$max_attempts" ]; do
     printf "Pulling ${GREEN}%s${NC}" "$1"
 
     if [ "$pull_attempt" != "1" ]; then
