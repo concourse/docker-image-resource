@@ -89,6 +89,7 @@ version is the image's ID.
 - name: machine-image
   type: docker-image
   source:
+    repository: concourse/some-image
     email: docker@example.com
     username: username
     password: password
