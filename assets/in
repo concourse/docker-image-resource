@@ -29,12 +29,18 @@ start_docker "$server_args"
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
+repository="$(jq -r '.source.repository // ""' < $payload)"
 
-if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
-  docker login -u "${username}" -p "${password}" -e "${email}"
+if private_registry "${repository}" ; then
+  registry="$(extract_registry "${repository}")"
+else
+  registry=
 fi
 
-repository="$(jq -r '.source.repository // ""' < $payload)"
+if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
+  docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
+fi
+
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
