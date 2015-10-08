@@ -56,7 +56,7 @@ if [ "$skip_download" = "false" ]; then
     exit 1
   fi
 
-  docker save -o ${destination}/image "$image"
+  docker save -o ${destination}/image "${repository}:${tag}"
 
   if [ "$rootfs" = "true" ]; then
     docker run --cidfile=container.cid "$image" echo container created
