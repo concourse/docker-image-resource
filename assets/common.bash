@@ -45,6 +45,23 @@ private_registry() {
   return 1
 }
 
+find_protocol() {
+  local registry=$1
+  
+  https=`curl -k -I https://${registry}/v1/_ping 2>/dev/null | head -n 1 | cut -d$' ' -f2`
+  if [[ https == "200" ]]; then
+    echo "https"
+  else
+    http=`curl -k -I http://${registry}/v1/_ping 2>/dev/null | head -n 1 | cut -d$' ' -f2`
+    if [[ http == "200" ]]; then
+      echo "http"
+    else
+      echo "Failed to ping registry"
+      exit 1
+    fi
+  fi
+}
+
 extract_registry() {
   local repository="${1}"
 

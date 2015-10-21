@@ -35,12 +35,11 @@ fi
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
   repository="$(extract_repository "${repository}")"
-  protocol=http
 else
   registry=registry.hub.docker.com
-  protocol=https
 fi
 
+protocol="$(find_protocol "${registry}")"
 uri_root="${protocol}://${registry}"
 
 tags=$(mktemp /tmp/resource-in-tags.XXXXXX)

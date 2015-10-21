@@ -74,7 +74,8 @@ else
   fi
 
   echo "downloading ${repository_name}:${tag} metadata from ${registry_api}..."
-  image=$(curl -s -X GET http://${registry_api}/v1/repositories/${repository_name}/tags/${tag} | jq "$json_selector" | tr -d '"')
+  protocol="$(find_protocol "$registry_api")"
+  image=$(curl -s -X GET ${protocol}://${registry_api}/v1/repositories/${repository_name}/tags/${tag} | jq "$json_selector" | tr -d '"')
   echo "done"
 fi
 
