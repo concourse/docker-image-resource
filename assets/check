@@ -19,6 +19,7 @@ cat > $payload <&0
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 image="$(jq -r '.version.image // ""' < $payload)"
+server_args=$(jq -r '.source.server_args // ""' < $payload)
 
 if [ -z "$repository" ]; then
   echo "must specify repository"
@@ -37,6 +38,10 @@ if private_registry "${repository}" ; then
   repository="$(extract_repository "${repository}")"
 else
   registry=registry.hub.docker.com
+fi
+
+if [[ "$server_args" == *"--insecure-registry=bosh.getlocalmotion.com"* ]]; then
+  curl_opts="${curl_opts} -k"
 fi
 
 protocol="$(find_protocol "${registry}")"
