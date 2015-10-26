@@ -85,6 +85,8 @@ version is the image's ID.
 
 ## Example Configuration
 
+### Resource
+
 ``` yaml
 - name: machine-image
   type: docker-image
@@ -95,7 +97,8 @@ version is the image's ID.
     password: password
 ```
 
-### Resource
+
+### Plan
 
 ``` yaml
   - get: git-resource
@@ -105,6 +108,3 @@ version is the image's ID.
     get_params:
       rootfs: true
 ```
-
-
-### Plan
