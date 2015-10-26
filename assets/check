@@ -40,7 +40,7 @@ else
   registry=registry.hub.docker.com
 fi
 
-if [[ "$server_args" == *"--insecure-registry=bosh.getlocalmotion.com"* ]]; then
+if [[ "$server_args" == *"--insecure-registry="* ]]; then
   curl_opts="${curl_opts} -k"
 fi
 
@@ -50,12 +50,15 @@ uri_root="${protocol}://${registry}"
 tags=$(mktemp /tmp/resource-in-tags.XXXXXX)
 curl ${curl_opts} "${uri_root}/v1/repositories/${repository}/tags" > $tags
 
-shortened_image=$(jq -r "map(select(.name == $(echo $tag | jq -R .)))[].layer" < $tags)
+shortened_image=$(jq -r "try map(select(.name == $(echo $tag | jq -R .)))[].layer" < $tags)
 
-all_images=$(mktemp /tmp/resource-in-tags.XXXXXX)
-curl ${curl_opts} "${uri_root}/v1/repositories/${repository}/images" > $all_images
-
-latest_image=$(jq -r "map(select(.id | startswith($(echo $shortened_image | jq -R .))))[0].id // \"\"" < $all_images)
+if [[ -n shortend_image ]]; then
+  all_images=$(mktemp /tmp/resource-in-tags.XXXXXX)
+  curl ${curl_opts} "${uri_root}/v1/repositories/${repository}/images" > $all_images
+  latest_image=$(jq -r "map(select(.id | startswith($(echo $shortened_image | jq -R .))))[0].id // \"\"" < $all_images)
+else
+  latest_image=$(jq -r "$(echo $tag) | jq -R .")
+fi
 
 if [ -z "$latest_image"] && ! [ -z "$shortened_image" ]; then
   echo "failed to expand image id. :("
