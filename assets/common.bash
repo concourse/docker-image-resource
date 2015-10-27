@@ -49,11 +49,11 @@ find_protocol() {
   local registry=$1
   
   https=`curl -k -I https://${registry}/v1/_ping 2>/dev/null | head -n 1 | cut -d$' ' -f2`
-  if [[ $https == 200 ]]; then
+  if [[ $https == "200" ]]; then
     echo "https"
   else
     http=`curl -k -I http://${registry}/v1/_ping 2>/dev/null | head -n 1 | cut -d$' ' -f2`
-    if [[ $http == 200 ]]; then
+    if [[ $http == "200" ]]; then
       echo "http"
     else
       echo "Failed to ping registry"
@@ -72,6 +72,20 @@ extract_repository() {
   local long_repository="${1}"
 
   echo "${long_repository}" | cut -d/ -f2-
+}
+
+docker_login() {
+  local auth=$(echo -n "$1:$2" | base64)
+  local email=$3
+  jq -n "{
+    auths: {
+      \"${4}\": {
+        auth: \"${auth}\",
+        email: \"${email}\"
+      }
+    }
+  }" > ~/.docker/config.json
+  cat ~/.docker/config.json
 }
 
 docker_image() {

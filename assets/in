@@ -45,7 +45,7 @@ mkdir -p $destination
 
 if [ "$skip_download" = "false" ]; then
   if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
-    docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
+    docker_login "${username}" "${password}" "${email}" ${registry}
   fi
 
   docker_pull "${repository}:${tag}"
