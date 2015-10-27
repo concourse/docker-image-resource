@@ -40,7 +40,7 @@ else
 fi
 
 if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
-  docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
+  docker_login "${username}" "${password}" "${email}" "${registry}"
 fi
 
 tag_source=$(jq -r '.source.tag // ""' < $payload)
