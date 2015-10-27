@@ -75,8 +75,9 @@ extract_repository() {
 }
 
 docker_login() {
-  local auth=$(echo -n "$1:$2" | base64)
+  local auth=$(echo -n "$1:$2" | uuencode -m /dev/stdout | sed '2q;d')
   local email=$3
+  mkdir -p ~/.docker
   jq -n "{
     auths: {
       \"${4}\": {
@@ -85,7 +86,6 @@ docker_login() {
       }
     }
   }" > ~/.docker/config.json
-  cat ~/.docker/config.json
 }
 
 docker_image() {
