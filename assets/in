@@ -63,19 +63,7 @@ if [ "$skip_download" = "false" ]; then
     docker export $(cat container.cid) > ${destination}/rootfs.tar
   fi
 else
-  if [ -z "${registry}" ]; then
-    registry_api="registry.hub.docker.com"
-    repository_name="${repository}"
-    json_selector=".[0].id"
-  else
-    registry_api="${registry}"
-    repository_name=$(extract_repository $repository)
-    json_selector="."
-  fi
-
-  echo "downloading ${repository_name}:${tag} metadata from ${registry_api}..."
-  image=$(curl -s -X GET http://${registry_api}/v1/repositories/${repository_name}/tags/${tag} | jq "$json_selector" | tr -d '"')
-  echo "done"
+  image="$(jq -r '.version.image' < $payload)"
 fi
 
 echo "$repository" > ${destination}/repository
