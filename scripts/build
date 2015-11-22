@@ -1,7 +1,0 @@
-#!/bin/sh
-
-cd $(dirname $0)/..
-
-export GOPATH=$PWD/Godeps/_workspace:$GOPATH
-
-go build -o ./assets/check ./cmd/check/
