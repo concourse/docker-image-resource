@@ -22,9 +22,9 @@ payload=$(mktemp /tmp/resource-in.XXXXXX)
 
 cat > $payload <&0
 
-server_args=$(jq -r '.source.server_args // ""' < $payload)
+insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $payload)
 
-start_docker "$server_args"
+start_docker "$insecure_registries"
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
@@ -37,44 +37,41 @@ else
   registry=
 fi
 
-tag="$(jq -r '.source.tag // "latest"' < $payload)"
+digest="$(jq -r '.version.digest' < $payload)"
+
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
 
 mkdir -p $destination
+
+image_name="${repository}@${digest}"
 
 if [ "$skip_download" = "false" ]; then
   if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
     docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
   fi
 
-  docker_pull "${repository}:${tag}"
+  docker_pull "$image_name"
 
-  image=$(docker_image "$repository" "$tag")
-  if [ -z "$image" ]; then
-    echo "failed to determine image id :("
-    exit 1
-  fi
-
-  docker save -o ${destination}/image "${repository}:${tag}"
+  docker save -o ${destination}/image "$image_name"
 
   if [ "$rootfs" = "true" ]; then
-    docker run --cidfile=container.cid "$image" echo container created
+    docker run --cidfile=container.cid "$image_name" echo container created
     docker export $(cat container.cid) > ${destination}/rootfs.tar
   fi
-else
-  image="$(jq -r '.version.image' < $payload)"
 fi
+
+image_id="$(docker_image "$repository" "$tag")"
 
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
-echo "$image" > ${destination}/image-id
+echo "$image_id" > ${destination}/image-id
 
 jq -n "{
   version: {
-    image: $(echo $image | jq -R .)
+    digest: $(echo $digest | jq -R .)
   },
   metadata: [
-    { name: \"image\", value: $(echo $image | head -c 12 | jq -R .) }
+    { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
   ]
 }" >&3

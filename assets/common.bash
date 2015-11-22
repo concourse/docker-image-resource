@@ -13,14 +13,12 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
-  local server_args="${1}"
+  local server_args=""
 
   local repository=$(jq -r '.source.repository // ""' < $payload)
-  if private_registry "${repository}" ; then
-    local registry="$(extract_registry "${repository}")"
-
+  for registry in $1; do
     server_args="${server_args} --insecure-registry ${registry}"
-  fi
+  done
 
   docker ${server_args} -d >/dev/null 2>&1 &
 
