@@ -37,6 +37,7 @@ The following files will be placed in the destination:
 * `/repository`: The name of the repository that was fetched.
 * `/tag`: The tag of the repository that was fetched.
 * `/image-id`: The fetched image ID.
+* `/digest`: The fetched image digest.
 * `/rootfs.tar`: If `rootfs` is `true`, the contents of the image will be
   provided here.
 

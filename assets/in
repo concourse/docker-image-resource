@@ -67,6 +67,7 @@ image_id="$(image_from_digest "$repository" "$digest")"
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
 echo "$image_id" > ${destination}/image-id
+echo "$digest" > ${destination}/digest
 
 jq -n "{
   version: {
