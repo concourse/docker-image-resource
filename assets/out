@@ -69,8 +69,6 @@ fi
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 
-load=$(jq -r '.params.load // ""' < $payload)
-
 load_base=$(jq -r '.params.load_base // ""' < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
@@ -82,7 +80,6 @@ import_file=$(jq -r '.params.import_file // ""' < $payload)
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 
-push="$(jq -r '.params.push' < $payload)"
 rootfs="$(jq -r '.params.rootfs' < $payload)"
 
 if [ -n "$load_base" ]; then
@@ -95,9 +92,6 @@ if [ -n "$build" ]; then
   fi
 
   docker build -t "${repository}:${tag_name}" "$build"
-elif [ -n "$load" ]; then
-  docker load -i "${load}/image"
-  docker tag "$(cat ${load}/image-id)" "${repository}:${tag_name}"
 elif [ -n "$load_file" ]; then
   docker load -i "$load_file"
   docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"

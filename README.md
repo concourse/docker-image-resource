@@ -15,23 +15,21 @@ Tracks and builds [Docker](https://docker.io) images.
 
 * `email`: *Optional.* The email to use when authenticating.
 
-* `server_args`: *Optional.* Additional arguments to be passed during Docker daemon start.
+* `insecure_registries`: *Optional.* An array of CIDRs or `host:port` addresses
+  to whitelist for insecure access (either `http` or unverified `https`).
 
 
 ## Behavior
 
 ### `check`: Check for new images.
 
-The current image ID is fetched from the registry for the given tag of the
+The current image digest is fetched from the registry for the given tag of the
 repository. If it's different from the current version, it is returned.
 
 
 ### `in`: Fetch the image from the registry.
 
-Pulls down the repository from the registry. Note that there's no way to
-fetch an image by ID from the Docker registry, which makes the version
-requested irrelevant. Instead, `in` returns the ID of the image that it
-ended up fetching as the version.
+Pulls down the repository image by the requested digest.
 
 The following files will be placed in the destination:
 
@@ -40,7 +38,7 @@ The following files will be placed in the destination:
 * `/tag`: The tag of the repository that was fetched.
 * `/image-id`: The fetched image ID.
 * `/rootfs.tar`: If `rootfs` is `true`, the contents of the image will be
-provided here.
+  provided here.
 
 #### Parameters
 
@@ -53,11 +51,9 @@ provided here.
 ### `out`: Push an image, or build and push a `Dockerfile`.
 
 Push a Docker image to the source's repository and tag. The resulting
-version is the image's ID.
+version is the image's digest.
 
 #### Parameters
-
-* `push`: *Optional.* Default `true`. Push the image to the Docker index.
 
 * `rootfs`: *Optional.* Default `false`. Place a `.tar` file of the image in
   the destination.
@@ -68,6 +64,10 @@ version is the image's ID.
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building).
+
+* `load_base`: *Optional.* A path to a file to `docker load` before running
+  `docker build`. This allows the base image to be passed in via another
+  `docker-image` resource.
 
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
 
