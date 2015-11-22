@@ -13,6 +13,9 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
+  mkdir -p /var/lib/docker
+  mount -t tmpfs -o size=100G none /var/lib/docker
+
   local server_args=""
 
   local repository=$(jq -r '.source.repository // ""' < $payload)
@@ -20,7 +23,7 @@ start_docker() {
     server_args="${server_args} --insecure-registry ${registry}"
   done
 
-  docker ${server_args} -d >/dev/null 2>&1 &
+  docker daemon ${server_args} >/dev/null 2>&1 &
 
   sleep 1
 
