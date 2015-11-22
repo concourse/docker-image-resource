@@ -62,7 +62,7 @@ if [ "$skip_download" = "false" ]; then
   fi
 fi
 
-image_id="$(docker_image "$repository" "$tag")"
+image_id="$(image_from_digest "$repository" "$digest")"
 
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag

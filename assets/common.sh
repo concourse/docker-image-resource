@@ -58,8 +58,12 @@ extract_repository() {
   echo "${long_repository}" | cut -d/ -f2-
 }
 
-docker_image() {
+image_from_tag() {
   docker images --no-trunc "$1" | awk "{if (\$2 == \"$2\") print \$3}"
+}
+
+image_from_digest() {
+  docker images --no-trunc "$1" | awk "{if (\$3 == \"$2\") print \$4}"
 }
 
 docker_pull() {

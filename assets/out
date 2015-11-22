@@ -105,7 +105,7 @@ else
   exit 1
 fi
 
-image_id="$(docker_image "$repository" "$tag_name")"
+image_id="$(image_from_tag "$repository" "$tag_name")"
 
 if [ "$rootfs" = "true" ]; then
   docker run --cidfile=container.cid "$image_id" echo container created
