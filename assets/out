@@ -71,6 +71,8 @@ cache=$(jq -r '.params.cache' < $payload)
 
 load=$(jq -r '.params.load // ""' < $payload)
 
+load_base=$(jq -r '.params.load_base // ""' < $payload)
+
 load_file=$(jq -r '.params.load_file // ""' < $payload)
 load_repository=$(jq -r '.params.load_repository // ""' < $payload)
 load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
@@ -83,6 +85,10 @@ pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 push="$(jq -r '.params.push' < $payload)"
 rootfs="$(jq -r '.params.rootfs' < $payload)"
 
+if [ -n "$load_base" ]; then
+  docker load -i "${load_base}"
+fi
+
 if [ -n "$build" ]; then
   if [ "$cache" = "true" ]; then
     docker_pull "${repository}:${tag_name}"
@@ -93,10 +99,10 @@ elif [ -n "$load" ]; then
   docker load -i "${load}/image"
   docker tag "$(cat ${load}/image-id)" "${repository}:${tag_name}"
 elif [ -n "$load_file" ]; then
-  docker load -i $load_file
+  docker load -i "$load_file"
   docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
 elif [ -n "$import_file" ]; then
-  cat $import_file | docker import - "${repository}:${tag_name}"
+  cat "$import_file" | docker import - "${repository}:${tag_name}"
 elif [ -n "$pull_repository" ]; then
   docker pull "${pull_repository}:${pull_tag}"
   docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag_name}"
