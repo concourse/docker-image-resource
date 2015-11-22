@@ -65,9 +65,9 @@ version is the image's digest.
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building).
 
-* `load_base`: *Optional.* A path to a file to `docker load` before running
-  `docker build`. This allows the base image to be passed in via another
-  `docker-image` resource.
+* `load_base`: *Optional.* A path to a directory containing an image to `docker
+  load` before running `docker build`. The directory must have `image`,
+  `image-id`, `repository`, and `tag` present, i.e. the tree produced by `/in`.
 
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
 
