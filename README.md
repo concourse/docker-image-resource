@@ -64,7 +64,8 @@ version is the image's digest.
 
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
-  intermediate images when building).
+  intermediate images when building). This will cause the resource to fail
+  if it is set to `true` and the image does not exist yet.
 
 * `load_base`: *Optional.* A path to a directory containing an image to `docker
   load` before running `docker build`. The directory must have `image`,
