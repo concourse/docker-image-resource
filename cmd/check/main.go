@@ -107,6 +107,8 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 
 		pingResp, pingErr = pingClient.Do(req)
 		if pingErr == nil {
+			// clear out previous attempts' failures
+			pingErrs = nil
 			break
 		}
 
