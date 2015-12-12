@@ -85,28 +85,33 @@ version is the image's digest.
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
 
-## Example Configuration
-
-### Resource
+## Example
 
 ``` yaml
-- name: machine-image
+resources:
+- name: git-resource
+  type: git
+  source: # ...
+
+- name: git-resource-image
   type: docker-image
   source:
-    repository: concourse/some-image
+    repository: concourse/git-resource
     email: docker@example.com
     username: username
     password: password
-```
 
+- name: git-resource-rootfs
+  type: s3
+  source: # ...
 
-### Plan
-
-``` yaml
+jobs:
+- name: build-rootfs
+  plan:
   - get: git-resource
-  - put: machine-image
-    params:
-      build: git-resource
-    get_params:
-      rootfs: true
+  - put: git-resource-image
+    params: {build: git-resource}
+    get_params: {rootfs: true}
+  - put: git-resource-rootfs
+    params: {file: git-resource-image/rootfs.tar}
 ```
