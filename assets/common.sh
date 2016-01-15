@@ -13,8 +13,18 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
+  for i in $(seq 0 100) ; do
+    mknod -m 660 /dev/loop${i} b 7 ${i}
+  done
+
   mkdir -p /var/lib/docker
-  mount -t tmpfs -o size=100G none /var/lib/docker
+  image=$(mktemp $PWD/docker.img.XXXXXXXX)
+  dd if=/dev/zero of=${image} bs=1 count=0 seek=100G
+  mkfs.ext4 -F ${image}
+  losetup -f ${image}
+  lo=$(losetup -a | grep ${image} | cut -d: -f1)
+
+  mount ${lo} /var/lib/docker
 
   local server_args=""
 
@@ -24,6 +34,7 @@ start_docker() {
   done
 
   docker daemon ${server_args} >/dev/null 2>&1 &
+  trap stop_docker EXIT
 
   sleep 1
 
@@ -31,6 +42,18 @@ start_docker() {
     echo waiting for docker to come up...
     sleep 1
   done
+}
+
+stop_docker() {
+  local lo=$(grep /var/lib/docker /proc/self/mounts | awk 'END { print $1 }')
+  for pid in $(pidof docker); do
+    kill -TERM $pid
+  done
+  umount /var/lib/docker/aufs || true
+  umount /var/lib/docker || true
+  if [ -n "${lo}" ] ; then
+    losetup -d ${lo}
+  fi
 }
 
 private_registry() {
