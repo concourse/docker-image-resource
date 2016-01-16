@@ -1,3 +1,41 @@
+permit_device_control() {
+  local devices_mount_info=$(cat /proc/self/cgroup | grep devices)
+
+  if [ -z "$devices_mount_info" ]; then
+    # cgroups not set up; must not be in a container
+    return
+  fi
+
+  local devices_subsytems=$(echo $devices_mount_info | cut -d: -f2)
+  local devices_subdir=$(echo $devices_mount_info | cut -d: -f3)
+
+  if [ "$devices_subdir" = "/" ]; then
+    # we're in the root devices cgroup; must not be in a container
+    return
+  fi
+
+  cgroup_dir=/tmp/devices-cgroup
+
+  if [ ! -e ${cgroup_dir} ]; then
+    # mount our container's devices subsystem somewhere
+    mkdir ${cgroup_dir}
+  fi
+
+  if ! mountpoint -q ${cgroup_dir}; then
+    mount -t cgroup -o $devices_subsytems none ${cgroup_dir}
+  fi
+
+  # permit our cgroup to do everything with all devices
+  # ignore failure in case something has already done this; echo appears to
+  # return EINVAL, possibly because devices this affects are already in use
+  echo a > ${cgroup_dir}${devices_subdir}/devices.allow || true
+}
+
+make_and_setup() {
+  [ -b /dev/loop$1 ] || mknod -m 0660 /dev/loop$1 b 7 $1
+  losetup -f $2
+}
+
 start_docker() {
   mkdir -p /var/log
   mkdir -p /var/run
@@ -13,22 +51,25 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
-  for i in $(seq 0 100) ; do
-    mknod -m 660 /dev/loop${i} b 7 ${i}
-  done
+  permit_device_control
 
   mkdir -p /var/lib/docker
+
   image=$(mktemp $PWD/docker.img.XXXXXXXX)
   dd if=/dev/zero of=${image} bs=1 count=0 seek=100G
   mkfs.ext4 -F ${image}
-  losetup -f ${image}
+
+  i=0
+  until make_and_setup $i $image; do
+    i=$(expr $i + 1)
+  done
+
   lo=$(losetup -a | grep ${image} | cut -d: -f1)
 
   mount ${lo} /var/lib/docker
 
   local server_args=""
 
-  local repository=$(jq -r '.source.repository // ""' < $payload)
   for registry in $1; do
     server_args="${server_args} --insecure-registry ${registry}"
   done
@@ -45,15 +86,12 @@ start_docker() {
 }
 
 stop_docker() {
-  local lo=$(grep /var/lib/docker /proc/self/mounts | awk 'END { print $1 }')
   for pid in $(pidof docker); do
     kill -TERM $pid
   done
+
   umount /var/lib/docker/aufs || true
   umount /var/lib/docker || true
-  if [ -n "${lo}" ] ; then
-    losetup -d ${lo}
-  fi
 }
 
 private_registry() {
