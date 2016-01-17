@@ -22,7 +22,9 @@ permit_device_control() {
   fi
 
   if ! mountpoint -q ${cgroup_dir}; then
-    mount -t cgroup -o $devices_subsytems none ${cgroup_dir}
+    if ! mount -t cgroup -o $devices_subsytems none ${cgroup_dir}; then
+      return 1
+    fi
   fi
 
   # permit our cgroup to do everything with all devices
@@ -34,6 +36,42 @@ permit_device_control() {
 make_and_setup() {
   [ -b /dev/loop$1 ] || mknod -m 0660 /dev/loop$1 b 7 $1
   losetup -f $2
+}
+
+setup_graph() {
+  set -x
+
+  if ! permit_device_control; then
+    echo "could not permit loopback device usage"
+    return 1
+  fi
+
+  mkdir -p /var/lib/docker
+
+  image=$(mktemp /tmp/docker.img.XXXXXXXX)
+  dd if=/dev/zero of=${image} bs=1 count=0 seek=100G
+  mkfs.ext4 -F ${image}
+
+  i=0
+  until make_and_setup $i $image >/tmp/setup_loopback.log 2>&1; do
+    if grep 'No such file or directory' /tmp/setup_loopback.log; then
+      i=$(expr $i + 1)
+    else
+      echo "failed to setup loopback device:"
+      cat /tmp/setup_loopback.log
+      return 1
+    fi
+  done
+
+  lo=$(losetup -a | grep ${image} | cut -d: -f1)
+  if [ -z "$lo" ]; then
+    echo "could not locate loopback device"
+    return 1
+  fi
+
+  mount ${lo} /var/lib/docker
+
+  set +x
 }
 
 start_docker() {
@@ -51,22 +89,11 @@ start_docker() {
       mount -n -t cgroup -o $d cgroup /sys/fs/cgroup/$d
   done
 
-  permit_device_control
-
-  mkdir -p /var/lib/docker
-
-  image=$(mktemp $PWD/docker.img.XXXXXXXX)
-  dd if=/dev/zero of=${image} bs=1 count=0 seek=100G
-  mkfs.ext4 -F ${image}
-
-  i=0
-  until make_and_setup $i $image; do
-    i=$(expr $i + 1)
-  done
-
-  lo=$(losetup -a | grep ${image} | cut -d: -f1)
-
-  mount ${lo} /var/lib/docker
+  if ! setup_graph >/tmp/setup_graph.log 2>&1; then
+    echo "failed to set up graph:"
+    cat /tmp/setup_graph.log
+    exit 1
+  fi
 
   local server_args=""
 
@@ -75,6 +102,8 @@ start_docker() {
   done
 
   docker daemon ${server_args} >/dev/null 2>&1 &
+  echo $! > /tmp/docker.pid
+
   trap stop_docker EXIT
 
   sleep 1
@@ -86,12 +115,15 @@ start_docker() {
 }
 
 stop_docker() {
-  for pid in $(pidof docker); do
-    kill -TERM $pid
-  done
+  local pid=$(cat /tmp/docker.pid)
+  if [ -z "$pid" ]; then
+    return 0
+  fi
 
-  umount /var/lib/docker/aufs || true
-  umount /var/lib/docker || true
+  kill -TERM $pid
+  wait $pid
+
+  umount /var/lib/docker
 }
 
 private_registry() {
