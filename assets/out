@@ -84,7 +84,7 @@ rootfs="$(jq -r '.params.rootfs' < $payload)"
 
 if [ -n "$load_base" ]; then
   docker load -i "${load_base}/image"
-  docker tag \
+  docker tag --force \
     "$(cat "${load_base}/image-id")" \
     "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
 fi
@@ -97,7 +97,9 @@ if [ -n "$build" ]; then
   docker build -t "${repository}:${tag_name}" "$build"
 elif [ -n "$load_file" ]; then
   docker load -i "$load_file"
-  docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
+  docker tag --force \
+    "${load_repository}:${load_tag}" \
+    "${repository}:${tag_name}"
 elif [ -n "$import_file" ]; then
   cat "$import_file" | docker import - "${repository}:${tag_name}"
 elif [ -n "$pull_repository" ]; then
