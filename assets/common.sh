@@ -101,7 +101,7 @@ start_docker() {
     server_args="${server_args} --insecure-registry ${registry}"
   done
 
-  docker daemon ${server_args} >/dev/null 2>&1 &
+  docker daemon ${server_args} >/tmp/docker.log 2>&1 &
   echo $! > /tmp/docker.pid
 
   trap stop_docker EXIT
