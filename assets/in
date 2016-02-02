@@ -56,9 +56,17 @@ if [ "$skip_download" = "false" ]; then
 
   docker save -o ${destination}/image "$image_name"
 
+  docker run \
+    --cidfile=/tmp/container.cid \
+    -v /opt/resource/print-metadata:/tmp/print-metadata \
+    "$image_name" \
+    /tmp/print-metadata > ${destination}/metadata.json
+
+  mkdir -p ${destination}/rootfs/
+  docker export $(cat /tmp/container.cid) | tar -xf - -C ${destination}/rootfs/
+
   if [ "$rootfs" = "true" ]; then
-    docker run --cidfile=container.cid "$image_name" echo container created
-    docker export $(cat container.cid) > ${destination}/rootfs.tar
+    docker export $(cat /tmp/container.cid) > ${destination}/rootfs.tar
   fi
 fi
 

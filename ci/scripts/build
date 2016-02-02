@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e -x
 
@@ -9,5 +9,21 @@ cd $(dirname $0)/../..
 export GOPATH=$PWD/Godeps/_workspace:$GOPATH
 
 go build -o ./assets/check ./cmd/check/
+go build -o ./assets/print-metadata ./cmd/print-metadata/
+
+if [ ! -e bin/tar ]; then
+  if [ ! -e tar-src ]; then
+    curl https://ftp.gnu.org/gnu/tar/tar-1.28.tar.gz | tar zxf -
+    mv tar-1.28 tar-src
+  fi
+
+  mkdir -p bin/
+
+  pushd tar-src/
+    FORCE_UNSAFE_CONFIGURE=1 ./configure
+    make LDFLAGS=-static
+    cp src/tar ../bin
+  popd
+fi
 
 cp -a ./* ${BUILT_RESOURCE}/
