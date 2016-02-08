@@ -3,6 +3,7 @@ package main_test
 import (
 	"encoding/json"
 	"os/exec"
+	"os/user"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,7 +12,8 @@ import (
 )
 
 type imageMetadata struct {
-	Env []string `json:"env"`
+	User string   `json:"user"`
+	Env  []string `json:"env"`
 }
 
 var _ = Describe("print-metadata", func() {
@@ -36,38 +38,49 @@ var _ = Describe("print-metadata", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	Context("when it is running in an environment with environment variables", func() {
-		BeforeEach(func() {
-			cmd.Env = []string{
-				"SOME=foo",
-				"AMAZING=bar",
-				"ENV=baz",
-			}
+	Describe("environment variables", func() {
+		Context("when it is running in an environment with environment variables", func() {
+			BeforeEach(func() {
+				cmd.Env = []string{
+					"SOME=foo",
+					"AMAZING=bar",
+					"ENV=baz",
+				}
+			})
+
+			It("outputs them on stdout", func() {
+				Expect(metadata.Env).To(ConsistOf([]string{
+					"SOME=foo",
+					"AMAZING=bar",
+					"ENV=baz",
+				}))
+			})
 		})
 
-		It("outputs them on stdout", func() {
-			Expect(metadata.Env).To(ConsistOf([]string{
-				"SOME=foo",
-				"AMAZING=bar",
-				"ENV=baz",
-			}))
+		Context("when it is running in an environment with environment variables in the blacklist", func() {
+			BeforeEach(func() {
+				cmd.Env = []string{
+					"SOME=foo",
+					"HOSTNAME=bar",
+					"ENV=baz",
+				}
+			})
+
+			It("outputs everything but them on stdout", func() {
+				Expect(metadata.Env).To(ConsistOf([]string{
+					"SOME=foo",
+					"ENV=baz",
+				}))
+			})
 		})
 	})
 
-	Context("when it is running in an environment with environment variables in the blacklist", func() {
-		BeforeEach(func() {
-			cmd.Env = []string{
-				"SOME=foo",
-				"HOSTNAME=bar",
-				"ENV=baz",
-			}
-		})
+	Describe("current user", func() {
+		It("outputs them on stdout", func() {
+			currentUser, err := user.Current()
+			Expect(err).NotTo(HaveOccurred())
 
-		It("outputs everything but them on stdout", func() {
-			Expect(metadata.Env).To(ConsistOf([]string{
-				"SOME=foo",
-				"ENV=baz",
-			}))
+			Expect(metadata.User).To(Equal(currentUser.Username))
 		})
 	})
 })
