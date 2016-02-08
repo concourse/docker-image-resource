@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"os"
+	"strings"
 )
 
 type imageMetadata struct {
@@ -16,7 +17,10 @@ var blacklistedEnv = map[string]bool{
 func main() {
 	var envVars []string
 	for _, e := range os.Environ() {
-		if !blacklistedEnv[e] {
+		parts := strings.SplitN(e, "=", 2)
+		name := parts[0]
+
+		if !blacklistedEnv[name] {
 			envVars = append(envVars, e)
 		}
 	}
