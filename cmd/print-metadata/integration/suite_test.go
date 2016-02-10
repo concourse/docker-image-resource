@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"os/exec"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -17,10 +18,17 @@ func TestSuite(t *testing.T) {
 }
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	path, err := gexec.Build("github.com/concourse/docker-image-resource/cmd/print-metadata")
+	cmd := exec.Command("make")
+	cmd.Dir = ".." // lol
+
+	make, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 
-	return []byte(path)
+	<-make.Exited
+
+	Expect(make.ExitCode()).To(Equal(0))
+
+	return []byte("../print-metadata")
 }, func(data []byte) {
 	printMetadataPath = string(data)
 })
