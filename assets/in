@@ -42,6 +42,7 @@ digest="$(jq -r '.version.digest' < $payload)"
 
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
+save="$(jq -r '.params.save // false' < $payload)"
 
 mkdir -p $destination
 
@@ -54,7 +55,9 @@ if [ "$skip_download" = "false" ]; then
 
   docker_pull "$image_name"
 
-  docker save -o ${destination}/image "$image_name"
+  if [ "$save" = "true" ]; then
+    docker save -o ${destination}/image "$image_name"
+  fi
 
   docker run \
     --cidfile=/tmp/container.cid \

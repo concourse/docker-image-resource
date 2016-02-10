@@ -33,7 +33,8 @@ Pulls down the repository image by the requested digest.
 
 The following files will be placed in the destination:
 
-* `/image`: The `docker save`d image.
+* `/image`: If `save` is `true`, the `docker save`d image will be provided
+  here.
 * `/repository`: The name of the repository that was fetched.
 * `/tag`: The tag of the repository that was fetched.
 * `/image-id`: The fetched image ID.
@@ -43,6 +44,7 @@ The following files will be placed in the destination:
 
 #### Parameters
 
+* `save`: *Optional.* Place a `docker save`d image in the destination.
 * `rootfs`: *Optional.* Place a `.tar` file of the image in the destination.
 * `skip_download`: *Optional.* Skip `docker pull` of image. Only `/image-id`,
   `/repository`, and `/tag` will be populated. `/image` and `/rootfs.tar` will
