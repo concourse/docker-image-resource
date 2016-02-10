@@ -62,6 +62,8 @@ version is the image's digest.
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 
+* `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if it's not at the root of the directory.
+
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building). This will cause the resource to fail
