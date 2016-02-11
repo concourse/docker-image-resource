@@ -30,7 +30,7 @@ username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
-tag="$(jq -r '.source.tag // ""' < $payload)"
+tag="$(jq -r '.source.tag // "latest"' < $payload)"
 
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
