@@ -69,7 +69,7 @@ fi
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 
-dockerfile=$(jq -r '.params.dockerfile // "Dockerfile"' < $payload)
+dockerfile=$(jq -r '.params.dockerfile // ""' < $payload)
 
 load_base=$(jq -r '.params.load_base // ""' < $payload)
 
@@ -96,7 +96,12 @@ if [ -n "$build" ]; then
     docker_pull "${repository}:${tag_name}"
   fi
 
-  docker build -t "${repository}:${tag_name}" -f "$dockerfile" "$build"
+  if [ -n "$dockerfile" ]; then
+    docker build -t "${repository}:${tag_name}" -f "$dockerfile" "$build"
+  else
+    docker build -t "${repository}:${tag_name}" "$build"
+  fi
+  
 elif [ -n "$load_file" ]; then
   docker load -i "$load_file"
   docker tag --force \
