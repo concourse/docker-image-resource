@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"os/exec"
 	"os/user"
+	"runtime"
+	"syscall"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,6 +27,9 @@ var _ = Describe("print-metadata", func() {
 	)
 
 	BeforeEach(func() {
+		if runtime.GOOS == "darwin" && syscall.Getuid() != 0 {
+			Skip("OS X doesn't use /etc/passwd for multi-user mode (you need to run the tests as root)")
+		}
 		cmd = exec.Command(printMetadataPath)
 	})
 

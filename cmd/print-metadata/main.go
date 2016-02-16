@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"os"
-	"os/user"
 	"strings"
+	"syscall"
+
+	"github.com/concourse/docker-image-resource/cmd/print-metadata/passwd"
 )
 
 type imageMetadata struct {
@@ -27,12 +29,17 @@ func main() {
 }
 
 func username() string {
-	currentUser, err := user.Current()
+	users, err := passwd.ReadUsers("/etc/passwd")
 	if err != nil {
 		panic(err)
 	}
 
-	return currentUser.Username
+	name, found := users.NameForID(syscall.Getuid())
+	if !found {
+		panic("could not find user in /etc/passwd")
+	}
+
+	return name
 }
 
 func env() []string {
