@@ -4,20 +4,12 @@ set -e -x
 
 BUILT_RESOURCE=$PWD/built-resource
 
-apt-get update
-apt-get -y install build-essential pkgconf libjansson-dev
-
 cd $(dirname $0)/../..
 
 export GOPATH=$PWD/Godeps/_workspace:$GOPATH
 
 go build -o ./assets/check ./cmd/check/
-
-pushd cmd/print-metadata/
-  make
-  mv print-metadata ../../assets/print-metadata
-popd
-
+go build -o ./assets/print-metadata ./cmd/print-metadata/
 
 if [ ! -e bin/tar ]; then
   if [ ! -e tar-src ]; then
