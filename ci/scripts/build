@@ -4,6 +4,8 @@ set -e -x
 
 BUILT_RESOURCE=$PWD/built-resource
 
+export GOPATH=$PWD/Godeps/_workspace:$PWD/gopath
+
 cd $(dirname $0)/../..
 
 export GOPATH=$PWD/Godeps/_workspace:$GOPATH
