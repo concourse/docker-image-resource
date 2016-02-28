@@ -104,7 +104,11 @@ sanitize_cgroups() {
     mount -n -t cgroup -o "$grouping" cgroup "$mountpoint"
 
     if [ "$grouping" != "$sys" ]; then
-      ln -sf "$mountpoint" "/sys/fs/cgroup/$sys"
+      if [ -L "/sys/fs/cgroup/$sys" ]; then
+        rm "/sys/fs/cgroup/$sys"
+      fi
+
+      ln -s "$mountpoint" "/sys/fs/cgroup/$sys"
     fi
   done
 }
