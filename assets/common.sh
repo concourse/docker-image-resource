@@ -33,8 +33,12 @@ permit_device_control() {
   echo a > ${cgroup_dir}${devices_subdir}/devices.allow || true
 }
 
-make_and_setup() {
+ensure_loopback() {
   [ -b /dev/loop$1 ] || mknod -m 0660 /dev/loop$1 b 7 $1
+}
+
+make_and_setup() {
+  ensure_loopback $1
   losetup -f $2
 }
 
@@ -61,6 +65,11 @@ setup_graph() {
       cat /tmp/setup_loopback.log
       return 1
     fi
+  done
+
+  # ensure extra loopbacks are available for devmapper driver
+  for extra in $(seq 10); do
+    ensure_loopback $(expr $i + $extra)
   done
 
   lo=$(losetup -a | grep ${image} | cut -d: -f1)
