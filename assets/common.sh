@@ -83,14 +83,12 @@ setup_graph() {
   set +x
 }
 
-start_docker() {
-  mkdir -p /var/log
-  mkdir -p /var/run
-
-  # set up cgroups
+sanitize_cgroups() {
   mkdir -p /sys/fs/cgroup
   mountpoint -q /sys/fs/cgroup || \
     mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
+
+  mount -o remount,rw /sys/fs/cgroup
 
   for sys in `sed -e '1d;s/\([^\t]\)\t.*$/\1/' /proc/cgroups`; do
     if [ -e "/sys/fs/cgroup/$sys" ]; then
@@ -103,10 +101,19 @@ start_docker() {
     mountpoint -q "/sys/fs/cgroup/$grouping" || \
       mount -n -t cgroup -o "$grouping" cgroup "/sys/fs/cgroup/$grouping"
 
+    mount -o remount,rw "/sys/fs/cgroup/$grouping"
+
     if [ "$grouping" != "$sys" ]; then
       ln -sf "/sys/fs/cgroup/$grouping" "/sys/fs/cgroup/$sys"
     fi
   done
+}
+
+start_docker() {
+  mkdir -p /var/log
+  mkdir -p /var/run
+
+  sanitize_cgroups
 
   if ! setup_graph >/tmp/setup_graph.log 2>&1; then
     echo "failed to set up graph:"
