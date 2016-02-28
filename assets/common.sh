@@ -91,11 +91,6 @@ sanitize_cgroups() {
   mount -o remount,rw /sys/fs/cgroup
 
   for sys in `sed -e '1d;s/\([^\t]\)\t.*$/\1/' /proc/cgroups`; do
-    if [ -e "/sys/fs/cgroup/$sys" ]; then
-      # presume already set up; skip it
-      continue
-    fi
-
     grouping=$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")
     mkdir -p "/sys/fs/cgroup/$grouping"
     mountpoint -q "/sys/fs/cgroup/$grouping" || \
