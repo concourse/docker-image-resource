@@ -84,10 +84,19 @@ start_docker() {
     mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
 
   for sys in `sed -e '1d;s/\([^\t]\)\t.*$/\1/' /proc/cgroups`; do
+    if [ -e "/sys/fs/cgroup/$sys" ]; then
+      # presume already set up; skip it
+      continue
+    fi
+
     grouping=$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")
-    mkdir -p /sys/fs/cgroup/$sys
-    mountpoint -q /sys/fs/cgroup/$sys || \
-      mount -n -t cgroup -o "$grouping" cgroup /sys/fs/cgroup/$sys
+    mkdir -p "/sys/fs/cgroup/$grouping"
+    mountpoint -q "/sys/fs/cgroup/$grouping" || \
+      mount -n -t cgroup -o "$grouping" cgroup "/sys/fs/cgroup/$grouping"
+
+    if [ "$grouping" != "$sys" ]; then
+      ln -sf "/sys/fs/cgroup/$grouping" "/sys/fs/cgroup/$sys"
+    fi
   done
 
   if ! setup_graph >/tmp/setup_graph.log 2>&1; then
