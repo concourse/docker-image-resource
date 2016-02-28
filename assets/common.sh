@@ -92,17 +92,19 @@ sanitize_cgroups() {
 
   for sys in `sed -e '1d;s/\([^\t]\)\t.*$/\1/' /proc/cgroups`; do
     grouping=$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")
-    mkdir -p "/sys/fs/cgroup/$grouping"
+    mountpoint="/sys/fs/cgroup/$grouping"
+
+    mkdir -p "$mountpoint"
 
     # clear out existing mount to make sure new one is read-write
-    if mountpoint -q "/sys/fs/cgroup/$grouping"; then
-      umount "/sys/fs/cgoup/$grouping"
+    if mountpoint -q "$mountpoint"; then
+      umount "$mountpoint"
     fi
 
-    mount -n -t cgroup -o "$grouping" cgroup "/sys/fs/cgroup/$grouping"
+    mount -n -t cgroup -o "$grouping" cgroup "$mountpoint"
 
     if [ "$grouping" != "$sys" ]; then
-      ln -sf "/sys/fs/cgroup/$grouping" "/sys/fs/cgroup/$sys"
+      ln -sf "$mountpoint" "/sys/fs/cgroup/$sys"
     fi
   done
 }
