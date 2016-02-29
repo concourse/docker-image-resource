@@ -125,10 +125,9 @@ start_docker() {
     exit 1
   fi
 
-  # check for /proc/sys being remounted readonly, as systemd does
-  if mountpoint -q /proc/sys; then
-    # remove bind-mounted /proc/sys to restore read-write
-    umount /proc/sys
+  # check for /proc/sys being mounted readonly, as systemd does
+  if grep '/proc/sys\s\+\w\+\s\+ro,' /proc/mounts >/dev/null; then
+    mount -o remount,rw /proc/sys
   fi
 
   local server_args=""
