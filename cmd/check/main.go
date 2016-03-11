@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/concourse/pester"
 	"github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
@@ -34,7 +35,10 @@ func main() {
 	ub, err := v2.NewURLBuilderFromString(registryURL)
 	fatalIf("failed to construct registry URL builder", err)
 
-	client := &http.Client{Transport: transport}
+	client := pester.New()
+	client.Transport = transport
+	client.Backoff = pester.ExponentialBackoff
+	client.MaxRetries = 5
 
 	manifestURL, err := ub.BuildManifestURL(repo, tag)
 	fatalIf("failed to build manifest URL", err)
