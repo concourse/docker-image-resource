@@ -41,8 +41,22 @@
 			"Rev": "d30f09973e19c1dfcd120b2d9c4f168e68d6b5d5"
 		},
 		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.2.0-42-g07d85e6",
+			"Rev": "07d85e6b10c4289c7d612f9b13f45ba36f66d55b"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-83-gc72df92",
+			"Rev": "c72df929b80ef4930aaa75d5e486887ff2f3e06a"
+		},
+		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "4f2fc6c1e69d41baf187332ee08fbd2b296f21ed"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "7a56174f0086b32866ebd746a794417edbc678a1"
 		}
 	]
 }
