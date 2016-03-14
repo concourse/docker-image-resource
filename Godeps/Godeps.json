@@ -12,7 +12,7 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/pester",
-			"Rev": "6c45b17a7709088fb9c0bcfe871df9bc87a945f6"
+			"Rev": "3d715d5b3b6c0c32f45fd6784f48561923e28683"
 		},
 		{
 			"ImportPath": "github.com/docker/distribution",
