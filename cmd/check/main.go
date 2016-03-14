@@ -19,6 +19,9 @@ import (
 )
 
 func main() {
+	pester.DefaultClient.MaxRetries = 5
+	pester.DefaultClient.Backoff = pester.ExponentialBackoff
+
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
@@ -37,8 +40,6 @@ func main() {
 
 	client := pester.New()
 	client.Transport = transport
-	client.Backoff = pester.ExponentialBackoff
-	client.MaxRetries = 5
 
 	manifestURL, err := ub.BuildManifestURL(repo, tag)
 	fatalIf("failed to build manifest URL", err)
@@ -91,10 +92,9 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 
 	authTransport := transport.NewTransport(baseTransport)
 
-	pingClient := &http.Client{
-		Transport: authTransport,
-		Timeout:   5 * time.Second,
-	}
+	pingClient := pester.New()
+	pingClient.Transport = authTransport
+	pingClient.Timeout = 5 * time.Second
 
 	challengeManager := auth.NewSimpleChallengeManager()
 
