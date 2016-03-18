@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -10,7 +11,7 @@ import (
 )
 
 type imageMetadata struct {
-	User string   `json:"user"`
+	User string   `json:"user,omitempty"`
 	Env  []string `json:"env"`
 }
 
@@ -19,8 +20,13 @@ var blacklistedEnv = map[string]bool{
 }
 
 func main() {
-	err := json.NewEncoder(os.Stdout).Encode(imageMetadata{
-		User: username(),
+	username, err := username()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to determine username, will not be included in metadata")
+	}
+
+	err = json.NewEncoder(os.Stdout).Encode(imageMetadata{
+		User: username,
 		Env:  env(),
 	})
 	if err != nil {
@@ -28,18 +34,18 @@ func main() {
 	}
 }
 
-func username() string {
+func username() (string, error) {
 	users, err := passwd.ReadUsers("/etc/passwd")
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	name, found := users.NameForID(syscall.Getuid())
 	if !found {
-		panic("could not find user in /etc/passwd")
+		return "", fmt.Errorf("could not find user in /etc/passwd")
 	}
 
-	return name
+	return name, nil
 }
 
 func env() []string {
