@@ -56,7 +56,11 @@ if [ -n "$tag_params" ]; then
   fi
   tag_name="${tag_prefix}$(cat $tag_params)"
 else
-  tag_name="$tag_source"
+  if [ -n "$tag_prefix"]; then
+    tag_name="$tag_prefix"
+  else
+    tag_name="$tag_source"
+  fi
 fi
 
 if [ -z "$repository" ]; then
