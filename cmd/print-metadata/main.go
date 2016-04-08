@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -19,8 +20,12 @@ var blacklistedEnv = map[string]bool{
 	"HOSTNAME": true,
 }
 
+var userFile = flag.String("userFile", "/etc/passwd", "")
+
 func main() {
-	username, err := username()
+	flag.Parse()
+
+	username, err := getUsername(*userFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to determine username, will not be included in metadata")
 	}
@@ -34,15 +39,15 @@ func main() {
 	}
 }
 
-func username() (string, error) {
-	users, err := passwd.ReadUsers("/etc/passwd")
+func getUsername(userFile string) (string, error) {
+	users, err := passwd.ReadUsers(userFile)
 	if err != nil {
 		return "", err
 	}
 
 	name, found := users.NameForID(syscall.Getuid())
 	if !found {
-		return "", fmt.Errorf("could not find user in /etc/passwd")
+		return "", fmt.Errorf("could not find user in %s", userFile)
 	}
 
 	return name, nil

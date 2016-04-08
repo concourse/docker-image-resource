@@ -2,6 +2,9 @@ package main_test
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"os/user"
 	"runtime"
@@ -20,30 +23,84 @@ type imageMetadata struct {
 
 var _ = Describe("print-metadata", func() {
 	var (
-		cmd     *exec.Cmd
-		session *gexec.Session
+		cmd             *exec.Cmd
+		userFile        *os.File
+		currentUserName string
 
 		metadata imageMetadata
 	)
 
-	BeforeEach(func() {
-		if runtime.GOOS == "darwin" && syscall.Getuid() != 0 {
-			Skip("OS X doesn't use /etc/passwd for multi-user mode (you need to run the tests as root)")
-		}
-		cmd = exec.Command(printMetadataPath)
-	})
-
 	JustBeforeEach(func() {
-		var err error
-		session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(session).Should(gexec.Exit(0))
 
+		metadata = imageMetadata{}
 		err = json.Unmarshal(session.Out.Contents(), &metadata)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	Context("when user file exists", func() {
+		BeforeEach(func() {
+			var err error
+			userFile, err = ioutil.TempFile("", "print-metadata-test")
+			Expect(err).NotTo(HaveOccurred())
+
+			cmd = exec.Command(printMetadataPath, "-userFile", userFile.Name())
+		})
+
+		AfterEach(func() {
+			userFile.Close()
+			os.Remove(userFile.Name())
+		})
+
+		It("writes metadata with no user", func() {
+			Expect(metadata.User).To(BeEmpty())
+		})
+
+		Context("when password file contains current user", func() {
+			BeforeEach(func() {
+				currentUser, err := user.Current()
+				Expect(err).NotTo(HaveOccurred())
+
+				currentUserName = currentUser.Username
+				currentUsedID := syscall.Getuid()
+
+				_, err = userFile.WriteString(fmt.Sprintf(
+					"%s:*:%d:%d:System Administrator:/var/%s:/bin/sh\n",
+					currentUserName,
+					currentUsedID,
+					currentUsedID,
+					currentUserName,
+				))
+				Expect(err).NotTo(HaveOccurred())
+				userFile.Sync()
+			})
+
+			It("sets current user in metadata", func() {
+				Expect(metadata.User).To(Equal(currentUserName))
+			})
+		})
+	})
+
+	Context("when password file does not exist", func() {
+		BeforeEach(func() {
+			cmd = exec.Command(printMetadataPath, "-userFile", "non-existent-file")
+		})
+
+		It("writes metadata with no user", func() {
+			Expect(metadata.User).To(BeEmpty())
+		})
+	})
+
 	Describe("environment variables", func() {
+		BeforeEach(func() {
+			if runtime.GOOS == "darwin" && syscall.Getuid() != 0 {
+				Skip("OS X doesn't use /etc/passwd for multi-user mode (you need to run the tests as root)")
+			}
+			cmd = exec.Command(printMetadataPath)
+		})
+
 		Context("when it is running in an environment with environment variables", func() {
 			BeforeEach(func() {
 				cmd.Env = []string{
@@ -77,15 +134,6 @@ var _ = Describe("print-metadata", func() {
 					"ENV=baz",
 				}))
 			})
-		})
-	})
-
-	Describe("current user", func() {
-		It("outputs them on stdout", func() {
-			currentUser, err := user.Current()
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(metadata.User).To(Equal(currentUser.Username))
 		})
 	})
 })

@@ -4,11 +4,16 @@ set -e -x
 
 BUILT_RESOURCE=$PWD/built-resource
 
-export GOPATH=$PWD/Godeps/_workspace:$PWD/gopath
+export GOPATH=$PWD/gopath
 
 cd $(dirname $0)/../..
 
 export GOPATH=$PWD/Godeps/_workspace:$GOPATH
+export PATH=${PWD}/Godeps/_workspace/bin:$PATH
+
+go install github.com/onsi/ginkgo/ginkgo
+
+CGO_ENABLED=1 ginkgo -race -r -p
 
 go build -o ./assets/check ./cmd/check/
 go build -o ./assets/print-metadata ./cmd/print-metadata/
