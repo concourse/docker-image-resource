@@ -143,7 +143,7 @@ fi
 
 digest="$(tail -1 push-output | awk '{print $3}')"
 
-if [ "$need_tag_as_latest" = "true" ]; then
+if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; then
   docker tag "${repository}:${tag_name}" "${repository}:latest"
   docker push "${repository}:latest"
   echo "${repository}:${tag_name} tagged as latest"
