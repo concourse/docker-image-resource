@@ -33,6 +33,7 @@ password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
 
+
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else
@@ -45,8 +46,9 @@ fi
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
-
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
+need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
+
 
 tag_name=""
 if [ -n "$tag_params" ]; then
@@ -140,6 +142,13 @@ if [ -e /tmp/push-failed ]; then
 fi
 
 digest="$(tail -1 push-output | awk '{print $3}')"
+
+if [ "$need_tag_as_latest" = "true" ]; then
+  docker tag "${repository}:${tag_name}" "${repository}:latest"
+  docker push "${repository}:latest"
+  echo "${repository}:${tag_name} tagged as latest"
+fi
+
 
 jq -n "{
   version: {
