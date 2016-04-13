@@ -90,8 +90,18 @@ sanitize_cgroups() {
 
   mount -o remount,rw /sys/fs/cgroup
 
-  for sys in `sed -e '1d;s/\([^\t]\)\t.*$/\1/' /proc/cgroups`; do
-    grouping=$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")
+  sed -e 1d /proc/cgroups | while read sys hierarchy num enabled; do
+    if [ "$enabled" != "1" ]; then
+      # subsystem disabled; skip
+      continue
+    fi
+
+    grouping="$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")"
+    if [ -z "$grouping" ]; then
+      # subsystem not mounted anywhere; mount it on its own
+      grouping="$sys"
+    fi
+
     mountpoint="/sys/fs/cgroup/$grouping"
 
     mkdir -p "$mountpoint"
