@@ -89,6 +89,9 @@ version is the image's digest.
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
 
+* `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will be tag as latest too and tag will be push.
+
+
 ## Example
 
 ``` yaml
