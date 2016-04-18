@@ -7,7 +7,7 @@ RUN for cert in `ls -1 /etc/ssl/certs/*.pem`; \
 ADD https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 /usr/local/bin/jq
 RUN chmod +x /usr/local/bin/jq
 
-ADD https://get.docker.io/builds/Linux/x86_64/docker-latest.tgz /usr/local/bin/docker
+ADD https://get.docker.io/builds/Linux/x86_64/docker-latest.tgz /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker
 
 RUN /usr/local/bin/docker --version
