@@ -33,4 +33,7 @@ if [ ! -e bin/tar ]; then
   popd
 fi
 
+curl -sSL -O https://get.docker.com/builds/Linux/x86_64/docker-1.11.0.tgz
+sudo tar zxf docker-1.11.0.tgz docker/docker -C ./docker
+
 cp -a ./* ${BUILT_RESOURCE}/
