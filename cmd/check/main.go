@@ -58,10 +58,7 @@ func main() {
 		fatal("no digest returned")
 	}
 
-	response := CheckResponse{}
-	if digest != request.Version.Digest {
-		response = append(response, Version{digest})
-	}
+	response := CheckResponse{Version{digest}}
 
 	json.NewEncoder(os.Stdout).Encode(response)
 }
