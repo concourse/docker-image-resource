@@ -44,11 +44,10 @@ func main() {
 	manifestURL, err := ub.BuildManifestURL(repo, tag)
 	fatalIf("failed to build manifest URL", err)
 
-        manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
-        fatalIf("failed to build manifest request", err)
-        manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
- 
-        manifestResponse, err := client.Do(manifestRequest)
+	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
+	fatalIf("failed to build manifest request", err)
+	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	manifestResponse, err := client.Do(manifestRequest)
 	fatalIf("failed to fetch manifest", err)
 
 	manifestResponse.Body.Close()
