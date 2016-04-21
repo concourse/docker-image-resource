@@ -24,7 +24,7 @@ Tracks and builds [Docker](https://docker.io) images.
 ### `check`: Check for new images.
 
 The current image digest is fetched from the registry for the given tag of the
-repository. If it's different from the current version, it is returned.
+repository.
 
 
 ### `in`: Fetch the image from the registry.
