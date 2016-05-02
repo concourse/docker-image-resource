@@ -1,88 +1,3 @@
-permit_device_control() {
-  local devices_mount_info=$(cat /proc/self/cgroup | grep devices)
-
-  if [ -z "$devices_mount_info" ]; then
-    # cgroups not set up; must not be in a container
-    return
-  fi
-
-  local devices_subsytems=$(echo $devices_mount_info | cut -d: -f2)
-  local devices_subdir=$(echo $devices_mount_info | cut -d: -f3)
-
-  if [ "$devices_subdir" = "/" ]; then
-    # we're in the root devices cgroup; must not be in a container
-    return
-  fi
-
-  cgroup_dir=/tmp/devices-cgroup
-
-  if [ ! -e ${cgroup_dir} ]; then
-    # mount our container's devices subsystem somewhere
-    mkdir ${cgroup_dir}
-  fi
-
-  if ! mountpoint -q ${cgroup_dir}; then
-    if ! mount -t cgroup -o $devices_subsytems none ${cgroup_dir}; then
-      return 1
-    fi
-  fi
-
-  # permit our cgroup to do everything with all devices
-  # ignore failure in case something has already done this; echo appears to
-  # return EINVAL, possibly because devices this affects are already in use
-  echo a > ${cgroup_dir}${devices_subdir}/devices.allow || true
-}
-
-ensure_loopback() {
-  [ -b /dev/loop$1 ] || mknod -m 0660 /dev/loop$1 b 7 $1
-}
-
-make_and_setup() {
-  ensure_loopback $1
-  losetup -f $2
-}
-
-setup_graph() {
-  set -x
-
-  if ! permit_device_control; then
-    echo "could not permit loopback device usage"
-    return 1
-  fi
-
-  mkdir -p /var/lib/docker
-
-  image=$(mktemp /tmp/docker.img.XXXXXXXX)
-  dd if=/dev/zero of=${image} bs=1 count=0 seek=100G
-  mkfs.ext4 -F ${image}
-
-  i=0
-  until make_and_setup $i $image >/tmp/setup_loopback.log 2>&1; do
-    if grep 'No such file or directory' /tmp/setup_loopback.log; then
-      i=$(expr $i + 1)
-    else
-      echo "failed to setup loopback device:"
-      cat /tmp/setup_loopback.log
-      return 1
-    fi
-  done
-
-  # ensure extra loopbacks are available for devmapper driver
-  for extra in $(seq 10); do
-    ensure_loopback $(expr $i + $extra)
-  done
-
-  lo=$(losetup -a | grep ${image} | cut -d: -f1)
-  if [ -z "$lo" ]; then
-    echo "could not locate loopback device"
-    return 1
-  fi
-
-  mount ${lo} /var/lib/docker
-
-  set +x
-}
-
 sanitize_cgroups() {
   mkdir -p /sys/fs/cgroup
   mountpoint -q /sys/fs/cgroup || \
@@ -128,12 +43,6 @@ start_docker() {
   mkdir -p /var/run
 
   sanitize_cgroups
-
-  if ! setup_graph >/tmp/setup_graph.log 2>&1; then
-    echo "failed to set up graph:"
-    cat /tmp/setup_graph.log
-    exit 1
-  fi
 
   # check for /proc/sys being mounted readonly, as systemd does
   if grep '/proc/sys\s\+\w\+\s\+ro,' /proc/mounts >/dev/null; then
