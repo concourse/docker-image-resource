@@ -76,8 +76,6 @@ stop_docker() {
 
   kill -TERM $pid
   wait $pid
-
-  umount /var/lib/docker
 }
 
 private_registry() {
