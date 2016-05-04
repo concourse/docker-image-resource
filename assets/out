@@ -34,13 +34,20 @@ email=$(jq -r '.source.email // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
 
 
-if private_registry "${repository}" ; then
+if private_registry "${repository}" || ecr_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else
   registry=
 fi
 
-if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
+if ecr_registry "${repository}" ; then
+  aws_region="$(extract_aws_region "${registry}")"
+  echo "Logging in Amazon ECR in ${aws_region}"
+  eval $(docker run --rm \
+    -e AWS_ACCESS_KEY_ID="${username}" \
+    -e AWS_SECRET_ACCESS_KEY="${password}" \
+    cgswong/aws:aws ecr --region "${aws_region}" get-login)
+elif [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
   docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
 fi
 
