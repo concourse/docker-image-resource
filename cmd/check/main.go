@@ -94,7 +94,6 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 
 	pingClient := pester.New()
 	pingClient.Transport = authTransport
-	pingClient.Timeout = 5 * time.Second
 
 	challengeManager := auth.NewSimpleChallengeManager()
 
