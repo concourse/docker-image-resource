@@ -18,6 +18,8 @@ Tracks and builds [Docker](https://docker.io) images.
 * `insecure_registries`: *Optional.* An array of CIDRs or `host:port` addresses
   to whitelist for insecure access (either `http` or unverified `https`).
 
+* `registry_mirror`: *Optional.* A URL pointing to a docker registry mirror service.
+
 Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 ## Behavior

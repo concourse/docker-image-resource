@@ -7,6 +7,7 @@ type Source struct {
 	Password           string   `json:"password"`
 	Email              string   `json:"email"`
 	InsecureRegistries []string `json:"insecure_registries"`
+	RegistryMirror     string   `json:"registry_mirror"`
 }
 
 type Version struct {

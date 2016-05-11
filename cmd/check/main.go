@@ -28,6 +28,12 @@ func main() {
 
 	registryHost, repo := parseRepository(request.Source.Repository)
 
+	if len(request.Source.RegistryMirror) > 0 {
+		registryMirrorUrl, err := url.Parse(request.Source.RegistryMirror)
+		fatalIf("failed to parse registry mirror URL", err)
+		registryHost = registryMirrorUrl.Host
+	}
+
 	tag := request.Source.Tag
 	if tag == "" {
 		tag = "latest"
