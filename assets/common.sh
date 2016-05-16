@@ -55,7 +55,7 @@ start_docker() {
     server_args="${server_args} --insecure-registry ${registry}"
   done
 
-  if [[ -n $2 ]]; then
+  if [ -n "$2" ]; then
     server_args="${server_args} --registry-mirror=$2"
   fi
 
