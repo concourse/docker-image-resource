@@ -95,6 +95,21 @@ private_registry() {
   return 1
 }
 
+ecr_registry() {
+  local repository="${1}"
+
+  if echo "${repository}" | grep -q -e '\.ecr\.[^\.]*\.amazonaws\.com' ; then
+    return 0
+  fi
+
+  return 1
+}
+
+extract_aws_region() {
+  local registry="${1}"
+  echo "${registry}" | cut -d. -f4
+}
+
 extract_registry() {
   local repository="${1}"
 
