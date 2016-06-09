@@ -115,6 +115,18 @@ image_from_digest() {
   docker images --no-trunc --digests "$1" | awk "{if (\$3 == \"$2\") print \$4}"
 }
 
+certs_to_file() {
+  local raw_ca_certs="${1}"
+  local cert_count="$(echo $raw_ca_certs | jq -r '. | length')"
+
+  for i in $(seq 0 $(expr "$cert_count" - 1));
+  do
+    local cert_dir="/etc/docker/certs.d/$(echo $raw_ca_certs | jq -r .[$i].domain)"
+    mkdir -p "$cert_dir"
+    echo $raw_ca_certs | jq -r .[$i].cert >> "${cert_dir}/ca.crt"
+  done
+}
+
 docker_pull() {
   GREEN='\033[0;32m'
   RED='\033[0;31m'

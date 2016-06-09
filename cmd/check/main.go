@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -74,6 +75,18 @@ func main() {
 }
 
 func makeTransport(request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
+	// for non self-signed registries, caCertPool must be nil in order to use the system certs
+	var caCertPool *x509.CertPool
+	if len(request.Source.DomainCerts) > 0 {
+		caCertPool = x509.NewCertPool()
+		for _, domainCert := range request.Source.DomainCerts {
+			ok := caCertPool.AppendCertsFromPEM([]byte(domainCert.Cert))
+			if !ok {
+				fatal(fmt.Sprintf("failed to parse CA certificate for \"%s\"", domainCert.Domain))
+			}
+		}
+	}
+
 	baseTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
@@ -82,6 +95,7 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 			DualStack: true,
 		}).Dial,
 		DisableKeepAlives: true,
+		TLSClientConfig:   &tls.Config{RootCAs: caCertPool},
 	}
 
 	var insecure bool

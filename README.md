@@ -2,10 +2,15 @@
 
 Tracks and builds [Docker](https://docker.io) images.
 
+Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
+
 ## Source Configuration
 
 * `repository`: *Required.* The name of the repository, e.g.
 `concourse/docker-image-resource`.
+
+  Note: When configuring a private registry, you must include the port
+  (e.g. :443 or :5000) even though the docker CLI does not require it.
 
 * `tag`: *Optional.* The tag to track. Defaults to `latest`.
 
@@ -17,10 +22,31 @@ Tracks and builds [Docker](https://docker.io) images.
 
 * `insecure_registries`: *Optional.* An array of CIDRs or `host:port` addresses
   to whitelist for insecure access (either `http` or unverified `https`).
+  This option overrides any entries in `ca_certs` with the same address.
 
 * `registry_mirror`: *Optional.* A URL pointing to a docker registry mirror service.
 
-Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
+* `ca_certs`: *Optional.* An array of objects with the following format:
+
+  ```yaml
+  ca_certs:
+  - domain: example.com:443
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+  - domain: 10.244.6.2:443
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+  ```
+
+  Each entry specifies the x509 CA certificate for the trusted docker registry residing at the specified domain.
+  This is used to validate the certificate of the docker registry when the registry provides a self-signed certificate.
+  The domain should match the first component of `repository`, including the port.
+  If the registry specified in `repository` does not use a custom cert, adding `ca_certs` will break the check script.
+  This option is overridden by entries in `insecure_registries` with the same address or a matching CIDR.
 
 ## Behavior
 

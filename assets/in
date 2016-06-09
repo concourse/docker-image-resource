@@ -26,13 +26,12 @@ insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $p
 
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
-start_docker "$insecure_registries" "$registry_mirror"
-
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
+ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
@@ -45,6 +44,9 @@ digest="$(jq -r '.version.digest' < $payload)"
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
 save="$(jq -r '.params.save // false' < $payload)"
+
+certs_to_file "$ca_certs"
+start_docker "$insecure_registries" "$registry_mirror"
 
 mkdir -p $destination
 

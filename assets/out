@@ -28,19 +28,20 @@ insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $p
 
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
-start_docker "$insecure_registries" "$registry_mirror"
-
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 email=$(jq -r '.source.email // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
-
+ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else
   registry=
 fi
+
+certs_to_file "$ca_certs"
+start_docker "$insecure_registries" "$registry_mirror"
 
 if [ -n "${username}" ] && [ -n "${password}" ] && [ -n "${email}" ]; then
   docker login -u "${username}" -p "${password}" -e "${email}" ${registry}
@@ -103,7 +104,7 @@ if [ -n "$build" ]; then
   else
     docker build -t "${repository}:${tag_name}" "$build"
   fi
-  
+
 elif [ -n "$load_file" ]; then
   docker load -i "$load_file"
   docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
