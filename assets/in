@@ -32,7 +32,7 @@ repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 
-if private_registry "${repository}" ; then
+if private_registry "${repository}" || ecr_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else
   registry=
@@ -54,6 +54,9 @@ image_name="${repository}@${digest}"
 if [ "$skip_download" = "false" ]; then
   if [ -n "${username}" ] && [ -n "${password}" ]; then
     docker login -u "${username}" -p "${password}" ${registry}
+  elif ecr_registry "${repository}"; then
+    aws_region="$(ecr_registry_region "${repository}")"
+    eval $(aws --region="${aws_region}" ecr get-login)
   fi
 
   docker_pull "$image_name"
