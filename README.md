@@ -95,7 +95,8 @@ version is the image's digest.
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 
-* `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if it's not at the root of the directory.
+* `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if
+  it's not at the root of the directory.
 
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
@@ -113,7 +114,8 @@ version is the image's digest.
 * `pull_repository`: *Optional.* A path to a repository to pull down, and then
   push to this resource.
 
-* `pull_tag`: *Optional.*  If specified, this string will be appended to pull_repository.  `:latest` will be assumed if not specified.
+* `pull_tag`: *Optional.*  Default `latest`. The tag of the repository to pull
+  down via `pull_repository`.
 
 * `tag`: *Optional.* The value should be a path to a file containing the name
   of the tag.
