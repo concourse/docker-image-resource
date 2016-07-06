@@ -113,6 +113,8 @@ version is the image's digest.
 * `pull_repository`: *Optional.* A path to a repository to pull down, and then
   push to this resource.
 
+* `pull_tag`: *Optional.*  If specified, this string will be appended to pull_repository.  `:latest` will be assumed if not specified.
+
 * `tag`: *Optional.* The value should be a path to a file containing the name
   of the tag.
 
