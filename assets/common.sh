@@ -50,6 +50,7 @@ start_docker() {
   fi
 
   local server_args=""
+  local registry=""
 
   for registry in $1; do
     server_args="${server_args} --insecure-registry ${registry}"
