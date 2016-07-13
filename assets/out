@@ -105,8 +105,13 @@ if [ -n "$build" ]; then
   fi
 
 elif [ -n "$load_file" ]; then
-  docker load -i "$load_file"
-  docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
+  if [ -n "$load_repository" ]; then
+    docker load -i "$load_file"
+    docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
+  else
+    echo "must specify load_repository param"
+    exit 1
+  fi
 elif [ -n "$import_file" ]; then
   cat "$import_file" | docker import - "${repository}:${tag_name}"
 elif [ -n "$pull_repository" ]; then

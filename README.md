@@ -107,7 +107,11 @@ version is the image's digest.
   load` before running `docker build`. The directory must have `image`,
   `image-id`, `repository`, and `tag` present, i.e. the tree produced by `/in`.
 
-* `load_file`: *Optional.* A path to a file to `docker load` and then push.
+* `load_file`: *Optional.* A path to a file to `docker load` and then push. Requires `load_repository`.
+
+* `load_repository`: *Optional.* The repository of the image loaded from `load_file`.
+
+* `load_tag`: *Optional.* Default `latest`. The tag of image loaded from `load_file`
 
 * `import_file`: *Optional.* A path to a file to `docker import` and then push.
 
