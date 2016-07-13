@@ -185,7 +185,7 @@ func parseRepository(repository string) (string, string) {
 	case 3:
 		return segs[0], segs[1] + "/" + segs[2]
 	case 2:
-		if strings.Contains(segs[0], ":") {
+		if strings.Contains(segs[0], ":") || strings.Contains(segs[0], ".") {
 			return segs[0], segs[1]
 		} else {
 			return officialRegistry, segs[0] + "/" + segs[1]
