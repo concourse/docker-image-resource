@@ -1,7 +1,7 @@
 ---
 platform: linux
 
-image: docker:///concourse/static-golang
+image_resource: docker:///concourse/static-golang
 
 inputs:
 - name: docker-image-resource
