@@ -15,8 +15,6 @@ if [ -z "$source" ]; then
   exit 1
 fi
 
-echo "this is jons custom docker resource"
-
 # for jq
 PATH=/usr/local/bin:$PATH
 
