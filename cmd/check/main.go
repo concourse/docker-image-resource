@@ -23,9 +23,13 @@ func main() {
 	pester.DefaultClient.MaxRetries = 5
 	pester.DefaultClient.Backoff = pester.ExponentialBackoff
 
+   fmt.Println("reading stdin")
+
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
+
+   fmt.Println("decoded input")
 
 	registryHost, repo := parseRepository(request.Source.Repository)
 
@@ -148,12 +152,27 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 	err := challengeManager.AddResponse(pingResp)
 	fatalIf("failed to add response to challenge manager", err)
 
-	credentialStore := dumbCredentialStore{request.Source.Username, request.Source.Password}
+   username, password := getCredentials(request.Source, registryHost)
+   fmt.Printf("username: %s, password %s\n\n", username, password)
+
+	credentialStore := dumbCredentialStore{username, password}
 	tokenHandler := auth.NewTokenHandler(authTransport, credentialStore, repository, "pull")
 	basicHandler := auth.NewBasicHandler(credentialStore)
 	authorizer := auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler)
 
 	return transport.NewTransport(baseTransport, authorizer), registryURL
+}
+
+func getCredentials (source Source, registryHost string) (username string, password string) {
+   fmt.Println("getting credentials")
+
+   // aws ecr
+   if(source.AwsAccessKeyId != "") {
+      fmt.Println("getting aws credentials")
+      return getAwsCredentials(source, registryHost)
+   }
+
+   return source.Username, source.Password
 }
 
 type dumbCredentialStore struct {
