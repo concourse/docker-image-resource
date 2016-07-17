@@ -23,13 +23,9 @@ func main() {
 	pester.DefaultClient.MaxRetries = 5
 	pester.DefaultClient.Backoff = pester.ExponentialBackoff
 
-   fmt.Println("reading stdin")
-
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
-
-   fmt.Println("decoded input")
 
 	registryHost, repo := parseRepository(request.Source.Repository)
 
@@ -164,14 +160,14 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 }
 
 func getCredentials (source Source, registryHost string) (username string, password string) {
-   fmt.Println("getting credentials")
 
    // aws ecr
    if(source.AwsAccessKeyId != "") {
-      fmt.Println("getting aws credentials")
+      fmt.Println("using aws credential selector")
       return getAwsCredentials(source, registryHost)
    }
 
+   // default
    return source.Username, source.Password
 }
 

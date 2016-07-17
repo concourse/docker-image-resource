@@ -51,6 +51,5 @@ func getAwsCredentials (source Source, registryHost string) (username string, pa
    username = tokens[0]
    password = tokens[1]
 
-   fmt.Printf("Aws Username: %s, Password: %s.\n", username, password)
    return username, password
 }
