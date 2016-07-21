@@ -51,7 +51,7 @@ elif [ -n "${aws_access_key_id}" ] && [ -n "${aws_secret_access_key}" ] && [ -n 
   export AWS_ACCESS_KEY_ID="${aws_access_key_id}"
   export AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
   # returns docker login commmand
-  eval $(./opt/resource/ecr-login --repository ${repository} --region ${aws_region})
+  eval $(/opt/resource/ecr-login --repository ${repository} --region ${aws_region})
 fi
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)

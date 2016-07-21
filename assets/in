@@ -61,7 +61,7 @@ if [ "$skip_download" = "false" ]; then
     export AWS_ACCESS_KEY_ID="${aws_access_key_id}"
     export AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
     # returns docker login command
-    eval $(./opt/resource/ecr-login --repository ${repository} --region ${aws_region})
+    eval $(/opt/resource/ecr-login --repository ${repository} --region ${aws_region})
   fi
 
   docker_pull "$image_name"
