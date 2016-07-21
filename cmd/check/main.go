@@ -20,8 +20,6 @@ import (
 )
 
 func main() {
-	pester.DefaultClient.MaxRetries = 5
-	pester.DefaultClient.Backoff = pester.ExponentialBackoff
 
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
@@ -39,6 +37,27 @@ func main() {
 	if tag == "" {
 		tag = "latest"
 	}
+
+	response := getRegistryResponse(request, registryHost, repo, tag)
+	json.NewEncoder(os.Stdout).Encode(response)
+}
+
+func getRegistryResponse(request CheckRequest, registryHost string, repo string, tag string) (response CheckResponse) {
+
+   source := request.Source
+
+   // aws ecr
+   if(source.AwsAccessKeyId != "") {
+      return getEcrResponse(request, registryHost, repo, tag)
+   }
+
+   return getDockerRepoResponse(request, registryHost, repo, tag)
+}
+
+func getDockerRepoResponse(request CheckRequest, registryHost string, repo string, tag string) (response CheckResponse) {
+
+	pester.DefaultClient.MaxRetries = 5
+	pester.DefaultClient.Backoff = pester.ExponentialBackoff
 
 	transport, registryURL := makeTransport(request, registryHost, repo)
 
@@ -69,9 +88,8 @@ func main() {
 		fatal("no digest returned")
 	}
 
-	response := CheckResponse{Version{digest}}
-
-	json.NewEncoder(os.Stdout).Encode(response)
+	response = CheckResponse{Version{digest}}
+   return response
 }
 
 func makeTransport(request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
@@ -148,10 +166,7 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 	err := challengeManager.AddResponse(pingResp)
 	fatalIf("failed to add response to challenge manager", err)
 
-   username, password := getCredentials(request.Source, registryHost)
-   fmt.Printf("username: %s, password %s\n\n", username, password)
-
-	credentialStore := dumbCredentialStore{username, password}
+	credentialStore := dumbCredentialStore{request.Source.Username, request.Source.Password}
 	tokenHandler := auth.NewTokenHandler(authTransport, credentialStore, repository, "pull")
 	basicHandler := auth.NewBasicHandler(credentialStore)
 	authorizer := auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler)
@@ -159,17 +174,6 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 	return transport.NewTransport(baseTransport, authorizer), registryURL
 }
 
-func getCredentials (source Source, registryHost string) (username string, password string) {
-
-   // aws ecr
-   if(source.AwsAccessKeyId != "") {
-      fmt.Println("using aws credential selector")
-      return getAwsCredentials(source, registryHost)
-   }
-
-   // default
-   return source.Username, source.Password
-}
 
 type dumbCredentialStore struct {
 	username string
