@@ -12,7 +12,7 @@ export GOPATH=$PWD/Godeps/_workspace:$GOPATH
 export PATH=${PWD}/Godeps/_workspace/bin:$PATH
 
 go install github.com/onsi/ginkgo/ginkgo
-go install github.com/aws/aws-sdk-go/aws
+go get github.com/aws/aws-sdk-go/aws
 
 CGO_ENABLED=1 ginkgo -race -r -p
 
