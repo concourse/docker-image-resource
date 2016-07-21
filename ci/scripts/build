@@ -18,6 +18,7 @@ CGO_ENABLED=1 ginkgo -race -r -p
 
 go build -o ./assets/check ./cmd/check/
 go build -o ./assets/print-metadata ./cmd/print-metadata/
+go build -o ./assets/ecr-login ./cmd/ecr-login/
 
 if [ ! -e bin/tar ]; then
   if [ ! -e tar-src ]; then
