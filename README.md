@@ -95,6 +95,9 @@ version is the image's digest.
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 
+* `load`: *Optional.* The path of a directory containing an image that was
+  fetched using this same resource with `save: true`.
+
 * `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if
   it's not at the root of the directory.
 
@@ -107,7 +110,8 @@ version is the image's digest.
   load` before running `docker build`. The directory must have `image`,
   `image-id`, `repository`, and `tag` present, i.e. the tree produced by `/in`.
 
-* `load_file`: *Optional.* A path to a file to `docker load` and then push. Requires `load_repository`.
+* `load_file`: *Optional.* A path to a file to `docker load` and then push.
+  Requires `load_repository`.
 
 * `load_repository`: *Optional.* The repository of the image loaded from `load_file`.
 
