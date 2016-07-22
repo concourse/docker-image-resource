@@ -20,8 +20,6 @@ import (
 )
 
 func main() {
-	pester.DefaultClient.MaxRetries = 5
-	pester.DefaultClient.Backoff = pester.ExponentialBackoff
 
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
@@ -39,6 +37,27 @@ func main() {
 	if tag == "" {
 		tag = "latest"
 	}
+
+	response := getRegistryResponse(request, registryHost, repo, tag)
+	json.NewEncoder(os.Stdout).Encode(response)
+}
+
+func getRegistryResponse(request CheckRequest, registryHost string, repo string, tag string) (response CheckResponse) {
+
+   source := request.Source
+
+   // aws ecr
+   if(source.AwsAccessKeyId != "") {
+      return getEcrResponse(request, registryHost, repo, tag)
+   }
+
+   return getDockerRepoResponse(request, registryHost, repo, tag)
+}
+
+func getDockerRepoResponse(request CheckRequest, registryHost string, repo string, tag string) (response CheckResponse) {
+
+	pester.DefaultClient.MaxRetries = 5
+	pester.DefaultClient.Backoff = pester.ExponentialBackoff
 
 	transport, registryURL := makeTransport(request, registryHost, repo)
 
@@ -69,9 +88,8 @@ func main() {
 		fatal("no digest returned")
 	}
 
-	response := CheckResponse{Version{digest}}
-
-	json.NewEncoder(os.Stdout).Encode(response)
+	response = CheckResponse{Version{digest}}
+   return response
 }
 
 func makeTransport(request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
@@ -155,6 +173,7 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 
 	return transport.NewTransport(baseTransport, authorizer), registryURL
 }
+
 
 type dumbCredentialStore struct {
 	username string

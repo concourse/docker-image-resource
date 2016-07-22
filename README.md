@@ -18,6 +18,12 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `password`: *Optional.* The password to use when authenticating.
 
+* `aws_access_key_id`: *Optional.* Aws ecr access key id. If using aws ecr, `aws_access_key_id`, `aws_secret_access_key` and `aws_region` are required.
+
+* `aws_secret_access_key`: *Optional.* Aws ecr secret access key.
+
+* `aws_region`: *Optional.* Region used for aws ecr.
+
 * `insecure_registries`: *Optional.* An array of CIDRs or `host:port` addresses
   to whitelist for insecure access (either `http` or unverified `https`).
   This option overrides any entries in `ca_certs` with the same address.
