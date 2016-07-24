@@ -29,7 +29,6 @@ import (
 func main() {
 	logger := lager.NewLogger("http")
 
-	// logger.RegisterSink(lager.
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
