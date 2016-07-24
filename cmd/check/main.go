@@ -12,20 +12,40 @@ import (
 	"strings"
 	"time"
 
-	"github.com/concourse/pester"
+	"github.com/pivotal-golang/lager"
+
+	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
+	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
+	ecrconfig "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
+	"github.com/concourse/retryhttp"
+	"github.com/docker/distribution/reference"
 	"github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/hashicorp/go-multierror"
+	"github.com/pivotal-golang/clock"
 )
 
 func main() {
-	pester.DefaultClient.MaxRetries = 5
-	pester.DefaultClient.Backoff = pester.ExponentialBackoff
+	logger := lager.NewLogger("http")
 
+	// logger.RegisterSink(lager.
 	var request CheckRequest
 	err := json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
+
+	ecrconfig.SetupLogger()
+
+	os.Setenv("AWS_ACCESS_KEY_ID", request.Source.AWSAccessKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", request.Source.AWSSecretAccessKey)
+
+	ecrUser, ecrPass, err := ecr.ECRHelper{
+		ClientFactory: ecrapi.DefaultClientFactory{},
+	}.Get(request.Source.Repository)
+	if err == nil {
+		request.Source.Username = ecrUser
+		request.Source.Password = ecrPass
+	}
 
 	registryHost, repo := parseRepository(request.Source.Repository)
 
@@ -40,15 +60,22 @@ func main() {
 		tag = "latest"
 	}
 
-	transport, registryURL := makeTransport(request, registryHost, repo)
+	transport, registryURL := makeTransport(logger, request, registryHost, repo)
 
-	ub, err := v2.NewURLBuilderFromString(registryURL)
+	ub, err := v2.NewURLBuilderFromString(registryURL, false)
 	fatalIf("failed to construct registry URL builder", err)
 
-	client := pester.New()
-	client.Transport = transport
+	client := &http.Client{
+		Transport: retryRoundTripper(logger, transport),
+	}
 
-	manifestURL, err := ub.BuildManifestURL(repo, tag)
+	namedRef, err := reference.WithName(repo)
+	fatalIf("failed to construct named reference", err)
+
+	taggedRef, err := reference.WithTag(namedRef, tag)
+	fatalIf("failed to construct tagged reference", err)
+
+	manifestURL, err := ub.BuildManifestURL(taggedRef)
 	fatalIf("failed to build manifest URL", err)
 
 	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
@@ -74,7 +101,7 @@ func main() {
 	json.NewEncoder(os.Stdout).Encode(response)
 }
 
-func makeTransport(request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
+func makeTransport(logger lager.Logger, request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
 	// for non self-signed registries, caCertPool must be nil in order to use the system certs
 	var caCertPool *x509.CertPool
 	if len(request.Source.DomainCerts) > 0 {
@@ -113,8 +140,9 @@ func makeTransport(request CheckRequest, registryHost string, repository string)
 
 	authTransport := transport.NewTransport(baseTransport)
 
-	pingClient := pester.New()
-	pingClient.Transport = authTransport
+	pingClient := &http.Client{
+		Transport: retryRoundTripper(logger, authTransport),
+	}
 
 	challengeManager := auth.NewSimpleChallengeManager()
 
@@ -165,6 +193,13 @@ func (dcs dumbCredentialStore) Basic(*url.URL) (string, string) {
 	return dcs.username, dcs.password
 }
 
+func (dumbCredentialStore) RefreshToken(u *url.URL, service string) string {
+	return ""
+}
+
+func (dumbCredentialStore) SetRefreshToken(u *url.URL, service, token string) {
+}
+
 func fatalIf(doing string, err error) {
 	if err != nil {
 		fatal(doing + ": " + err.Error())
@@ -213,4 +248,15 @@ func isInsecure(hostOrCIDR string, hostPort string) bool {
 	}
 
 	return hostOrCIDR == hostPort
+}
+
+func retryRoundTripper(logger lager.Logger, rt http.RoundTripper) http.RoundTripper {
+	return &retryhttp.RetryRoundTripper{
+		Logger:  logger,
+		Sleeper: clock.NewClock(),
+		RetryPolicy: retryhttp.ExponentialRetryPolicy{
+			Timeout: 5 * time.Minute,
+		},
+		RoundTripper: rt,
+	}
 }

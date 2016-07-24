@@ -33,6 +33,9 @@ password=$(jq -r '.source.password // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 
+export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // ""' < $payload)
+export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < $payload)
+
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else

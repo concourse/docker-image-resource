@@ -8,6 +8,9 @@ type Source struct {
 	InsecureRegistries []string     `json:"insecure_registries"`
 	RegistryMirror     string       `json:"registry_mirror"`
 	DomainCerts        []DomainCert `json:"ca_certs"`
+
+	AWSAccessKeyID     string `json:"aws_access_key_id"`
+	AWSSecretAccessKey string `json:"aws_secret_access_key"`
 }
 
 type Version struct {
