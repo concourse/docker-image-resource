@@ -44,9 +44,13 @@ fi
 
 certs_to_file "$ca_certs"
 start_docker "$insecure_registries" "$registry_mirror"
+log_in "$username" "$password" "$registry"
 
 if [ -n "${username}" ] && [ -n "${password}" ]; then
   docker login -u "${username}" -p "${password}" ${registry}
+else
+  mkdir -p ~/.docker
+  echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
 fi
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)

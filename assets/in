@@ -55,9 +55,7 @@ mkdir -p $destination
 image_name="${repository}@${digest}"
 
 if [ "$skip_download" = "false" ]; then
-  if [ -n "${username}" ] && [ -n "${password}" ]; then
-    docker login -u "${username}" -p "${password}" ${registry}
-  fi
+  log_in "$username" "$password" "$registry"
 
   docker_pull "$image_name"
 

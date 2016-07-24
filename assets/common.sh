@@ -83,6 +83,19 @@ stop_docker() {
   wait $pid
 }
 
+log_in() {
+  local username="$1"
+  local password="$2"
+  local registry="$3"
+
+  if [ -n "${username}" ] && [ -n "${password}" ]; then
+    docker login -u "${username}" -p "${password}" ${registry}
+  else
+    mkdir -p ~/.docker
+    echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
+  fi
+}
+
 private_registry() {
   local repository="${1}"
 
