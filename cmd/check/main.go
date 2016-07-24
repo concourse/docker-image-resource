@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cihub/seelog"
 	"github.com/pivotal-golang/lager"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
-	ecrconfig "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 	"github.com/concourse/retryhttp"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/distribution/registry/api/v2"
@@ -34,10 +34,11 @@ func main() {
 	err := json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
 
-	ecrconfig.SetupLogger()
-
 	os.Setenv("AWS_ACCESS_KEY_ID", request.Source.AWSAccessKeyID)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", request.Source.AWSSecretAccessKey)
+
+	// silence benign ecr-login errors/warnings
+	seelog.UseLogger(seelog.Disabled)
 
 	ecrUser, ecrPass, err := ecr.ECRHelper{
 		ClientFactory: ecrapi.DefaultClientFactory{},
