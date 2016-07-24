@@ -6,7 +6,7 @@ RUN /usr/local/bin/docker --version
 ADD assets/ /opt/resource/
 RUN chmod +x /opt/resource/*
 
-ADD ecr-login /usr/local/bin/
-RUN chmod +x /usr/local/bin/ecr-login && \
+ADD ecr-login /usr/local/bin/docker-credential-ecr-login
+RUN chmod +x /usr/local/bin/docker-credential-ecr-login && \
       mkdir ~/.docker && \
       echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
