@@ -86,18 +86,16 @@ pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 
 rootfs="$(jq -r '.params.rootfs' < $payload)"
 
-load_resource() {
-  local path=$1
-  docker load -i "${path}/image"
-  docker tag \
-    "$(cat "${path}/image-id")" \
-    "$(cat "${path}/repository"):$(cat "${path}/tag")"
-}
-
 if [ -n "$load" ]; then
-  load_resource "$load"
+  docker load -i "${load}/image"
+  docker tag $(cat "${load}/image-id") "${repository}:${tag_name}"
 elif [ -n "$build" ]; then
-  [ -n "$load_base" ] && load_resource "$load_base"
+  if [ -n "$load_base" ]; then
+    docker load -i "${load_base}/image"
+    docker tag \
+      "$(cat "${load_base}/image-id")" \
+      "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+  fi
 
   if [ "$cache" = "true" ]; then
     docker_pull "${repository}:${tag_name}"
