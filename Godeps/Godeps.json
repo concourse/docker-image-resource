@@ -158,6 +158,21 @@
 			"Rev": "4abae2ae560ba91db98779db2739eb97d7592fba"
 		},
 		{
+			"ImportPath": "github.com/docker/distribution/manifest",
+			"Comment": "docs-v2.4.1-2016-06-28-51-g4abae2a",
+			"Rev": "4abae2ae560ba91db98779db2739eb97d7592fba"
+		},
+		{
+			"ImportPath": "github.com/docker/distribution/manifest/schema1",
+			"Comment": "docs-v2.4.1-2016-06-28-51-g4abae2a",
+			"Rev": "4abae2ae560ba91db98779db2739eb97d7592fba"
+		},
+		{
+			"ImportPath": "github.com/docker/distribution/manifest/schema2",
+			"Comment": "docs-v2.4.1-2016-06-28-51-g4abae2a",
+			"Rev": "4abae2ae560ba91db98779db2739eb97d7592fba"
+		},
+		{
 			"ImportPath": "github.com/docker/distribution/reference",
 			"Comment": "docs-v2.4.1-2016-06-28-51-g4abae2a",
 			"Rev": "4abae2ae560ba91db98779db2739eb97d7592fba"
@@ -206,6 +221,10 @@
 			"ImportPath": "github.com/docker/docker-credential-helpers/credentials",
 			"Comment": "v0.2.0-8-g00703eb",
 			"Rev": "00703eb6dbc8783c9093cad8202ef246a07d20ce"
+		},
+		{
+			"ImportPath": "github.com/docker/libtrust",
+			"Rev": "aabc10ec26b754e797f9028f4589c5b7bd90dc20"
 		},
 		{
 			"ImportPath": "github.com/go-ini/ini",

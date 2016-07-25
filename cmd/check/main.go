@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -18,6 +19,9 @@ import (
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/concourse/retryhttp"
+	"github.com/docker/distribution"
+	_ "github.com/docker/distribution/manifest/schema1"
+	_ "github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/auth"
@@ -82,10 +86,11 @@ func main() {
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	manifestRequest.Header.Add("Accept", "application/json")
+
 	manifestResponse, err := client.Do(manifestRequest)
 	fatalIf("failed to fetch manifest", err)
 
-	manifestResponse.Body.Close()
+	defer manifestResponse.Body.Close()
 
 	if manifestResponse.StatusCode != http.StatusOK {
 		fatal("failed to fetch digest: " + manifestResponse.Status)
@@ -93,7 +98,15 @@ func main() {
 
 	digest := manifestResponse.Header.Get("Docker-Content-Digest")
 	if digest == "" {
-		fatal("no digest returned")
+		ctHeader := manifestResponse.Header.Get("Content-Type")
+
+		bytes, err := ioutil.ReadAll(manifestResponse.Body)
+		fatalIf("failed to read response body", err)
+
+		_, desc, err := distribution.UnmarshalManifest(ctHeader, bytes)
+		fatalIf("failed to unmarshal manifest", err)
+
+		digest = string(desc.Digest)
 	}
 
 	response := CheckResponse{Version{digest}}
@@ -154,7 +167,7 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 	for _, scheme := range []string{"https", "http"} {
 		registryURL = scheme + "://" + registryHost
 
-		req, err := http.NewRequest("GET", registryURL+"/v2", nil)
+		req, err := http.NewRequest("GET", registryURL+"/v2/", nil)
 		fatalIf("failed to create ping request", err)
 
 		pingResp, pingErr = pingClient.Do(req)
