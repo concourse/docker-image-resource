@@ -95,9 +95,6 @@ version is the image's digest.
 
 #### Parameters
 
-* `rootfs`: *Optional.* Default `false`. Place a `.tar` file of the image in
-  the destination.
-
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 

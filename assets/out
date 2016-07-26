@@ -84,8 +84,6 @@ import_file=$(jq -r '.params.import_file // ""' < $payload)
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 
-rootfs="$(jq -r '.params.rootfs' < $payload)"
-
 if [ -n "$load" ]; then
   docker load -i "${load}/image"
   docker tag $(cat "${load}/image-id") "${repository}:${tag_name}"
@@ -125,11 +123,6 @@ else
 fi
 
 image_id="$(image_from_tag "$repository" "$tag_name")"
-
-if [ "$rootfs" = "true" ]; then
-  docker run --cidfile=container.cid "$image_id" echo container created
-  docker export $(cat container.cid) > ${destination}/rootfs.tar
-fi
 
 # afaict there's no clean way to get the digest after a push. docker prints
 # this line at the end at least:
