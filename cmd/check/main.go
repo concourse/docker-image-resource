@@ -20,6 +20,7 @@ import (
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/concourse/retryhttp"
 	"github.com/docker/distribution"
+	"github.com/docker/distribution/digest"
 	_ "github.com/docker/distribution/manifest/schema1"
 	_ "github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
@@ -66,22 +67,48 @@ func main() {
 
 	transport, registryURL := makeTransport(logger, request, registryHost, repo)
 
-	ub, err := v2.NewURLBuilderFromString(registryURL, false)
-	fatalIf("failed to construct registry URL builder", err)
-
 	client := &http.Client{
 		Transport: retryRoundTripper(logger, transport),
 	}
 
+	ub, err := v2.NewURLBuilderFromString(registryURL, false)
+	fatalIf("failed to construct registry URL builder", err)
+
 	namedRef, err := reference.WithName(repo)
 	fatalIf("failed to construct named reference", err)
+
+	var response CheckResponse
 
 	taggedRef, err := reference.WithTag(namedRef, tag)
 	fatalIf("failed to construct tagged reference", err)
 
-	manifestURL, err := ub.BuildManifestURL(taggedRef)
-	fatalIf("failed to build manifest URL", err)
+	latestManifestURL, err := ub.BuildManifestURL(taggedRef)
+	fatalIf("failed to build latest manifest URL", err)
 
+	latestDigest, foundLatest := fetchDigest(client, latestManifestURL)
+
+	if request.Version.Digest != "" {
+		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
+		fatalIf("failed to build cursor manifest URL", err)
+
+		cursorManifestURL, err := ub.BuildManifestURL(digestRef)
+		fatalIf("failed to build manifest URL", err)
+
+		cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL)
+
+		if foundCursor && cursorDigest != latestDigest {
+			response = append(response, Version{cursorDigest})
+		}
+	}
+
+	if foundLatest {
+		response = append(response, Version{latestDigest})
+	}
+
+	json.NewEncoder(os.Stdout).Encode(response)
+}
+
+func fetchDigest(client *http.Client, manifestURL string) (string, bool) {
 	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -91,6 +118,10 @@ func main() {
 	fatalIf("failed to fetch manifest", err)
 
 	defer manifestResponse.Body.Close()
+
+	if manifestResponse.StatusCode == http.StatusNotFound {
+		return "", false
+	}
 
 	if manifestResponse.StatusCode != http.StatusOK {
 		fatal("failed to fetch digest: " + manifestResponse.Status)
@@ -109,9 +140,7 @@ func main() {
 		digest = string(desc.Digest)
 	}
 
-	response := CheckResponse{Version{digest}}
-
-	json.NewEncoder(os.Stdout).Encode(response)
+	return digest, true
 }
 
 func makeTransport(logger lager.Logger, request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
