@@ -109,6 +109,12 @@ version is the image's digest.
   intermediate images when building). This will cause the resource to fail
   if it is set to `true` and the image does not exist yet.
 
+* `cache_tag`: *Optional.* Default `tag`. The specific tag to pull before
+  building when `cache` parameter is set. Instead of pulling the same tag
+  that's going to be built, this allows picking a different tag like
+  `latest` or the previous version. This will cause the resource to fail
+  if it is set to a tag that does not exist yet.
+
 * `load_base`: *Optional.* A path to a directory containing an image to `docker
   load` before running `docker build`. The directory must have `image`,
   `image-id`, `repository`, and `tag` present, i.e. the tree produced by `/in`.
