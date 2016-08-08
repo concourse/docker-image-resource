@@ -73,6 +73,7 @@ load=$(jq -r '.params.load // ""' < $payload)
 load_base=$(jq -r '.params.load_base // ""' < $payload)
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
+cache_tag=$(jq -r '.params.cache_tag // "${tag_name}"' < $payload)
 dockerfile=$(jq -r '.params.dockerfile // ""' < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
@@ -96,7 +97,7 @@ elif [ -n "$build" ]; then
   fi
 
   if [ "$cache" = "true" ]; then
-    docker_pull "${repository}:${tag_name}"
+    docker_pull "${repository}:${cache_tag}"
   fi
 
   if [ -n "$dockerfile" ]; then
