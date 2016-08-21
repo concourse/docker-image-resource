@@ -73,7 +73,7 @@ load=$(jq -r '.params.load // ""' < $payload)
 load_base=$(jq -r '.params.load_base // ""' < $payload)
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
-cache_tag=$(jq -r '.params.cache_tag // "${tag_name}"' < $payload)
+cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
 dockerfile=$(jq -r '.params.dockerfile // ""' < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
@@ -98,6 +98,11 @@ elif [ -n "$build" ]; then
 
   if [ "$cache" = "true" ]; then
     docker_pull "${repository}:${cache_tag}"
+    docker create \
+      --cidfile=/tmp/container.cid \
+      "${repository}:${cache_tag}-buildcache" whatever && \
+      docker cp $(cat /tmp/container.cid):/buildcache.tgz /tmp/buildcache.tgz && \
+      docker load -i /tmp/buildcache.tgz
   fi
 
   if [ -n "$dockerfile" ]; then
@@ -152,6 +157,11 @@ if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; the
   echo "${repository}:${tag_name} tagged as latest"
 fi
 
+if [ -n "$build" ] && [ "$cache" = "true" ]; then
+  buildcache save -o buildcache.tgz "${repository}:${tag_name}"
+  tar c buildcache.tgz | docker import - "${repository}:${cache_tag}-buildcache"
+  docker push "${repository}:${cache_tag}-buildcache"
+fi
 
 jq -n "{
   version: {
