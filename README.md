@@ -143,6 +143,21 @@ version is the image's digest.
 
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will be tag as latest too and tag will be push.
 
+* `build_args`: *Optional.*  Default ``. List of docker build arguments. Format: `<key>: <value>`.
+
+    ```yaml
+      build_args:
+        argInt: "1"
+        argBool: "true"
+        argEmail: me@yopmail.com
+    ```            
+* `build_args_file`: *Optional.*  Default ``. A Yaml filename containing docker build arguments.  
+File content sample:
+
+    ```yaml
+    { "argEmail": "me@yopmail.com", "argInt": "1", "argNewBool": "false" }
+    ```            
+
 
 ## Example
 

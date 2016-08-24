@@ -50,6 +50,8 @@ tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
+build_args=$(jq -r '.params.build_args // []' < $payload)
+build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 
 
 tag_name=""
@@ -100,10 +102,19 @@ elif [ -n "$build" ]; then
     docker_pull "${repository}:${cache_tag}"
   fi
 
+  expanded_build_args=""
+  if [ -n "$build_args" ]; then
+    expanded_build_args=$(echo $build_args|jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")')
+  fi
+
+  if [ -n "$build_args_file" ]; then
+    expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
+  fi
+
   if [ -n "$dockerfile" ]; then
-    docker build -t "${repository}:${tag_name}" -f "$dockerfile" "$build"
+    docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" "$build"
   else
-    docker build -t "${repository}:${tag_name}" "$build"
+    docker build -t "${repository}:${tag_name}" $expanded_build_args "$build"
   fi
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
