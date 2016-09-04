@@ -76,7 +76,7 @@ load_base=$(jq -r '.params.load_base // ""' < $payload)
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
-dockerfile=$(jq -r '.params.dockerfile // ""' < $payload)
+dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
 load_repository=$(jq -r '.params.load_repository // ""' < $payload)
@@ -91,6 +91,21 @@ if [ -n "$load" ]; then
   docker load -i "${load}/image"
   docker tag $(cat "${load}/image-id") "${repository}:${tag_name}"
 elif [ -n "$build" ]; then
+  if [ ! -f "$dockerfile" ]; then
+    echo "It doesn't appear that given Dockerfile: \"$dockerfile\" is a file"
+    exit 1
+  fi
+
+  ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?/'
+  ecr_host=$(grep '^\s*FROM' ${dockerfile} | \
+             awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
+
+  if [ -n "$ecr_host" ]; then
+    # allow use of ECR hosts in FROM
+    # https://github.com/awslabs/amazon-ecr-credential-helper/issues/9
+    jq -c ".auths |= .+ {\"$ecr_host\": {}}" ~/.docker/config.json > tmp.json && \
+      mv tmp.json ~/.docker/config.json
+  fi
   if [ -n "$load_base" ]; then
     docker load -i "${load_base}/image"
     docker tag \
@@ -116,11 +131,7 @@ elif [ -n "$build" ]; then
     expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
   fi
 
-  if [ -n "$dockerfile" ]; then
-    docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" "$build"
-  else
-    docker build -t "${repository}:${tag_name}" $expanded_build_args "$build"
-  fi
+  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
