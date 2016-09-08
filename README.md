@@ -78,6 +78,8 @@ The following files will be placed in the destination:
 * `/digest`: The fetched image digest.
 * `/rootfs.tar`: If `rootfs` is `true`, the contents of the image will be
   provided here.
+* `/metadata.json`: Collects custom metadata. Contains the container  `env` variables and running `user`.
+* `/docker_inspect.json`: Output of the `docker inspect` on `image_id`. Useful if collecting `LABEL` [metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/) from your image.
 
 #### Parameters
 
