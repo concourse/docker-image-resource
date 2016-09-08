@@ -79,6 +79,9 @@ fi
 
 image_id="$(image_from_digest "$repository" "$digest")"
 
+# Let's collect the metadata on the image from docker inspect
+docker inspect $image_id > ${destination}/docker_inspect.json
+
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
 echo "$image_id" > ${destination}/image-id
