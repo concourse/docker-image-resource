@@ -54,6 +54,8 @@ mkdir -p $destination
 
 image_name="${repository}@${digest}"
 
+image_id="$(image_from_digest "$repository" "$digest")"
+
 if [ "$skip_download" = "false" ]; then
   log_in "$username" "$password" "$registry"
 
@@ -62,6 +64,8 @@ if [ "$skip_download" = "false" ]; then
   if [ "$save" = "true" ]; then
     docker save -o ${destination}/image "$image_name"
   fi
+
+  docker inspect $image_id > ${destination}/docker_inspect.json
 
   docker run \
     --cidfile=/tmp/container.cid \
@@ -76,11 +80,6 @@ if [ "$skip_download" = "false" ]; then
     docker export $(cat /tmp/container.cid) > ${destination}/rootfs.tar
   fi
 fi
-
-image_id="$(image_from_digest "$repository" "$digest")"
-
-# Let's collect the metadata on the image from docker inspect
-docker inspect $image_id > ${destination}/docker_inspect.json
 
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
