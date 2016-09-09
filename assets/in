@@ -54,8 +54,6 @@ mkdir -p $destination
 
 image_name="${repository}@${digest}"
 
-image_id="$(image_from_digest "$repository" "$digest")"
-
 if [ "$skip_download" = "false" ]; then
   log_in "$username" "$password" "$registry"
 
@@ -64,7 +62,10 @@ if [ "$skip_download" = "false" ]; then
   if [ "$save" = "true" ]; then
     docker save -o ${destination}/image "$image_name"
   fi
+  
+  image_id="$(image_from_digest "$repository" "$digest")"
 
+  echo "$image_id" > ${destination}/image-id
   docker inspect $image_id > ${destination}/docker_inspect.json
 
   docker run \
@@ -83,7 +84,6 @@ fi
 
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
-echo "$image_id" > ${destination}/image-id
 echo "$digest" > ${destination}/digest
 
 jq -n "{
