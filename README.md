@@ -83,11 +83,11 @@ The following files will be placed in the destination:
 
 #### Parameters
 
-* `save`: *Optional.* Place a `docker save`d image in the destination. **DEFAULT: false**
-* `rootfs`: *Optional.* Place a `.tar` file of the image in the destination. **DEFAULT: false**
+* `save`: *Optional.* Place a `docker save`d image in the destination. Defaults to `false`.
+* `rootfs`: *Optional.* Place a `.tar` file of the image in the destination. Defaults to `false`.
 * `skip_download`: *Optional.* Skip `docker pull` of image. Only `/image-id`,
   `/repository`, and `/tag` will be populated. `/image` and `/rootfs.tar` will
-  not be present. **DEFAULT: false**
+  not be present. Defaults to `false`.
 
 
 ### `out`: Push an image, or build and push a `Dockerfile`.
