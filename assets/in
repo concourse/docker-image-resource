@@ -74,9 +74,6 @@ if [ "$skip_download" = "false" ]; then
     --entrypoint /tmp/print-metadata  \
     "$image_name" > ${destination}/metadata.json
 
-  mkdir -p ${destination}/rootfs/
-  docker export $(cat /tmp/container.cid) | tar -xf - -C ${destination}/rootfs/
-
   if [ "$rootfs" = "true" ]; then
     docker export $(cat /tmp/container.cid) > ${destination}/rootfs.tar
   fi
