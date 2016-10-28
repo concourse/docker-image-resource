@@ -62,7 +62,7 @@ if [ "$skip_download" = "false" ]; then
   if [ "$save" = "true" ]; then
     docker save -o ${destination}/image "$image_name"
   fi
-  
+
   image_id="$(image_from_digest "$repository" "$digest")"
 
   echo "$image_id" > ${destination}/image-id
@@ -75,7 +75,7 @@ if [ "$skip_download" = "false" ]; then
     "$image_name" > ${destination}/metadata.json
 
   mkdir -p ${destination}/rootfs/
-  docker export $(cat /tmp/container.cid) | tar -xf - -C ${destination}/rootfs/
+  docker export $(cat /tmp/container.cid) | tar --exclude="dev/*" -xf - -C ${destination}/rootfs/
 
   if [ "$rootfs" = "true" ]; then
     docker export $(cat /tmp/container.cid) > ${destination}/rootfs.tar
