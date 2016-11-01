@@ -44,7 +44,7 @@ fi
 digest="$(jq -r '.version.digest' < $payload)"
 
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
-skip_download="$(jq -r '.params.skip_download // false' < $payload)"
+download="$(jq -r '.params.download // false' < $payload)"
 save="$(jq -r '.params.save // false' < $payload)"
 
 certs_to_file "$ca_certs"
@@ -54,7 +54,7 @@ mkdir -p $destination
 
 image_name="${repository}@${digest}"
 
-if [ "$skip_download" = "false" ]; then
+if [ "$download" = "true" ] || [ "$save" = "true" ]; then
   log_in "$username" "$password" "$registry"
 
   docker_pull "$image_name"
@@ -62,7 +62,7 @@ if [ "$skip_download" = "false" ]; then
   if [ "$save" = "true" ]; then
     docker save -o ${destination}/image "$image_name"
   fi
-  
+
   image_id="$(image_from_digest "$repository" "$digest")"
 
   echo "$image_id" > ${destination}/image-id
