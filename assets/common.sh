@@ -142,6 +142,19 @@ certs_to_file() {
   done
 }
 
+set_client_certs() {
+  local raw_client_certs="${1}"
+  local cert_count="$(echo $raw_client_certs | jq -r '. | length')"
+
+  for i in $(seq 0 $(expr "$cert_count" - 1));
+  do
+    local cert_dir="/etc/docker/certs.d/$(echo $raw_client_certs | jq -r .[$i].domain)"
+    [ -d "$cert_dir" ] || mkdir -p "$cert_dir"
+    echo $raw_client_certs | jq -r .[$i].cert >> "${cert_dir}/client.cert"
+    echo $raw_client_certs | jq -r .[$i].key >> "${cert_dir}/client.key"
+  done
+}
+
 docker_pull() {
   GREEN='\033[0;32m'
   RED='\033[0;31m'

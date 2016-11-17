@@ -180,6 +180,13 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 		}
 	}
 
+	if len(request.Source.ClientCerts) > 0 {
+		baseTransport.TLSClientConfig = &tls.Config{
+			RootCAs:      caCertPool,
+			Certificates: setClientCert(registryHost, request.Source.ClientCerts),
+		}
+	}
+
 	authTransport := transport.NewTransport(baseTransport)
 
 	pingClient := &http.Client{
@@ -301,4 +308,18 @@ func retryRoundTripper(logger lager.Logger, rt http.RoundTripper) http.RoundTrip
 		},
 		RoundTripper: rt,
 	}
+}
+
+func setClientCert(registry string, list []ClientCertKey) []tls.Certificate {
+	var clientCert []tls.Certificate
+	for _, r := range list {
+		if r.Domain == registry {
+			certKey, err := tls.X509KeyPair([]byte(r.Cert), []byte(r.Key))
+			if err != nil {
+				fatal(fmt.Sprintf("failed to parse client certificate and/or key for \"%s\"", r.Domain))
+			}
+			clientCert = append(clientCert, certKey)
+		}
+	}
+	return clientCert
 }
