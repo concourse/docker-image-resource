@@ -49,7 +49,8 @@ start_docker() {
     mount -o remount,rw /proc/sys
   fi
 
-  local server_args=""
+  local mtu=$(cat /sys/class/net/$(ip route get 8.8.8.8|awk '{ print $5 }')/mtu)
+  local server_args="--mtu ${mtu}"
   local registry=""
 
   for registry in $1; do
