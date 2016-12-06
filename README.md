@@ -142,6 +142,8 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  Default `latest`. The tag of the repository to pull
   down via `pull_repository`.
 
+* `pull_digest`: *Optional.* The digest of image to pull down via `pull_repository`. If both `pull_tag` and `pull_digest` are set, `pull_tag` will be ignored.
+
 * `tag`: *Optional.* The value should be a path to a file containing the name
   of the tag.
 
