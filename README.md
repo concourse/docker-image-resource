@@ -83,11 +83,11 @@ The following files will be placed in the destination:
 
 #### Parameters
 
-* `save`: *Optional.* Place a `docker save`d image in the destination.
 * `rootfs`: *Optional.* Place a `.tar` file of the image in the destination.
-* `skip_download`: *Optional.* Skip `docker pull` of image. Only `/image-id`,
+* `download`: *Optional.* Default `false`. Performs `docker pull` of image. If not set to true, Only `/image-id`,
   `/repository`, and `/tag` will be populated. `/image` and `/rootfs.tar` will
   not be present.
+* `save`: *Optional.* Place a `docker save`d image in the destination.
 
 
 ### `out`: Push an image, or build and push a `Dockerfile`.
@@ -112,11 +112,11 @@ version is the image's digest.
   if it is set to `true` and the image does not exist yet.
   Note: Since docker 1.10 docker images [do not contain all necessary metadata to
   restore the build cache](https://github.com/docker/docker/issues/20316).
-  Additional metadata needs to be saved and re-applied after a docker pull to have 
+  Additional metadata needs to be saved and re-applied after a docker pull to have
   subsequent builds skip identical intermediate layers. This additional
   metadata is stored as a very small separate image (`image:${cache_tag}-buildcache`)
   in the repository of this resource.
-  
+
 * `cache_tag`: *Optional.* Default `tag`. The specific tag to pull before
   building when `cache` parameter is set. Instead of pulling the same tag
   that's going to be built, this allows picking a different tag like
@@ -153,7 +153,7 @@ version is the image's digest.
   be tagged as `latest` in addition to whatever other tag was specified.
 
 * `build_args`: *Optional.*  A map of Docker build arguments.
-  
+
   Example:
 
   ```yaml
@@ -162,7 +162,7 @@ version is the image's digest.
     how_many_things: 2
     email: me@yopmail.com
   ```
-    
+
 * `build_args_file`: *Optional.* Path to a JSON file containing Docker build
   arguments.
 
