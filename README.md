@@ -85,9 +85,8 @@ The following files will be placed in the destination:
 
 * `save`: *Optional.* Place a `docker save`d image in the destination.
 * `rootfs`: *Optional.* Place a `.tar` file of the image in the destination.
-* `skip_download`: *Optional.* Skip `docker pull` of image. Only `/image-id`,
-  `/repository`, and `/tag` will be populated. `/image` and `/rootfs.tar` will
-  not be present.
+* `skip_download`: *Optional.* Skip `docker pull` of image. Artifacts based
+  on the image will not be present.
 
 
 ### `out`: Push an image, or build and push a `Dockerfile`.
