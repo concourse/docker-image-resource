@@ -131,7 +131,18 @@ elif [ -n "$build" ]; then
     expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
   fi
 
-  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" "$build"
+  already_built=false
+  if [ "$if_not_exists" = "true" ]; then
+    if docker pull "${repository}:${tag_name}"; then
+      already_built=true
+    fi
+    echo
+  fi
+
+  if ! "$already_built" = "true"; then
+    docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" "$build"
+  fi
+
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
