@@ -60,7 +60,7 @@ func main() {
 		registryHost = registryMirrorUrl.Host
 	}
 
-	tag := request.Source.Tag
+	tag := request.Source.Tag.String()
 	if tag == "" {
 		tag = "latest"
 	}
