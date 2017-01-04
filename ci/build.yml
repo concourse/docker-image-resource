@@ -6,6 +6,8 @@ image_resource:
   source: {repository: concourse/static-golang}
 
 inputs:
+- name: docker
+
 - name: docker-image-resource
   path: gopath/src/github.com/concourse/docker-image-resource
 

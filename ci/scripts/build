@@ -4,6 +4,8 @@ set -e -x
 
 BUILT_RESOURCE=$PWD/built-resource
 
+DOCKER_VERSION=$(cat docker/version | sed 's/^v//')
+
 export GOPATH=$PWD/gopath
 export PATH=$PWD/gopath/bin:$PATH
 
@@ -16,8 +18,8 @@ CGO_ENABLED=1 ginkgo -race -r -p
 go build -o ./assets/check ./cmd/check/
 go build -o ./assets/print-metadata ./cmd/print-metadata/
 
-curl -sSL -O https://get.docker.com/builds/Linux/x86_64/docker-1.12.1.tgz
-tar zxf docker-1.12.1.tgz
+curl -sSL -O "https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz"
+tar zxf "docker-${DOCKER_VERSION}.tgz"
 go build -o ./buildcache github.com/concourse/docker-image-resource/vendor/github.com/tonistiigi/buildcache/cmd/buildcache
 
 
