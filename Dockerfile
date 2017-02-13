@@ -3,8 +3,6 @@ FROM concourse/buildroot:iptables
 ADD docker/ /usr/local/bin/
 RUN /usr/local/bin/docker --version
 
-ADD buildcache /usr/local/bin/buildcache
-
 ADD assets/ /opt/resource/
 
 ADD ecr-login /usr/local/bin/docker-credential-ecr-login

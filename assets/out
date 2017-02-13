@@ -115,13 +115,10 @@ elif [ -n "$build" ]; then
       "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
   fi
 
+  cache_from=""
   if [ "$cache" = "true" ]; then
     docker_pull "${repository}:${cache_tag}"
-    docker create \
-      --cidfile=/tmp/container.cid \
-      "${repository}:${cache_tag}-buildcache" whatever && \
-      docker cp $(cat /tmp/container.cid):/buildcache.tgz /tmp/buildcache.tgz && \
-      docker load -i /tmp/buildcache.tgz
+    cache_from="--cache-from ${repository}:${cache_tag}"
   fi
 
   expanded_build_args=""
@@ -133,7 +130,7 @@ elif [ -n "$build" ]; then
     expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
   fi
 
-  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" "$build"
+  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
@@ -179,12 +176,6 @@ if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; the
   docker tag "${repository}:${tag_name}" "${repository}:latest"
   docker push "${repository}:latest"
   echo "${repository}:${tag_name} tagged as latest"
-fi
-
-if [ -n "$build" ] && [ "$cache" = "true" ]; then
-  buildcache save -o buildcache.tgz "${repository}:${tag_name}"
-  tar c buildcache.tgz | docker import - "${repository}:${cache_tag}-buildcache"
-  docker push "${repository}:${cache_tag}-buildcache"
 fi
 
 jq -n "{
