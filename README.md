@@ -128,7 +128,7 @@ version is the image's digest.
   build.
 
 * `load`: *Optional.* The path of a directory containing an image that was
-  fetched using this same resource with `save: true`.
+  fetched using this same resource type with `save: true`.
 
 * `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if
   it's not at the root of the directory.
