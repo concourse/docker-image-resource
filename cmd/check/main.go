@@ -265,15 +265,15 @@ const officialRegistry = "registry-1.docker.io"
 func parseRepository(repository string) (string, string) {
 	segs := strings.Split(repository, "/")
 
+	if len(segs) > 1 && (strings.Contains(segs[0], ":") || strings.Contains(segs[0], ".")) {
+		// In a private regsitry pretty much anything is valid.
+		return segs[0], strings.Join(segs[1:], "/")
+	}
 	switch len(segs) {
 	case 3:
 		return segs[0], segs[1] + "/" + segs[2]
 	case 2:
-		if strings.Contains(segs[0], ":") || strings.Contains(segs[0], ".") {
-			return segs[0], segs[1]
-		} else {
-			return officialRegistry, segs[0] + "/" + segs[1]
-		}
+		return officialRegistry, segs[0] + "/" + segs[1]
 	case 1:
 		return officialRegistry, "library/" + segs[0]
 	}
