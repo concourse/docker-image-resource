@@ -16,6 +16,7 @@ package api
 import (
 	"encoding/base64"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -27,75 +28,172 @@ import (
 )
 
 const proxyEndpointScheme = "https://"
+const programName = "docker-credential-ecr-login"
+
+var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
+
+type Registry struct {
+	ID	string
+	Region	string
+}
+
+func ExtractRegistry(serverURL string) (*Registry, error) {
+	if (strings.HasPrefix(serverURL, proxyEndpointScheme)) {
+		serverURL = strings.TrimPrefix(serverURL, proxyEndpointScheme)
+	}
+	matches := ecrPattern.FindStringSubmatch(serverURL)
+	if len(matches) == 0 {
+		return nil, fmt.Errorf(programName + " can only be used with Amazon EC2 Container Registry.")
+	} else if len(matches) < 3 {
+		return nil, fmt.Errorf(serverURL + "is not a valid repository URI for Amazon EC2 Container Registry.")
+	}
+	registry := &Registry{
+		ID:	matches[1],
+	        Region:	matches[2],
+	}
+	return registry, nil
+}
 
 type Client interface {
-	GetCredentials(registry, image string) (string, string, error)
+	GetCredentials(serverURL string) (*Auth, error)
+	GetCredentialsByRegistryID(registryID string) (*Auth, error)
+	ListCredentials() ([]*Auth, error)
 }
 type defaultClient struct {
 	ecrClient       ecriface.ECRAPI
 	credentialCache cache.CredentialsCache
 }
 
-func (self *defaultClient) GetCredentials(registry, image string) (string, string, error) {
-	log.Debugf("GetCredentials for %s", registry)
+type Auth struct {
+	ProxyEndpoint string
+	Username      string
+	Password      string
+}
 
-	cachedEntry := self.credentialCache.Get(registry)
+// GetCredentials returns username, password, and proxyEndpoint
+func (self *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
+	registry, err := ExtractRegistry(serverURL)
+	if err != nil {
+		return nil, err
+	}
+	log.Debugf("Retrieving credentials for %s in %s (%s)", registry.ID, registry.Region, serverURL)
+	return self.GetCredentialsByRegistryID(registry.ID)
+}
 
+// GetCredentials returns username, password, and proxyEndpoint
+func (self *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, error) {
+	cachedEntry := self.credentialCache.Get(registryID)
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
-			log.Debugf("Using cached token for %s", registry)
-			return extractToken(cachedEntry.AuthorizationToken)
+			log.Debugf("Using cached token for %s", registryID)
+			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
+		}
+		log.Debugf("Cached token is no longer valid. RequestAt: %s, ExpiresAt: %s", cachedEntry.RequestedAt, cachedEntry.ExpiresAt)
+	}
+
+	auth, err := self.getAuthorizationToken(registryID)
+
+	// if we have a cached token, fall back to avoid failing the request. This may result an expired token
+	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
+	// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
+	if err != nil && cachedEntry != nil {
+		log.Infof("Got error fetching authorization token. Falling back to cached token. Error was: %s", err)
+		return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
+	}
+	return auth, err
+}
+
+func (self *defaultClient) ListCredentials() ([]*Auth, error) {
+	auths := []*Auth{}
+	for _, authEntry := range self.credentialCache.List() {
+		auth, err := extractToken(authEntry.AuthorizationToken, authEntry.ProxyEndpoint)
+		if err != nil {
+			log.Debugf("Could not extract token: %v", err)
 		} else {
-			log.Debugf("Cached token is no longer valid. RequestAt: %s, ExpiresAt: %s", cachedEntry.RequestedAt, cachedEntry.ExpiresAt)
+			auths = append(auths, auth)
 		}
 	}
 
-	log.Debugf("Calling ECR.GetAuthorizationToken for %s", registry)
+	// If cache is empty, get authorization token of default registry
+	if len(auths) == 0 {
+		log.Debug("No credential cache")
+		auth, err := self.getAuthorizationToken("")
+		if err != nil {
+			log.Debugf("Couldn't get authorization token: %v", err)
+		} else {
+			auths = append(auths, auth)
+		}
+		return auths, err
+	}
 
-	input := &ecr.GetAuthorizationTokenInput{
-		RegistryIds: []*string{aws.String(registry)},
+	return auths, nil 
+}
+
+func (self *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) {
+	var input *ecr.GetAuthorizationTokenInput
+        if registryID == "" {
+		log.Debugf("Calling ECR.GetAuthorizationToken for default registry")
+		input = &ecr.GetAuthorizationTokenInput{}
+	} else {
+		log.Debugf("Calling ECR.GetAuthorizationToken for %s", registryID)
+		input = &ecr.GetAuthorizationTokenInput{
+			RegistryIds: []*string{aws.String(registryID)},
+		}
 	}
 
 	output, err := self.ecrClient.GetAuthorizationToken(input)
-
 	if err != nil || output == nil {
 		if err == nil {
-			err = fmt.Errorf("Missing AuthorizationData in ECR response for %s", registry)
+			if registryID == "" {
+				err = fmt.Errorf("Mising AuthorizationData in ECR response for default registry")
+			} else {
+				err = fmt.Errorf("Missing AuthorizationData in ECR response for %s", registryID)
+			}
 		}
-
-		// if we have a cached token, fall back to avoid failing the request. This may result an expired token
-		// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
-		// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
-		if cachedEntry != nil {
-			log.Infof("Got error fetching authorization token. Falling back to cached token. Error was: %s", err)
-			return extractToken(cachedEntry.AuthorizationToken)
-		}
-
-		return "", "", err
+		return nil, err
 	}
+
 	for _, authData := range output.AuthorizationData {
-		if authData.ProxyEndpoint != nil &&
-			strings.HasPrefix(proxyEndpointScheme+image, aws.StringValue(authData.ProxyEndpoint)) &&
-			authData.AuthorizationToken != nil {
+		if authData.ProxyEndpoint != nil && authData.AuthorizationToken != nil {
 			authEntry := cache.AuthEntry{
 				AuthorizationToken: aws.StringValue(authData.AuthorizationToken),
 				RequestedAt:        time.Now(),
 				ExpiresAt:          aws.TimeValue(authData.ExpiresAt),
 				ProxyEndpoint:      aws.StringValue(authData.ProxyEndpoint),
 			}
-
-			self.credentialCache.Set(registry, &authEntry)
-			return extractToken(aws.StringValue(authData.AuthorizationToken))
+			registry, err := ExtractRegistry(authEntry.ProxyEndpoint)
+			if err != nil {
+				return nil, fmt.Errorf("Invalid ProxyEndpoint returned by ECR: %s", authEntry.ProxyEndpoint)
+			}
+			auth, err := extractToken(authEntry.AuthorizationToken, authEntry.ProxyEndpoint)
+			if err != nil {
+				return nil, err
+			}
+			self.credentialCache.Set(registry.ID, &authEntry)
+			return auth, nil
 		}
 	}
-	return "", "", fmt.Errorf("No AuthorizationToken found for %s", registry)
+	if registryID == "" {
+		return nil, fmt.Errorf("No AuthorizationToken found for default registry")
+	} else {
+		return nil, fmt.Errorf("No AuthorizationToken found for %s", registryID)
+	}
 }
 
-func extractToken(token string) (string, string, error) {
+func extractToken(token string, proxyEndpoint string) (*Auth, error) {
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
-		return "", "", err
+		return nil, fmt.Errorf("Invalid token: %v:", err)
 	}
+
 	parts := strings.SplitN(string(decodedToken), ":", 2)
-	return parts[0], parts[1], nil
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("Invalid token: expected two parts, got %n", len(parts))
+	}
+
+	return &Auth{
+		Username:      parts[0],
+		Password:      parts[1],
+		ProxyEndpoint: proxyEndpoint,
+	}, nil
 }

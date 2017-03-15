@@ -15,21 +15,21 @@ package ecr
 
 import (
 	"errors"
-	"regexp"
+	"fmt"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	log "github.com/cihub/seelog"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
-const programName = "docker-credential-ecr-login"
-
-var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
 var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
 	ClientFactory api.ClientFactory
 }
+
+// ensure ECRHelper adheres to the credentials.Helper interface
+var _ credentials.Helper = (*ECRHelper)(nil)
 
 func (ECRHelper) Add(creds *credentials.Credentials) error {
 	// This does not seem to get called
@@ -43,23 +43,38 @@ func (ECRHelper) Delete(serverURL string) error {
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	defer log.Flush()
-	matches := ecrPattern.FindStringSubmatch(serverURL)
-	if len(matches) == 0 {
-		log.Error(programName + " can only be used with Amazon EC2 Container Registry.")
-		return "", "", credentials.ErrCredentialsNotFound
-	} else if len(matches) < 3 {
-		log.Error(serverURL + "is not a valid repository URI for Amazon EC2 Container Registry.")
-		return "", "", credentials.ErrCredentialsNotFound
+
+	registry, err := api.ExtractRegistry(serverURL)
+	if err != nil {
+		log.Errorf("Error parsing the serverURL: %v", err)
+		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
-	registry := matches[1]
-	region := matches[2]
-	log.Debugf("Retrieving credentials for %s in %s (%s)", registry, region, serverURL)
-	client := self.ClientFactory.NewClient(region)
-	user, pass, err := client.GetCredentials(registry, serverURL)
+	client := self.ClientFactory.NewClientFromRegion(registry.Region)
+	auth, err := client.GetCredentials(serverURL)
 	if err != nil {
 		log.Errorf("Error retrieving credentials: %v", err)
-		return "", "", credentials.ErrCredentialsNotFound
+		return "", "", credentials.NewErrCredentialsNotFound()
 	}
-	return user, pass, nil
+	return auth.Username, auth.Password, nil
 }
+
+func (self ECRHelper) List() (map[string]string, error) {
+	log.Debug("Listing credentials")
+	client := self.ClientFactory.NewClientWithDefaults()
+
+	auths, err := client.ListCredentials()
+	if err != nil {
+		log.Errorf("Error listing credentials: %v", err)
+		return nil, fmt.Errorf("Could not list credentials: %v:", err)
+	}
+
+	result := map[string]string{}
+	
+	for _, auth := range auths {
+	        serverURL := auth.ProxyEndpoint
+	        result[serverURL] = auth.Username
+	}
+	return result, nil
+}
+
