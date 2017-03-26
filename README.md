@@ -98,7 +98,7 @@ Pulls down the repository image by the requested digest.
 
 The following files will be placed in the destination:
 
-* `/image`: If `save` is `true`, the `docker save`d image will be provided
+* `/image`: If `save` is `true`, the `docker saved` image will be provided
   here.
 * `/repository`: The name of the repository that was fetched.
 * `/tag`: The tag of the repository that was fetched.
