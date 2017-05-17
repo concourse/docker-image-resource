@@ -1,8 +1,10 @@
 package main
 
+import "encoding/json"
+
 type Source struct {
 	Repository         string          `json:"repository"`
-	Tag                string          `json:"tag"`
+	Tag                json.Number     `json:"tag"`
 	Username           string          `json:"username"`
 	Password           string          `json:"password"`
 	InsecureRegistries []string        `json:"insecure_registries"`
