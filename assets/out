@@ -94,7 +94,7 @@ if [ -n "$load" ]; then
   docker tag $(cat "${load}/image-id") "${repository}:${tag_name}"
 elif [ -n "$build" ]; then
   if [ ! -f "$dockerfile" ]; then
-    echo "It doesn't appear that given Dockerfile: \"$dockerfile\" is a file"
+    echo "It doesn't appear that given Dockerfile: \"$dockerfile\" is not a file"
     exit 1
   fi
 
