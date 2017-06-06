@@ -88,6 +88,7 @@ import_file=$(jq -r '.params.import_file // ""' < $payload)
 
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
+pull_digest=$(jq -r '.params.pull_digest // ""' < $payload)
 
 if [ -n "$load" ]; then
   docker load -i "${load}/image"
@@ -142,8 +143,13 @@ elif [ -n "$load_file" ]; then
 elif [ -n "$import_file" ]; then
   cat "$import_file" | docker import - "${repository}:${tag_name}"
 elif [ -n "$pull_repository" ]; then
-  docker pull "${pull_repository}:${pull_tag}"
-  docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag_name}"
+  if [ -n "$pull_digest" ]; then
+    docker pull "${pull_repository}@${pull_digest}"
+    docker tag "${pull_repository}@${pull_digest}" "${repository}:${tag_name}"
+  else
+    docker pull "${pull_repository}:${pull_tag}"
+    docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag_name}"
+  fi
 else
   echo "must specify build, load, load_file, import_file, or pull_repository params"
   exit 1
