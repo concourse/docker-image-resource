@@ -57,6 +57,7 @@ log_in "$username" "$password" "$registry"
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
+additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
 build_args=$(jq -r '.params.build_args // {}' < $payload)
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
@@ -71,6 +72,15 @@ if [ -n "$tag_params" ]; then
   tag_name="${tag_prefix}$(cat $tag_params)"
 else
   tag_name="$tag_source"
+fi
+
+additional_tag_names=""
+if [ -n "$additional_tags" ]; then
+  if [ ! -f "$additional_tags" ]; then
+    echo "additional tags file '$additional_tags' does not exist"
+    exit 1
+  fi
+  additional_tag_names="$(cat $additional_tags)"
 fi
 
 if [ -z "$repository" ]; then
@@ -218,6 +228,14 @@ if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]; then
   docker tag "${repository}:${tag_name}" "${repository}:latest"
   docker push "${repository}:latest"
   echo "${repository}:${tag_name} tagged as latest"
+fi
+
+if [ -n "$additional_tag_names" ]    ; then
+  for additional_tag in $additional_tag_names; do
+    docker tag "${repository}:${tag_name}" "${repository}:${additional_tag}"
+    docker push "${repository}:${additional_tag}"
+    echo "${repository}:${tag_name} tagged as ${additional_tag}"
+  done
 fi
 
 jq -n "{
