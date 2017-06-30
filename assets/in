@@ -26,6 +26,7 @@ insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $p
 
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
+credentials=$(jq -r '.source.login // []' < $payload)
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
@@ -64,6 +65,7 @@ image_name="${repository}@${digest}"
 
 if [ "$skip_download" = "false" ]; then
   log_in "$username" "$password" "$registry"
+  multi_login "$credentials"
 
   docker_pull "$image_name"
 
