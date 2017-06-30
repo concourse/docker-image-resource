@@ -97,6 +97,19 @@ log_in() {
   fi
 }
 
+multi_login() {
+  local credentials="$(echo $1 | jq -r '. as $data | [$data] | flatten')"
+  local credentials_count="$(echo $credentials | jq -r '. | length')"
+
+  for i in $(seq 0 $(expr "$credentials_count" - 1));
+  do
+    username="$(echo $credentials | jq -r .[$i].username)"
+    password="$(echo $credentials | jq -r .[$i].password)"
+    registry="$(echo $credentials | jq -r .[$i].registry // "")"
+    docker login -u "${username}" -p "${password}" ${registry}
+  done
+}
+
 private_registry() {
   local repository="${1}"
 
