@@ -13,7 +13,7 @@ cd $(dirname $0)/../..
 
 go install github.com/concourse/docker-image-resource/vendor/github.com/onsi/ginkgo/ginkgo
 
-CGO_ENABLED=1 ginkgo -race -r -p
+CGO_ENABLED=1 ginkgo -race -r -p -skip "DockerImageResource"
 
 go build -o ./assets/check ./cmd/check/
 go build -o ./assets/print-metadata ./cmd/print-metadata/

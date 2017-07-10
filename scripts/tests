@@ -2,6 +2,6 @@
 
 set -eux
 
-ginkgo -race -r cmd/
+ginkgo -race -r -skip "DockerImageResource"
 GOOS=linux ginkgo build -r tests/
 docker run -it --privileged -v `pwd`:/docker-image-resource concourse/buildroot:iptables /docker-image-resource/tests/tests.test
