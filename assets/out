@@ -120,16 +120,16 @@ elif [ -n "$build" ]; then
     expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
   fi
 
-  ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?/'
-  ecr_host=$(grep '^\s*FROM' ${dockerfile} | \
+  ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
+  ecr_image=$(grep '^\s*FROM' ${dockerfile} | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
-  if [ -n "$ecr_host" ]; then
+  if [ -n "$ecr_image" ]; then
     # pull will perform an authentication process needed for ECR
     # there is an experimental endpoint to support long running sessions
     # docker cli does not support it yet though
     # see https://github.com/moby/moby/pull/32677
     # and https://github.com/awslabs/amazon-ecr-credential-helper/issues/9
-    docker pull "${repository}"
+    docker pull "${ecr_image}"
   fi
 
   docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" $cache_from "$build"

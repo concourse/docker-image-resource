@@ -2,3 +2,5 @@ assets/check
 assets/print-metadata
 bin/
 tar-src/
+*.test
+.idea
