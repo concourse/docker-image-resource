@@ -1,7 +1,20 @@
 #!/bin/bash
 
+# To skip ECR tests, pass the following parameters:
+#     -ginkgo.skip "When using ECR"
+
 set -eux
+
+function cleanup_testreg {
+    docker kill testreg 2> /dev/null || true
+    docker rm --volumes testreg 2> /dev/null || true
+}
 
 ginkgo -race -r -skip "DockerImageResource"
 GOOS=linux ginkgo build -r tests/
-docker run -it --privileged -v `pwd`:/docker-image-resource concourse/buildroot:iptables /docker-image-resource/tests/tests.test
+cleanup_testreg
+docker run -d --name=testreg registry
+trap cleanup_testreg EXIT
+docker run -it --privileged -v `pwd`:/docker-image-resource --link=testreg \
+       concourse/buildroot:iptables \
+       /docker-image-resource/tests/tests.test "$@"
