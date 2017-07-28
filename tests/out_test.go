@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+var source = map[string]interface{} {
+	"repository": "testreg:5000/test",
+	"insecure_registries": [1]string{"testreg:5000"},
+}
+
 var _ = Describe("Out", func() {
 	BeforeEach(func() {
 		os.Setenv("PATH", "/docker-image-resource/tests/fixtures/bin:" + os.Getenv("PATH"))
@@ -30,7 +35,7 @@ var _ = Describe("Out", func() {
 
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())
-		session.Wait(10 * time.Second)
+		session.Wait(30 * time.Second)
 		return session
 	}
 
@@ -65,6 +70,37 @@ var _ = Describe("Out", func() {
 			})
 
 			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing")))
+		})
+	})
+
+	Context("When tagging as latest", func() {
+		var fixdir = "/docker-image-resource/tests/fixtures/basic"
+		It("doesn't tag the image with :latest by default", func() {
+			session := put(map[string]interface{} {
+				"source": source,
+				"params": map[string]interface{} {
+					"build": fixdir,
+					"tag": fixdir + "/tag",
+					"dockerfile": fixdir + "/Dockerfile",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say("Successfully tagged testreg:5000/test:mytag"))
+			Expect(session.Err).ToNot(gbytes.Say("testreg:5000/test:mytag tagged as latest"))
+		})
+		It("tags the image with :latest", func() {
+			session := put(map[string]interface{} {
+				"source": source,
+				"params": map[string]interface{} {
+					"build": fixdir,
+					"tag": fixdir + "/tag",
+					"dockerfile": fixdir + "/Dockerfile",
+					"tag_as_latest": true,
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say("Successfully tagged testreg:5000/test:mytag"))
+			Expect(session.Err).To(gbytes.Say("testreg:5000/test:mytag tagged as latest"))
 		})
 	})
 })
