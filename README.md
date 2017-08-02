@@ -173,6 +173,9 @@ version is the image's digest.
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
   be tagged as `latest` in addition to whatever other tag was specified.
 
+* `squash`: *Optional.*  Default `false`. If true, the image build will be squashed
+  to minimise size of the image and optmise network traffic cost.
+
 * `build_args`: *Optional.*  A map of Docker build arguments.
   
   Example:
