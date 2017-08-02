@@ -79,6 +79,7 @@ build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
 dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < $payload)
+squash=$(jq -r '.params.squash' < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
 load_repository=$(jq -r '.params.load_repository // ""' < $payload)
@@ -132,7 +133,7 @@ elif [ -n "$build" ]; then
     docker pull "${ecr_image}"
   fi
 
-  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" --squash "$squash" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
