@@ -59,6 +59,48 @@ var _ = Describe("Out", func() {
 		Expect(session.Err).To(gbytes.Say(dockerd(`.*--data-root /scratch/docker.*`)))
 	})
 
+	Context("when build arguments are provided", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"build_args": map[string]string{
+						"arg1": "arg with space",
+						"arg2": "arg with\nnewline",
+						"arg3": "normal",
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg1=arg with space`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg2=arg with\nnewline`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg3=normal`)))
+		})
+	})
+
+	Context("when configured with limited up and download", func() {
+		It("passes them to dockerd", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository":          "test",
+					"max_concurrent_downloads": 7,
+					"max_concurrent_uploads": 1,
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerd(`.* --max-concurrent-downloads=7 --max-concurrent-uploads=1.*`)))
+		})
+	})
+
 	Context("when configured with a insecure registries", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{
