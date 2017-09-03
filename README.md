@@ -84,6 +84,14 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
   against the docker registry residing at the specified domain. The domain
   should match the first component of `repository`, including the port.
 
+ * `max_concurrent_downloads`: *Optional.* Maximum concurrent downloads.
+
+   Limits the number of concurrent download threads.
+
+ * `max_concurrent_uploads`: *Optional.* Maximum concurrent uploads.
+
+   Limits the number of concurrent upload threads.
+
 ## Behavior
 
 ### `check`: Check for new images.
