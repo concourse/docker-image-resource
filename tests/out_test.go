@@ -6,6 +6,7 @@ import (
 
 	"encoding/json"
 	"os"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,15 +14,16 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Out", func() {
+var _ = XDescribe("Out", func() {
 	BeforeEach(func() {
 		os.Setenv("PATH", "/docker-image-resource/tests/fixtures/bin:"+os.Getenv("PATH"))
-		os.Setenv("SKIP_PRIVILEGED", "true")
-		os.Setenv("LOG_FILE", "/dev/stderr")
 	})
 
 	put := func(params map[string]interface{}) *gexec.Session {
 		command := exec.Command("/opt/resource/out", "/tmp")
+
+		stdin, err := command.StdinPipe()
+		Expect(err).ToNot(HaveOccurred())
 
 		resourceInput, err := json.Marshal(params)
 		Expect(err).ToNot(HaveOccurred())
