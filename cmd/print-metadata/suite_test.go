@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -17,8 +18,13 @@ func TestSuite(t *testing.T) {
 }
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	path, err := gexec.Build("github.com/concourse/docker-image-resource/cmd/print-metadata")
-	Expect(err).NotTo(HaveOccurred())
+	var path string
+	if _, err := os.Stat("/opt/resource/print-metadata"); err == nil {
+		path = "/opt/resource/print-metadata"
+	} else {
+		path, err = gexec.Build("github.com/concourse/docker-image-resource/cmd/print-metadata")
+		Expect(err).NotTo(HaveOccurred())
+	}
 
 	return []byte(path)
 }, func(data []byte) {
