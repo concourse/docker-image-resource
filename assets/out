@@ -180,11 +180,13 @@ if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; the
   echo "${repository}:${tag_name} tagged as latest"
 fi
 
+labels=`docker inspect "${repository}:${tag_name}" | jq '.[0].ContainerConfig.Labels | to_entries | map({name: .key, value: .value})'`
+
+metadata=`jq -n '.image_id='"$(echo $image_id | head -c 12 | jq -R .)"' | if .image_id != "" then [{ name: "image", value: .image_id }] else [] end'`
+
 jq -n "{
   version: {
     digest: $(echo $digest | jq -R .)
   },
-  metadata: [
-    { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
-  ]
+  metadata: $(echo $metadata | jq '. + '"$labels")
 }" >&3
