@@ -54,7 +54,7 @@ tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
 build_args=$(jq -r '.params.build_args // []' < $payload)
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
-
+dry_run=$(jq -r '.params.dry_run // "false"' < $payload)
 
 tag_name=""
 if [ -n "$tag_params" ]; then
@@ -161,23 +161,24 @@ image_id="$(image_from_tag "$repository" "$tag_name")"
 # so just parse it out
 
 # careful to not let 'tee' mask exit status
+if [ "$dry_run" = "false" ]; then
+  {
+    if ! docker push "${repository}:${tag_name}"; then
+      touch /tmp/push-failed
+    fi
+  } | tee push-output
 
-{
-  if ! docker push "${repository}:${tag_name}"; then
-    touch /tmp/push-failed
+  if [ -e /tmp/push-failed ]; then
+    exit 1
   fi
-} | tee push-output
 
-if [ -e /tmp/push-failed ]; then
-  exit 1
-fi
+  digest="$(tail -1 push-output | awk '{print $3}')"
 
-digest="$(tail -1 push-output | awk '{print $3}')"
-
-if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; then
-  docker tag "${repository}:${tag_name}" "${repository}:latest"
-  docker push "${repository}:latest"
-  echo "${repository}:${tag_name} tagged as latest"
+  if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; then
+    docker tag "${repository}:${tag_name}" "${repository}:latest"
+    docker push "${repository}:latest"
+    echo "${repository}:${tag_name} tagged as latest"
+  fi
 fi
 
 jq -n "{

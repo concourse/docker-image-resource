@@ -174,7 +174,9 @@ version is the image's digest.
   be tagged as `latest` in addition to whatever other tag was specified.
 
 * `build_args`: *Optional.*  A map of Docker build arguments.
-  
+
+* `dry_run`: *Optional.*  Default `false`. If true, the image will build but not be pushed.
+
   Example:
 
   ```yaml
