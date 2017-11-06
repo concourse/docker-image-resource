@@ -9,8 +9,8 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 * `repository`: *Required.* The name of the repository, e.g.
 `concourse/docker-image-resource`.
 
-  Note: When configuring a private registry, you must include the port
-  (e.g. :443 or :5000) even though the docker CLI does not require it.
+  Note: If you have a private repository,b e sure to use the same notation as you use in `FROM` - if needed, including your custom port like :5000. You should not include :443 usually, since that is the default - but if you used `FROM myrepo.tld:443/image` in the `Dockerfile`, it has to be `repository: myrepo.tld:443/image` here. In normal cases though, it would be `myrepo.tld/image`
+
 
 * `tag`: *Optional.* The tag to track. Defaults to `latest`.
 
