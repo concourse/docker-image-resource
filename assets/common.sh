@@ -1,3 +1,5 @@
+LOG_FILE=${LOG_FILE:-/tmp/docker.log}
+
 sanitize_cgroups() {
   mkdir -p /sys/fs/cgroup
   mountpoint -q /sys/fs/cgroup || \
@@ -60,10 +62,10 @@ start_docker() {
   done
 
   if [ -n "$2" ]; then
-    server_args="${server_args} --registry-mirror=$2"
+    server_args="${server_args} --registry-mirror $2"
   fi
 
-  dockerd --data-root /scratch/docker ${server_args} >/tmp/docker.log 2>&1 &
+  dockerd --data-root /scratch/docker ${server_args} >$LOG_FILE 2>&1 &
   echo $! > /tmp/docker.pid
 
   trap stop_docker EXIT

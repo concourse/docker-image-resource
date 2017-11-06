@@ -17,6 +17,7 @@ var _ = Describe("Out", func() {
 	BeforeEach(func() {
 		os.Setenv("PATH", "/docker-image-resource/tests/fixtures/bin:"+os.Getenv("PATH"))
 		os.Setenv("SKIP_PRIVILEGED", "true")
+		os.Setenv("LOG_FILE", "/dev/stderr")
 	})
 
 	put := func(params map[string]interface{}) *gexec.Session {
@@ -39,6 +40,55 @@ var _ = Describe("Out", func() {
 	docker := func(cmd string) string {
 		return "DOCKER: " + cmd
 	}
+
+	dockerd := func(cmd string) string {
+		return "DOCKERD: " + cmd
+	}
+
+	It("starts dockerd with --data-root under /scratch", func() {
+		session := put(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "test",
+			},
+			"params": map[string]interface{}{
+				"build": "/docker-image-resource/tests/fixtures/build",
+			},
+		})
+
+		Expect(session.Err).To(gbytes.Say(dockerd(`.*--data-root /scratch/docker.*`)))
+	})
+
+	Context("when configured with a insecure registries", func() {
+		It("passes them to dockerd", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository":          "test",
+					"insecure_registries": []string{"my-registry.gov", "other-registry.biz"},
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerd(`.*--insecure-registry my-registry\.gov --insecure-registry other-registry\.biz.*`)))
+		})
+	})
+
+	Context("when configured with a registry mirror", func() {
+		It("passes it to dockerd", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository":      "test",
+					"registry_mirror": "some-mirror",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerd(`.*--registry-mirror some-mirror.*`)))
+		})
+	})
 
 	Context("When using ECR", func() {
 		It("calls docker pull with the ECR registry", func() {
