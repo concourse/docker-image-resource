@@ -14,9 +14,10 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = XDescribe("Out", func() {
+var _ = Describe("Out", func() {
 	BeforeEach(func() {
 		os.Setenv("PATH", "/docker-image-resource/tests/fixtures/bin:"+os.Getenv("PATH"))
+		os.Setenv("SKIP_PRIVILEGED", "true")
 	})
 
 	put := func(params map[string]interface{}) *gexec.Session {
