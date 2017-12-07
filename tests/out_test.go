@@ -17,7 +17,7 @@ var _ = Describe("Out", func() {
 	BeforeEach(func() {
 		os.Setenv("PATH", "/docker-image-resource/tests/fixtures/bin:"+os.Getenv("PATH"))
 		os.Setenv("SKIP_PRIVILEGED", "true")
-		// os.Setenv("LOG_FILE", "/dev/stderr")
+		os.Setenv("LOG_FILE", "/dev/stderr")
 	})
 
 	put := func(params map[string]interface{}) *gexec.Session {
