@@ -85,7 +85,6 @@ stop_docker() {
   fi
 
   kill -TERM $pid
-  wait $pid
 }
 
 log_in() {
