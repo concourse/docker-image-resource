@@ -1,6 +1,7 @@
 package docker_image_resource_test
 
 import (
+	"bytes"
 	"os/exec"
 
 	"encoding/json"
@@ -23,13 +24,10 @@ var _ = Describe("Out", func() {
 	put := func(params map[string]interface{}) *gexec.Session {
 		command := exec.Command("/opt/resource/out", "/tmp")
 
-		stdin, err := command.StdinPipe()
-		Expect(err).ToNot(HaveOccurred())
-
 		resourceInput, err := json.Marshal(params)
 		Expect(err).ToNot(HaveOccurred())
-		stdin.Write(resourceInput)
-		stdin.Close()
+
+		command.Stdin = bytes.NewBuffer(resourceInput)
 
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())

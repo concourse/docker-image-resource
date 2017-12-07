@@ -1,5 +1,6 @@
 #!/bin/bash
+
 echo "DOCKERD:" "$@"
 
 # pretend to actually be running something, as dockerd would
-sleep 9999
+exec sleep 9999
