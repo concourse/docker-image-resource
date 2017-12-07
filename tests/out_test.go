@@ -6,7 +6,6 @@ import (
 
 	"encoding/json"
 	"os"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
