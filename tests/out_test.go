@@ -6,7 +6,6 @@ import (
 
 	"encoding/json"
 	"os"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,7 +30,7 @@ var _ = Describe("Out", func() {
 
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())
-		session.Wait(10 * time.Second)
+		<-session.Exited
 		return session
 	}
 
