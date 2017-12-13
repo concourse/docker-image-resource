@@ -111,13 +111,23 @@ elif [ -n "$build" ]; then
     cache_from="--cache-from ${repository}:${cache_tag}"
   fi
 
-  expanded_build_args=""
+  expanded_build_args=()
   if [ -n "$build_args" ]; then
-    expanded_build_args=$(echo $build_args|jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")')
+    keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
+    for key in "${keys[@]}"; do
+      value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
+      expanded_build_args+=("--build-arg")
+      expanded_build_args+=("${key}=${value}")
+    done
   fi
 
   if [ -n "$build_args_file" ]; then
-    expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
+    keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+    for key in "${keys[@]}"; do
+      value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
+      expanded_build_args+=("--build-arg")
+      expanded_build_args+=("${key}=${value}")
+    done
   fi
 
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
@@ -132,7 +142,7 @@ elif [ -n "$build" ]; then
     docker pull "${ecr_image}"
   fi
 
-  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"

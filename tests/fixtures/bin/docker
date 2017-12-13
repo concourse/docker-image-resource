@@ -1,2 +1,6 @@
 #!/bin/bash
 echo "DOCKER:" "$@"
+
+for var in "$@"; do
+    echo "DOCKER ARG:" "$var"
+done
