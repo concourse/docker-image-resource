@@ -240,10 +240,28 @@ environment is consistent across any `docker` enabled platform. When the docker
 image builds, the test are run inside the docker container, on failure they
 will stop the build.
 
-Run the tests with the following command:
+Build the image and run the tests with the following command:
 
 ```sh
 docker build -t docker-image-resource .
+```
+
+To use the newly built image, push it to a docker registry that's accessible to
+Concourse and configure your pipeline to use it:
+
+```yaml
+resource_types:
+- name: docker-image-resource
+  type: docker-image
+  privileged: true
+  source:
+    repository: example.com:5000/docker-image-resource
+    tag: latest
+
+resources:
+- name: some-image
+  type: docker-image-resource
+  ...
 ```
 
 ### Contributing
