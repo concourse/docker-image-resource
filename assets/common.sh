@@ -45,7 +45,7 @@ start_docker() {
   mkdir -p /var/log
   mkdir -p /var/run
 
-  if [ "$SKIP_PRIVILEGED" = "true" ]; then
+  if [ "$SKIP_PRIVILEGED" = "false" ]; then
     sanitize_cgroups
 
     # check for /proc/sys being mounted readonly, as systemd does
