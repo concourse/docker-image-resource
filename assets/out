@@ -52,7 +52,7 @@ tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
-build_args=$(jq -r '.params.build_args // []' < $payload)
+build_args=$(jq -r '.params.build_args // {}' < $payload)
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 
 
@@ -112,9 +112,10 @@ elif [ -n "$build" ]; then
   fi
 
   expanded_build_args=()
-  if [ -n "$build_args" ]; then
-    keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
-    for key in "${keys[@]}"; do
+
+  build_arg_keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
+  if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+    for key in "${build_arg_keys[@]}"; do
       value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
       expanded_build_args+=("--build-arg")
       expanded_build_args+=("${key}=${value}")
@@ -122,12 +123,14 @@ elif [ -n "$build" ]; then
   fi
 
   if [ -n "$build_args_file" ]; then
-    keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
-    for key in "${keys[@]}"; do
-      value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
-      expanded_build_args+=("--build-arg")
-      expanded_build_args+=("${key}=${value}")
-    done
+    build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+    if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+      for key in "${build_arg_keys[@]}"; do
+        value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
+        expanded_build_args+=("--build-arg")
+        expanded_build_args+=("${key}=${value}")
+      done
+    fi
   fi
 
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
