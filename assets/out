@@ -113,6 +113,14 @@ elif [ -n "$build" ]; then
 
   expanded_build_args=()
 
+  # propagate proxy settings to image builder
+  for proxy_var in http_proxy https_proxy no_proxy ; do
+    if [ -n "${!proxy_var:-}" ]; then
+      expanded_build_args+=("--build-arg")
+      expanded_build_args+=("${proxy_var}=${!proxy_var}")
+    fi
+  done
+
   build_arg_keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
   if [ "${#build_arg_keys[@]}" -gt 0 ]; then
     for key in "${build_arg_keys[@]}"; do

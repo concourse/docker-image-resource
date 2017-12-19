@@ -2,6 +2,7 @@ package docker_image_resource_test
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 
 	"encoding/json"
@@ -20,8 +21,20 @@ var _ = Describe("Out", func() {
 		os.Setenv("LOG_FILE", "/dev/stderr")
 	})
 
-	put := func(params map[string]interface{}) *gexec.Session {
+	putWithEnv := func(params map[string]interface{}, extraEnv map[string]string) *gexec.Session {
 		command := exec.Command("/opt/resource/out", "/tmp")
+
+		// Get current process environment variables
+		newEnv := os.Environ()
+		if extraEnv != nil {
+			// Append each extra environment variable to new process environment
+			// variable list
+			for name, value := range extraEnv {
+				newEnv = append(newEnv, fmt.Sprintf("%s=%s", name, value))
+			}
+		}
+
+		command.Env = newEnv
 
 		resourceInput, err := json.Marshal(params)
 		Expect(err).ToNot(HaveOccurred())
@@ -32,6 +45,10 @@ var _ = Describe("Out", func() {
 		Expect(err).ToNot(HaveOccurred())
 		<-session.Exited
 		return session
+	}
+
+	put := func(params map[string]interface{}) *gexec.Session {
+		return putWithEnv(params, nil)
 	}
 
 	dockerarg := func(cmd string) string {
@@ -143,6 +160,59 @@ var _ = Describe("Out", func() {
 			})
 
 			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing")))
+		})
+	})
+
+	Context("When all proxy settings are provided with build args", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := putWithEnv(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"build_args": map[string]string{
+						"arg1": "arg with space",
+						"arg2": "arg with\nnewline",
+						"arg3": "normal",
+					},
+				},
+			}, map[string]string{
+				"no_proxy":    "10.1.1.1",
+				"http_proxy":  "http://admin:verysecret@my-proxy.com:8080",
+				"https_proxy": "http://another.proxy.net",
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`http_proxy=http://admin:verysecret@my-proxy.com:8080`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`https_proxy=http://another.proxy.net`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`no_proxy=10.1.1.1`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg1=arg with space`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg2=arg with\nnewline`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg3=normal`)))
+		})
+	})
+
+	Context("When only http_proxy setting is provided, with no build arguments", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := putWithEnv(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			}, map[string]string{
+				"http_proxy": "http://admin:verysecret@my-proxy.com:8080",
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`http_proxy=http://admin:verysecret@my-proxy.com:8080`)))
 		})
 	})
 })
