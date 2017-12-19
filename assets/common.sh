@@ -58,12 +58,14 @@ start_docker() {
   local server_args="--mtu ${mtu}"
   local registry=""
 
-  for registry in $1; do
+  server_args="${server_args} --max-concurrent-downloads=$1 --max-concurrent-uploads=$2"
+
+  for registry in $3; do
     server_args="${server_args} --insecure-registry ${registry}"
   done
 
-  if [ -n "$2" ]; then
-    server_args="${server_args} --registry-mirror $2"
+  if [ -n "$4" ]; then
+    server_args="${server_args} --registry-mirror $4"
   fi
 
   dockerd --data-root /scratch/docker ${server_args} >$LOG_FILE 2>&1 &

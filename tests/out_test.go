@@ -101,6 +101,23 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when configured with limited up and download", func() {
+		It("passes them to dockerd", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository":          "test",
+					"max_concurrent_downloads": 7,
+					"max_concurrent_uploads": 1,
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerd(`.* --max-concurrent-downloads=7 --max-concurrent-uploads=1.*`)))
+		})
+	})
+
 	Context("when configured with a insecure registries", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{
