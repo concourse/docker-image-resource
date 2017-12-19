@@ -1,4 +1,5 @@
 LOG_FILE=${LOG_FILE:-/tmp/docker.log}
+SKIP_PRIVILEGED=${SKIP_PRIVILEGED:-false}
 
 sanitize_cgroups() {
   mkdir -p /sys/fs/cgroup
@@ -44,7 +45,7 @@ start_docker() {
   mkdir -p /var/log
   mkdir -p /var/run
 
-  if [ -z "$SKIP_PRIVILEGED" ]; then
+  if [ "$SKIP_PRIVILEGED" = "false" ]; then
     sanitize_cgroups
 
     # check for /proc/sys being mounted readonly, as systemd does
@@ -85,7 +86,6 @@ stop_docker() {
   fi
 
   kill -TERM $pid
-  wait $pid
 }
 
 log_in() {

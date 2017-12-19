@@ -52,7 +52,7 @@ tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
-build_args=$(jq -r '.params.build_args // []' < $payload)
+build_args=$(jq -r '.params.build_args // {}' < $payload)
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 dry_run=$(jq -r '.params.dry_run // "false"' < $payload)
 
@@ -111,13 +111,26 @@ elif [ -n "$build" ]; then
     cache_from="--cache-from ${repository}:${cache_tag}"
   fi
 
-  expanded_build_args=""
-  if [ -n "$build_args" ]; then
-    expanded_build_args=$(echo $build_args|jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")')
+  expanded_build_args=()
+
+  build_arg_keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
+  if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+    for key in "${build_arg_keys[@]}"; do
+      value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
+      expanded_build_args+=("--build-arg")
+      expanded_build_args+=("${key}=${value}")
+    done
   fi
 
   if [ -n "$build_args_file" ]; then
-    expanded_build_args=${expanded_build_args}" "$(jq -r 'with_entries(.key |= "--build-arg " + . )|with_entries(.key = .key + "=" +.value)|keys|join(" ")' <$build_args_file)
+    build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+    if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+      for key in "${build_arg_keys[@]}"; do
+        value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
+        expanded_build_args+=("--build-arg")
+        expanded_build_args+=("${key}=${value}")
+      done
+    fi
   fi
 
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
@@ -132,7 +145,7 @@ elif [ -n "$build" ]; then
     docker pull "${ecr_image}"
   fi
 
-  docker build -t "${repository}:${tag_name}" $expanded_build_args -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
@@ -174,7 +187,7 @@ if [ "$dry_run" = "false" ]; then
 
   digest="$(tail -1 push-output | awk '{print $3}')"
 
-  if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]    ; then
+  if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest" ]; then
     docker tag "${repository}:${tag_name}" "${repository}:latest"
     docker push "${repository}:latest"
     echo "${repository}:${tag_name} tagged as latest"

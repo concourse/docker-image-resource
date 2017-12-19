@@ -1,11 +1,11 @@
 package docker_image_resource_test
 
 import (
+	"bytes"
 	"os/exec"
 
 	"encoding/json"
 	"os"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,18 +23,19 @@ var _ = Describe("Out", func() {
 	put := func(params map[string]interface{}) *gexec.Session {
 		command := exec.Command("/opt/resource/out", "/tmp")
 
-		stdin, err := command.StdinPipe()
-		Expect(err).ToNot(HaveOccurred())
-
 		resourceInput, err := json.Marshal(params)
 		Expect(err).ToNot(HaveOccurred())
-		stdin.Write(resourceInput)
-		stdin.Close()
+
+		command.Stdin = bytes.NewBuffer(resourceInput)
 
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())
-		session.Wait(10 * time.Second)
+		<-session.Exited
 		return session
+	}
+
+	dockerarg := func(cmd string) string {
+		return "DOCKER ARG: " + cmd
 	}
 
 	docker := func(cmd string) string {
@@ -56,6 +57,31 @@ var _ = Describe("Out", func() {
 		})
 
 		Expect(session.Err).To(gbytes.Say(dockerd(`.*--data-root /scratch/docker.*`)))
+	})
+
+	Context("when build arguments are provided", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"build_args": map[string]string{
+						"arg1": "arg with space",
+						"arg2": "arg with\nnewline",
+						"arg3": "normal",
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg1=arg with space`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg2=arg with\nnewline`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg3=normal`)))
+		})
 	})
 
 	Context("when configured with a insecure registries", func() {
