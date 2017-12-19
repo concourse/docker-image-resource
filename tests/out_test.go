@@ -178,6 +178,36 @@ var _ = Describe("Out", func() {
 
 			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing")))
 		})
+
+		Context("When using ECR with dry_run", func() {
+			It("successfully builds the image locally", func() {
+				session := put(map[string]interface{}{
+					"source": map[string]interface{}{
+						"repository": "test",
+					},
+					"params": map[string]interface{}{
+						"build":      "/docker-image-resource/tests/fixtures/ecr",
+						"dockerfile": "/docker-image-resource/tests/fixtures/ecr/Dockerfile",
+						"dry_run":    "true",
+					},
+				})
+				Expect(session.Out).To(gbytes.Say(docker("Successfully built")))
+			})
+
+			It("successfully builds the image multi build docker file locally", func() {
+				session := put(map[string]interface{}{
+					"source": map[string]interface{}{
+						"repository": "test",
+					},
+					"params": map[string]interface{}{
+						"build":      "/docker-image-resource/tests/fixtures/ecr",
+						"dockerfile": "/docker-image-resource/tests/fixtures/ecr/Dockerfile.multi",
+						"dry_run":    "true",
+					},
+				})
+				Expect(session.Out).To(gbytes.Say(docker("Successfully built")))
+			})
+		})
 	})
 
 	Context("When all proxy settings are provided with build args", func() {
