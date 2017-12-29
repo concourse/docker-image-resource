@@ -165,7 +165,7 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing")))
 		})
 
-		It("calls docker pull for an ECR images in a multi build docker file", func() {
+		It("calls docker pull for an ECR image in a multi build docker file", func() {
 			session := put(map[string]interface{}{
 				"source": map[string]interface{}{
 					"repository": "test",
@@ -177,6 +177,21 @@ var _ = Describe("Out", func() {
 			})
 
 			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing")))
+		})
+
+		It("calls docker pull for all ECR images in a multi build docker file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/ecr",
+					"dockerfile": "/docker-image-resource/tests/fixtures/ecr/Dockerfile.multi-ecr",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing")))
+			Expect(session.Err).To(gbytes.Say(docker("pull 123123.dkr.ecr.us-west-2.amazonaws.com:443/testing2")))
 		})
 	})
 
