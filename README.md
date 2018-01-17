@@ -156,6 +156,9 @@ version is the image's digest.
   load` before running `docker build`. The directory must have `image`,
   `image-id`, `repository`, and `tag` present, i.e. the tree produced by `/in`.
 
+* `load_bases`: *Optional.* Same as `load_base`, but takes an array to load
+  multiple images.
+
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
   Requires `load_repository`.
 

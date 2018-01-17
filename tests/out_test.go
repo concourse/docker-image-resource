@@ -3,6 +3,7 @@ package docker_image_resource_test
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 
 	"encoding/json"
@@ -105,9 +106,9 @@ var _ = Describe("Out", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{
 				"source": map[string]interface{}{
-					"repository":          "test",
+					"repository":               "test",
 					"max_concurrent_downloads": 7,
-					"max_concurrent_uploads": 1,
+					"max_concurrent_uploads":   1,
 				},
 				"params": map[string]interface{}{
 					"build": "/docker-image-resource/tests/fixtures/build",
@@ -245,6 +246,56 @@ var _ = Describe("Out", func() {
 
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`http_proxy=http://admin:verysecret@my-proxy.com:8080`)))
+		})
+	})
+
+	Context("when load_bases are specified", func() {
+		BeforeEach(func() {
+			os.Mkdir("/tmp/expected_base_1", os.ModeDir)
+			// this image should really be an actual tarball, but the test passes with text. :shrug:
+			ioutil.WriteFile("/tmp/expected_base_1/image", []byte("some-image-1"), os.ModePerm)
+			ioutil.WriteFile("/tmp/expected_base_1/repository", []byte("some-repository-1"), os.ModePerm)
+			ioutil.WriteFile("/tmp/expected_base_1/image-id", []byte("some-image-id-1"), os.ModePerm)
+			ioutil.WriteFile("/tmp/expected_base_1/tag", []byte("some-tag-1"), os.ModePerm)
+
+			os.Mkdir("/tmp/expected_base_2", os.ModeDir)
+			ioutil.WriteFile("/tmp/expected_base_2/image", []byte("some-image-2"), os.ModePerm)
+			ioutil.WriteFile("/tmp/expected_base_2/repository", []byte("some-repository-2"), os.ModePerm)
+			ioutil.WriteFile("/tmp/expected_base_2/image-id", []byte("some-image-id-2"), os.ModePerm)
+			ioutil.WriteFile("/tmp/expected_base_2/tag", []byte("some-tag-2"), os.ModePerm)
+
+			os.Mkdir("/tmp/unexpected_base", os.ModeDir)
+			ioutil.WriteFile("/tmp/unexpected_base/image", []byte("some-image-3"), os.ModePerm)
+			ioutil.WriteFile("/tmp/unexpected_base/repository", []byte("some-repository-3"), os.ModePerm)
+			ioutil.WriteFile("/tmp/unexpected_base/image-id", []byte("some-image-id-3"), os.ModePerm)
+			ioutil.WriteFile("/tmp/unexpected_base/tag", []byte("some-tag-3"), os.ModePerm)
+		})
+
+		AfterEach(func() {
+			os.RemoveAll("/tmp/expected_base_1")
+			os.RemoveAll("/tmp/expected_base_2")
+			os.RemoveAll("/tmp/unexpected_base")
+		})
+
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"load_bases": []string{"expected_base_1", "expected_base_2"},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker(`load -i expected_base_1/image`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag some-image-id-1 some-repository-1:some-tag-1`)))
+
+			Expect(session.Err).To(gbytes.Say(docker(`load -i expected_base_2/image`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag some-image-id-2 some-repository-2:some-tag-2`)))
+
+			Expect(session.Err).NotTo(gbytes.Say(docker(`load -i unexpected_base/image`)))
+			Expect(session.Err).NotTo(gbytes.Say(docker(`tag some-image-id-3 some-repository-3:some-tag-3`)))
 		})
 	})
 })
