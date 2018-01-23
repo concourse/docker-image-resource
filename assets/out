@@ -81,6 +81,7 @@ fi
 load=$(jq -r '.params.load // ""' < $payload)
 
 load_base=$(jq -r '.params.load_base // ""' < $payload)
+load_bases=$(jq -r '.params.load_bases // empty' < $payload)
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
@@ -109,6 +110,15 @@ elif [ -n "$build" ]; then
     docker tag \
       "$(cat "${load_base}/image-id")" \
       "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+  fi
+
+  if [ -n "$load_bases" ]; then
+    for load_base in $(echo $load_bases | jq -r '.[]'); do
+      docker load -i "${load_base}/image"
+      docker tag \
+        "$(cat "${load_base}/image-id")" \
+        "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+    done
   fi
 
   cache_from=""
