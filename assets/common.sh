@@ -98,7 +98,8 @@ log_in() {
 
   if [ -n "${username}" ] && [ -n "${password}" ]; then
     echo "${password}" > /tmp/docker_password
-    /tmp/docker_password
+    password_file=/tmp/docker_password
+    chmod 444 ${password_file}
     cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
   elif [ -n "${username}" ] && [ -n "${password_file}" ]; then
     cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
