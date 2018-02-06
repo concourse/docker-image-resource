@@ -95,8 +95,12 @@ log_in() {
   local password="$2"
   local registry="$3"
 
+  echo "${password}" > /tmp/docker_password
+  local password_file=/tmp/docker_password
+
   if [ -n "${username}" ] && [ -n "${password}" ]; then
-    docker login -u "${username}" -p "${password}" ${registry}
+    cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
+    rm ${password_file}
   else
     mkdir -p ~/.docker
     echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
