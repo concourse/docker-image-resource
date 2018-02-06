@@ -7,7 +7,6 @@ type Source struct {
 	Tag                json.Number     `json:"tag"`
 	Username           string          `json:"username"`
 	Password           string          `json:"password"`
-	PasswordFile       string          `json:"password_file"`
 	InsecureRegistries []string        `json:"insecure_registries"`
 	RegistryMirror     string          `json:"registry_mirror"`
 	DomainCerts        []DomainCert    `json:"ca_certs"`

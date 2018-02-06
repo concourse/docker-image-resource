@@ -28,7 +28,6 @@ registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
-password_file=$(jq -r '.source.password_file // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
@@ -43,11 +42,6 @@ if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else
   registry=
-fi
-
-if [ -n "$password" ] && [ -n "$password_file" ]; then
-  echo "only password and password_file can be selected"
-  exit 1
 fi
 
 digest="$(jq -r '.version.digest' < $payload)"
@@ -69,7 +63,7 @@ mkdir -p $destination
 image_name="${repository}@${digest}"
 
 if [ "$skip_download" = "false" ]; then
-  log_in "$username" "$password" "$password_file" "$registry"
+  log_in "$username" "$password" "" "$registry"
 
   docker_pull "$image_name"
 

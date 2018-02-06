@@ -16,9 +16,7 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `username`: *Optional.* The username to authenticate with when pushing.
 
-* `password`: *Optional.* The password to use when authenticating. (if exist `password_file`, no need for this param.)
-
-* `password_file`: *Optional.* The file PATH where the password used for authentication is written. (if exist `password`, no need for this param.)
+* `password`: *Optional.* The password to use when authenticating.
 
 * `aws_access_key_id`: *Optional.* AWS access key to use for acquiring ECR
   credentials.
@@ -205,6 +203,8 @@ version is the image's digest.
     ```yaml
     { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
     ```            
+    
+* `password_file`: *Optional.* The file PATH where the password used for authentication is written. (if exist `password` in source configuration, that parameter will be overwritten.)
 
 
 ## Example

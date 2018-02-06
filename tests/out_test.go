@@ -90,42 +90,31 @@ var _ = Describe("Out", func() {
 				},
 			})
 			Expect(session.Err).To(gbytes.Say(docker(`login -u testuser --password-stdin`)))
-			Expect(session.Err).NotTo(gbytes.Say(`only password and password_file can be selected`))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`login`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`-u`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`testuser`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--password-stdin`)))
 		})
 	})
 
-	Context("when username and password_file are provided", func() {
+	Context("when password_file parameter are provided", func() {
 		It("passes the docker login", func() {
 			session := put(map[string]interface{}{
 				"source": map[string]interface{}{
-					"repository":    "test",
-					"username":      "testuser",
-					"password_file": "test/path",
+					"repository": "test",
+					"username":   "testuser",
+					"password":   "testpassword",
 				},
 				"params": map[string]interface{}{
-					"build": "/docker-image-resource/tests/fixtures/build",
+					"build":         "/docker-image-resource/tests/fixtures/build",
+					"password_file": "/test/password",
 				},
 			})
 			Expect(session.Err).To(gbytes.Say(docker(`login -u testuser --password-stdin`)))
-			Expect(session.Err).NotTo(gbytes.Say(`only password and password_file can be selected`))
-		})
-	})
-
-	Context("when password and password_file are provided", func() {
-		It("failed the docker login", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
-					"repository":    "test",
-					"username":      "testuser",
-					"password":      "testpassword",
-					"password_file": "test/path",
-				},
-				"params": map[string]interface{}{
-					"build": "/docker-image-resource/tests/fixtures/build",
-				},
-			})
-			Expect(session.Err).To(gbytes.Say(docker(`login -u testuser --password-stdin`)))
-			Expect(session.Err).To(gbytes.Say(`only password and password_file can be selected`))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`login`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`-u`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`testuser`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--password-stdin`)))
 		})
 	})
 

@@ -30,12 +30,12 @@ registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
-password_file=$(jq -r '.source.password_file // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 client_certs=$(jq -r '.source.client_certs // []' < $payload)
 max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)
 max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < $payload)
+password_file=$(jq -r '.params.password_file // ""' < $payload)
 
 export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // ""' < $payload)
 export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < $payload)
@@ -76,11 +76,6 @@ fi
 
 if [ -z "$repository" ]; then
   echo "must specify repository"
-  exit 1
-fi
-
-if [ -n "$password" ] && [ -n "$password_file" ]; then
-  echo "only password and password_file can be selected"
   exit 1
 fi
 
