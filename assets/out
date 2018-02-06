@@ -30,6 +30,7 @@ registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
+password_file=$(jq -r '.source.password_file // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 client_certs=$(jq -r '.source.client_certs // []' < $payload)
@@ -52,7 +53,7 @@ start_docker \
 	"${max_concurrent_uploads}" \
 	"$insecure_registries" \
 	"$registry_mirror"
-log_in "$username" "$password" "$registry"
+log_in "$username" "$password" "$password_file" "$registry"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
@@ -75,6 +76,11 @@ fi
 
 if [ -z "$repository" ]; then
   echo "must specify repository"
+  exit 1
+fi
+
+if [ -n "$password" ] && [ -n "$password_file" ]; then
+  echo "only password and password_file can be selected"
   exit 1
 fi
 

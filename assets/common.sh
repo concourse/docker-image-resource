@@ -93,14 +93,15 @@ stop_docker() {
 log_in() {
   local username="$1"
   local password="$2"
-  local registry="$3"
-
-  echo "${password}" > /tmp/docker_password
-  local password_file=/tmp/docker_password
+  local password_file="$3"
+  local registry="$4"
 
   if [ -n "${username}" ] && [ -n "${password}" ]; then
+    echo "${password}" > /tmp/docker_password
+    /tmp/docker_password
     cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
-    rm ${password_file}
+  elif [ -n "${username}" ] && [ -n "${password_file}" ]; then
+    cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
   else
     mkdir -p ~/.docker
     echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
