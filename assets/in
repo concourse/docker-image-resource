@@ -26,7 +26,7 @@ insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $p
 
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
-credentials=$(jq -r '.source.login // []' < $payload)
+credentials=$(jq -r '.source.extra_logins // []' < $payload)
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"

@@ -18,11 +18,11 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `password`: *Optional.* The password to use when authenticating.
 
-* `login`: *Optional.* An array of additional username, password and registry
+* `extra_logins`: *Optional.* An array of additional username, password and registry
   to log in, following this format:
 
   ```yaml
-  login:
+  extra_login:
   - username: USERNAME
     password: PASSWORD
     registry: REGISTRY # (optional)
