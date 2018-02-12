@@ -22,7 +22,7 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
   to log in, following this format:
 
   ```yaml
-  extra_login:
+  extra_logins:
   - username: USERNAME
     password: PASSWORD
     registry: REGISTRY # (optional)
