@@ -174,7 +174,10 @@ elif [ -n "$build" ]; then
     done
   fi
 
+  # expanded_build_args can be empty if none of the above conditions are met.
+  set +u
   docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f - $cache_from "$build" < $dockerfile
+  set -u
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
