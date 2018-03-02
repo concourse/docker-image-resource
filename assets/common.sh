@@ -87,6 +87,9 @@ stop_docker() {
     return 0
   fi
 
+  echo "purge docker to avoid host resource leaks"
+  docker system prune -a -f
+
   kill -TERM $pid
 }
 
