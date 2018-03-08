@@ -12,7 +12,7 @@ RUN set -e; for pkg in $(go list ./...); do \
 	done
 
 FROM alpine:edge AS resource
-RUN apk --no-cache add bash docker jq ca-certificates
+RUN apk --no-cache add bash docker=17.10.0-r0 jq ca-certificates
 COPY --from=builder /assets /opt/resource
 RUN mv /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
 
