@@ -14,7 +14,7 @@ sanitize_cgroups() {
       continue
     fi
 
-    grouping="$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")"
+    grouping="$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<$sys\\>")" || true
     if [ -z "$grouping" ]; then
       # subsystem not mounted anywhere; mount it on its own
       grouping="$sys"
