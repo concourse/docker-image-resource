@@ -231,6 +231,28 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When passing additional_tags ", func() {
+		It("should push add the additional_tags", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"additional_tags": "/docker-image-resource/tests/fixtures/tags",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:latest`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:latest test:a`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push test:a`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:latest test:b`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push test:b`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:latest test:c`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push test:c`)))
+		})
+	})
+
 	Context("When only http_proxy setting is provided, with no build arguments", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := putWithEnv(map[string]interface{}{
