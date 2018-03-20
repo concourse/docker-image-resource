@@ -203,9 +203,6 @@ version is the image's digest.
     ```yaml
     { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
     ```            
-    
-* `password_file`: *Optional.* The file PATH where the password used for authentication is written. (if exist `password` in source configuration, that parameter will be overwritten.)
-
 
 ## Example
 

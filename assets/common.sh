@@ -93,15 +93,12 @@ stop_docker() {
 log_in() {
   local username="$1"
   local password="$2"
-  local password_file="$3"
-  local registry="$4"
+  local registry="$3"
 
   if [ -n "${username}" ] && [ -n "${password}" ]; then
     echo "${password}" > /tmp/docker_password
     password_file=/tmp/docker_password
     chmod 444 ${password_file}
-    cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
-  elif [ -n "${username}" ] && [ -n "${password_file}" ]; then
     cat ${password_file} | docker login -u "${username}" --password-stdin ${registry}
   else
     mkdir -p ~/.docker
