@@ -204,6 +204,8 @@ version is the image's digest.
     { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
     ```            
 
+* `additional_tags`: *Optional.* Path to a space separated list of tags. The Docker build will additionally be pushed with those tags.
+
 ## Example
 
 ``` yaml
