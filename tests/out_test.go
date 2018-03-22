@@ -77,6 +77,26 @@ var _ = Describe("Out", func() {
 		Expect(session.Err).To(gbytes.Say(dockerd(`.*--data-root /scratch/docker.*`)))
 	})
 
+	Context("when username and password are provided", func() {
+		It("passes the docker login", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+					"username":   "testuser",
+					"password":   "testpassword",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+			Expect(session.Err).To(gbytes.Say(docker(`login -u testuser --password-stdin`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`login`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`-u`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`testuser`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--password-stdin`)))
+		})
+	})
+
 	Context("when build arguments are provided", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := put(map[string]interface{}{

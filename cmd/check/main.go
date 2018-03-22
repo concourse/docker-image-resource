@@ -191,7 +191,7 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 
 	pingClient := &http.Client{
 		Transport: retryRoundTripper(logger, authTransport),
-		Timeout: 1 * time.Minute,
+		Timeout:   1 * time.Minute,
 	}
 
 	challengeManager := auth.NewSimpleChallengeManager()
