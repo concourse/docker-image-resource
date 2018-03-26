@@ -105,6 +105,7 @@ import_file=$(jq -r '.params.import_file // ""' < $payload)
 
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
+target_name=$(jq -r '.params.target_name // ""' < $payload)
 
 if [ -n "$load" ]; then
   docker load -i "${load}/image"
@@ -167,6 +168,12 @@ elif [ -n "$build" ]; then
     fi
   fi
 
+  target=()
+  if [ -n "${target_name}" ]; then
+   target+=("--target")
+   target+=("${target_name}")
+  fi
+
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
   ecr_images=$(grep '^\s*FROM' ${dockerfile} | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
@@ -182,7 +189,7 @@ elif [ -n "$build" ]; then
     done    
   fi
 
-  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
