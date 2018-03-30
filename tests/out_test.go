@@ -239,7 +239,7 @@ var _ = Describe("Out", func() {
 				},
 				"params": map[string]interface{}{
 					"build":           "/docker-image-resource/tests/fixtures/build",
-					"additional_tags": "/docker-image-resource/tests/fixtures/tags",
+					"additional_tags_file": "/docker-image-resource/tests/fixtures/tags",
 				},
 			},
 			)

@@ -174,8 +174,10 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  **DEPRECATED. Use `get` and `load` instead.** Default
   `latest`. The tag of the repository to pull down via `pull_repository`.
 
-* `tag`: *Optional.* The value should be a path to a file containing the name
-  of the tag.
+* `tag_name`: *Optional.* The tag. This takes precedence over `tag_file`. Will be prefixed/suffixed if those params are present.
+
+* `tag_file`: *Optional.* The value should be a path to a file containing the name
+  of the tag. Will be prefixed/suffixed if those params are present.
 
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
   prepended with this string. This is useful for adding `v` in front of version
@@ -185,6 +187,8 @@ version is the image's digest.
 
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
   be tagged as `latest` in addition to whatever other tag was specified.
+
+* `additional_tags_file`: *Optional.* Path to a space separated list of tags. The Docker build will additonally be pushed with those tags. **Will Not** be prefixed/suffixed.
 
 * `build_args`: *Optional.*  A map of Docker build arguments.
   
@@ -204,9 +208,7 @@ version is the image's digest.
 
     ```yaml
     { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
-    ```            
-
-* `additional_tags`: *Optional.* Path to a space separated list of tags. The Docker build will additionally be pushed with those tags.
+    ```
 
 ## Example
 

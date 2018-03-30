@@ -20,24 +20,24 @@ PATH=/usr/local/bin:$PATH
 
 payload=$(mktemp /tmp/resource-in.XXXXXX)
 
-cat > $payload <&0
+cat > ${payload} <&0
 
-cd $source
+cd ${source}
 
-insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $payload)
+insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < ${payload})
 
-registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
+registry_mirror=$(jq -r '.source.registry_mirror // ""' < ${payload})
 
-username=$(jq -r '.source.username // ""' < $payload)
-password=$(jq -r '.source.password // ""' < $payload)
-repository=$(jq -r '.source.repository // ""' < $payload)
-ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
-client_certs=$(jq -r '.source.client_certs // []' < $payload)
-max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)
-max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < $payload)
+username=$(jq -r '.source.username // ""' < ${payload})
+password=$(jq -r '.source.password // ""' < ${payload})
+repository=$(jq -r '.source.repository // ""' < ${payload})
+ca_certs=$(jq -r '.source.ca_certs // []' < ${payload})
+client_certs=$(jq -r '.source.client_certs // []' < ${payload})
+max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < ${payload})
+max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < ${payload})
 
-export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // ""' < $payload)
-export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < $payload)
+export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // ""' < ${payload})
+export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < ${payload})
 
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
@@ -54,34 +54,45 @@ start_docker \
 	"$registry_mirror"
 log_in "$username" "$password" "$registry"
 
-tag_source=$(jq -r '.source.tag // "latest"' < $payload)
-tag_params=$(jq -r '.params.tag // ""' < $payload)
-tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
-tag_suffix=$(jq -r '.params.tag_suffix // ""' < $payload)
-additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
-need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
-build_args=$(jq -r '.params.build_args // {}' < $payload)
-build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
+tag_source=$(jq -r '.source.tag // "latest"' < ${payload})
 
+# backwards compatibility
+tag_file=$(jq -r '.params.tag // ""' < ${payload})
+tag_file=$(jq -r '.params.tag_file // ""' < ${payload})
 
-tag_name=""
-if [ -n "$tag_params" ]; then
-  if [ ! -f "$tag_params" ]; then
-    echo "tag file '$tag_params' does not exist"
+# this should ideally just be `tag`, but to maintain backwards compatibility, we can't use that
+tag_name=$(jq -r '.params.tag_name // ""' < ${payload})
+
+tag_prefix=$(jq -r '.params.tag_prefix // ""' < ${payload})
+tag_suffix=$(jq -r '.params.tag_suffix // ""' < ${payload})
+
+# backwards compatibility
+additional_tags_file=$(jq -r '.params.additional_tags // ""' < ${payload})
+additional_tags_file=$(jq -r '.params.additional_tags_file // ""' < ${payload})
+
+need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < ${payload})
+build_args=$(jq -r '.params.build_args // {}' < ${payload})
+build_args_file=$(jq -r '.params.build_args_file // ""' < ${payload})
+
+if [ -n "$tag_file" ]; then
+  if [ ! -f "$tag_file" ]; then
+    echo "tag file '$tag_file' does not exist"
     exit 1
   fi
-  tag_name="${tag_prefix}$(cat $tag_params)${tag_suffix}"
+  tag_name="${tag_prefix}$(cat ${tag_file})${tag_suffix}"
+elif [ -n "$tag_name" ]; then
+  tag_name="${tag_prefix}${tag_name}${tag_suffix}"
 else
-  tag_name="$tag_source"
+  tag_name="${tag_prefix}${tag_source}${tag_suffix}"
 fi
 
 additional_tag_names=""
-if [ -n "$additional_tags" ]; then
-  if [ ! -f "$additional_tags" ]; then
-    echo "additional tags file '$additional_tags' does not exist"
+if [ -n "$additional_tags_file" ]; then
+  if [ ! -f "$additional_tags_file" ]; then
+    echo "additional tags file '$additional_tags_file' does not exist"
     exit 1
   fi
-  additional_tag_names="$(cat $additional_tags)"
+  additional_tag_names="$(cat ${additional_tags_file})"
 fi
 
 if [ -z "$repository" ]; then
@@ -89,23 +100,23 @@ if [ -z "$repository" ]; then
   exit 1
 fi
 
-load=$(jq -r '.params.load // ""' < $payload)
+load=$(jq -r '.params.load // ""' < ${payload})
 
-load_base=$(jq -r '.params.load_base // ""' < $payload)
-load_bases=$(jq -r '.params.load_bases // empty' < $payload)
-build=$(jq -r '.params.build // ""' < $payload)
-cache=$(jq -r '.params.cache' < $payload)
-cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
-dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < $payload)
+load_base=$(jq -r '.params.load_base // ""' < ${payload})
+load_bases=$(jq -r '.params.load_bases // empty' < ${payload})
+build=$(jq -r '.params.build // ""' < ${payload})
+cache=$(jq -r '.params.cache' < ${payload})
+cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < ${payload})
+dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < ${payload})
 
-load_file=$(jq -r '.params.load_file // ""' < $payload)
-load_repository=$(jq -r '.params.load_repository // ""' < $payload)
-load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
+load_file=$(jq -r '.params.load_file // ""' < ${payload})
+load_repository=$(jq -r '.params.load_repository // ""' < ${payload})
+load_tag=$(jq -r '.params.load_tag // "latest"' < ${payload})
 
-import_file=$(jq -r '.params.import_file // ""' < $payload)
+import_file=$(jq -r '.params.import_file // ""' < ${payload})
 
-pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
-pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
+pull_repository=$(jq -r '.params.pull_repository // ""' < ${payload})
+pull_tag=$(jq -r '.params.pull_tag // "latest"' < ${payload})
 
 if [ -n "$load" ]; then
   docker load -i "${load}/image"
@@ -124,7 +135,7 @@ elif [ -n "$build" ]; then
   fi
 
   if [ -n "$load_bases" ]; then
-    for load_base in $(echo $load_bases | jq -r '.[]'); do
+    for load_base in $(echo ${load_bases} | jq -r '.[]'); do
       docker load -i "${load_base}/image"
       docker tag \
         "$(cat "${load_base}/image-id")" \
@@ -172,7 +183,7 @@ elif [ -n "$build" ]; then
   ecr_images=$(grep '^\s*FROM' ${dockerfile} | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
   if [ -n "$ecr_images" ]; then
-    for ecr_image in $ecr_images
+    for ecr_image in ${ecr_images}
     do
       # pull will perform an authentication process needed for ECR
       # there is an experimental endpoint to support long running sessions
@@ -183,7 +194,7 @@ elif [ -n "$build" ]; then
     done    
   fi
 
-  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" ${cache_from} "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
@@ -244,6 +255,6 @@ jq -n "{
     digest: $(echo $digest | jq -R .)
   },
   metadata: [
-    { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
+    { name: \"image\", value: $(echo ${image_id} | head -c 12 | jq -R .) }
   ]
 }" >&3
