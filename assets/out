@@ -74,17 +74,21 @@ need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < ${payload})
 build_args=$(jq -r '.params.build_args // {}' < ${payload})
 build_args_file=$(jq -r '.params.build_args_file // ""' < ${payload})
 
+pre_final_tag=""
 if [ -n "$tag_file" ]; then
   if [ ! -f "$tag_file" ]; then
     echo "tag file '$tag_file' does not exist"
     exit 1
   fi
+  pre_final_tag=$(cat ${tag_file})
   tag_name="${tag_prefix}$(cat ${tag_file})${tag_suffix}"
 elif [ -n "$tag_name" ]; then
-  tag_name="${tag_prefix}${tag_name}${tag_suffix}"
+  pre_final_tag=${tag_name}
 else
-  tag_name="${tag_prefix}${tag_source}${tag_suffix}"
+  pre_final_tag=${tag_source}
 fi
+
+tag_name="${tag_prefix}${pre_final_tag}${tag_suffix}"
 
 additional_tag_names=""
 if [ -n "$additional_tags_file" ]; then
