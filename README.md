@@ -176,6 +176,7 @@ version is the image's digest.
 
 * `tag_name`: *Optional.* The tag. This takes precedence over `tag_file`. Will be prefixed/suffixed if those params are present.
 
+* `tag`: **DEPRECATED. Use `tag_file` instead**
 * `tag_file`: *Optional.* The value should be a path to a file containing the name
   of the tag. Will be prefixed/suffixed if those params are present.
 
@@ -188,6 +189,7 @@ version is the image's digest.
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
   be tagged as `latest` in addition to whatever other tag was specified.
 
+* `additional_tags`: **DEPRECATED. Use `additional_tags_file` instead**
 * `additional_tags_file`: *Optional.* Path to a space separated list of tags. The Docker build will additonally be pushed with those tags. **Will Not** be prefixed/suffixed.
 
 * `build_args`: *Optional.*  A map of Docker build arguments.
