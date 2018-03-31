@@ -253,6 +253,23 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When passing prefix and suffix ", func() {
+		It("should push add the additional_tags", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"tag_prefix": "p-",
+					"tag_suffix": "-s",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:p-latest-s`)))
+		})
+	})
+
 	Context("When only http_proxy setting is provided, with no build arguments", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := putWithEnv(map[string]interface{}{

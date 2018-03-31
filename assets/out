@@ -61,7 +61,7 @@ tag_file=$(jq -r '.params.tag // ""' < ${payload})
 tag_file=$(jq -r '.params.tag_file // ""' < ${payload})
 
 # this should ideally just be `tag`, but to maintain backwards compatibility, we can't use that
-tag_name=$(jq -r '.params.tag_name // ""' < ${payload})
+tag_name_param=$(jq -r '.params.tag_name // ""' < ${payload})
 
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < ${payload})
 tag_suffix=$(jq -r '.params.tag_suffix // ""' < ${payload})
@@ -81,9 +81,8 @@ if [ -n "$tag_file" ]; then
     exit 1
   fi
   pre_final_tag=$(cat ${tag_file})
-  tag_name="${tag_prefix}$(cat ${tag_file})${tag_suffix}"
-elif [ -n "$tag_name" ]; then
-  pre_final_tag=${tag_name}
+elif [ -n "$tag_name_param" ]; then
+  pre_final_tag=${tag_name_param}
 else
   pre_final_tag=${tag_source}
 fi
