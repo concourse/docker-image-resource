@@ -18,6 +18,16 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `password`: *Optional.* The password to use when authenticating.
 
+* `extra_logins`: *Optional.* An array of additional username, password and registry
+  to log in, following this format:
+
+  ```yaml
+  extra_logins:
+  - username: USERNAME
+    password: PASSWORD
+    registry: REGISTRY # (optional)
+  ```
+
 * `aws_access_key_id`: *Optional.* AWS access key to use for acquiring ECR
   credentials.
 
@@ -145,7 +155,7 @@ version is the image's digest.
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building). This will cause the resource to fail
   if it is set to `true` and the image does not exist yet.
-  
+
 * `cache_tag`: *Optional.* Default `tag`. The specific tag to pull before
   building when `cache` parameter is set. Instead of pulling the same tag
   that's going to be built, this allows picking a different tag like
@@ -185,7 +195,7 @@ version is the image's digest.
   be tagged as `latest` in addition to whatever other tag was specified.
 
 * `build_args`: *Optional.*  A map of Docker build arguments.
-  
+
   Example:
 
   ```yaml
@@ -194,7 +204,7 @@ version is the image's digest.
     how_many_things: 2
     email: me@yopmail.com
   ```
-    
+
 * `build_args_file`: *Optional.* Path to a JSON file containing Docker build
   arguments.
 

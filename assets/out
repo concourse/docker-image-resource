@@ -28,6 +28,7 @@ insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $p
 
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
+credentials=$(jq -r '.source.extra_logins // []' < $payload)
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
@@ -53,6 +54,7 @@ start_docker \
 	"$insecure_registries" \
 	"$registry_mirror"
 log_in "$username" "$password" "$registry"
+multi_login "$credentials"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag // ""' < $payload)
@@ -179,10 +181,13 @@ elif [ -n "$build" ]; then
       # see https://github.com/moby/moby/pull/32677
       # and https://github.com/awslabs/amazon-ecr-credential-helper/issues/9
       docker pull "${ecr_image}"
-    done    
+    done
   fi
 
-  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
+  # expanded_build_args can be empty if none of the above conditions are met.
+  set +u
+  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f - $cache_from "$build" < $dockerfile
+  set -u
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
