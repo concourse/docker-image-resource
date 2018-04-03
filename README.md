@@ -185,6 +185,9 @@ version is the image's digest.
   be tagged as `latest` in addition to whatever other tag was specified.
 
 * `build_args`: *Optional.*  A map of Docker build arguments.
+
+* `target_name`: *Optional.*  Specify the name of the target build stage. 
+  Only supported for multi-stage Docker builds
   
   Example:
 

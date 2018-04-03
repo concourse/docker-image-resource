@@ -151,6 +151,23 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when configured with a target build stage", func() {
+		It("passes it to dockerd", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"target_name": "test",
+					"build":       "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--target`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`test`)))
+		})
+	})
+
 	Context("When using ECR", func() {
 		It("calls docker pull with the ECR registry", func() {
 			session := put(map[string]interface{}{
