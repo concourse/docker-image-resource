@@ -95,6 +95,7 @@ load_bases=$(jq -r '.params.load_bases // empty' < $payload)
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
+cache_from=$(jq -r '.params.cache_from // empty' < $payload)
 dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
@@ -132,11 +133,22 @@ elif [ -n "$build" ]; then
     done
   fi
 
-  cache_from=""
+  cache_from_args=()
+
   if [ "$cache" = "true" ]; then
     docker_pull "${repository}:${cache_tag}"
-    cache_from="--cache-from ${repository}:${cache_tag}"
+    cache_from_args+=("--cache-from ${repository}:${cache_tag}")
   fi
+
+  if [ -n "$cache_from" ]; then
+    for cache_from_dir in $(echo $cache_from | jq -r '.[]'); do
+      cache_image="$(cat "${cache_from_dir}/repository")"
+      cache_tag="$(cat "${cache_from_dir}/tag")"
+      cache_from_args+=("--cache-from ${cache_image}:${cache_tag}")
+    done
+  fi
+
+  cache_from="${cache_from_args[@]}"
 
   expanded_build_args=()
 
