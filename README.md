@@ -145,7 +145,13 @@ version is the image's digest.
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building). This will cause the resource to fail
   if it is set to `true` and the image does not exist yet.
-  
+
+* `cache_from`: *Optional.* An array of images to consider as cache sources.
+  When specified, it should be a subset of the `load_bases` array. If you
+  want to use an image in a `FROM` step, it is sufficient to include it in
+  `load_bases`. If you want to use an image as a cache source for other build
+  steps, you must include it both in `load_bases` and in `cache_from`.
+
 * `cache_tag`: *Optional.* Default `tag`. The specific tag to pull before
   building when `cache` parameter is set. Instead of pulling the same tag
   that's going to be built, this allows picking a different tag like
