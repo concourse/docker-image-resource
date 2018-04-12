@@ -96,6 +96,7 @@ load_bases=$(jq -r '.params.load_bases // empty' < $payload)
 build=$(jq -r '.params.build // ""' < $payload)
 cache=$(jq -r '.params.cache' < $payload)
 cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < $payload)
+cache_from=$(jq -r '.params.cache_from // empty' < $payload)
 dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < $payload)
 
 load_file=$(jq -r '.params.load_file // ""' < $payload)
@@ -117,27 +118,43 @@ elif [ -n "$build" ]; then
     exit 1
   fi
 
+  load_images=()
+
   if [ -n "$load_base" ]; then
-    docker load -i "${load_base}/image"
-    docker tag \
-      "$(cat "${load_base}/image-id")" \
-      "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+    load_images+=("$load_base")
   fi
 
-  if [ -n "$load_bases" ]; then
-    for load_base in $(echo $load_bases | jq -r '.[]'); do
-      docker load -i "${load_base}/image"
-      docker tag \
-        "$(cat "${load_base}/image-id")" \
-        "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+  for load_image in $(echo $load_bases | jq -r '.[]'); do
+    load_images+=("$load_image")
+  done
+
+  for load_image in $(echo $cache_from | jq -r '.[]'); do
+    load_images+=("$load_image")
+  done
+
+  for load_image in "${load_images[@]}"; do
+    docker load -i "${load_image}/image"
+    docker tag \
+      "$(cat "${load_image}/image-id")" \
+      "$(cat "${load_image}/repository"):$(cat "${load_image}/tag")"
+  done
+
+  cache_from_args=()
+
+  if [ "$cache" = "true" ]; then
+    docker_pull "${repository}:${cache_tag}"
+    cache_from_args+=("--cache-from ${repository}:${cache_tag}")
+  fi
+
+  if [ -n "$cache_from" ]; then
+    for cache_from_dir in $(echo $cache_from | jq -r '.[]'); do
+      cache_image="$(cat "${cache_from_dir}/repository")"
+      cache_tag="$(cat "${cache_from_dir}/tag")"
+      cache_from_args+=("--cache-from ${cache_image}:${cache_tag}")
     done
   fi
 
-  cache_from=""
-  if [ "$cache" = "true" ]; then
-    docker_pull "${repository}:${cache_tag}"
-    cache_from="--cache-from ${repository}:${cache_tag}"
-  fi
+  cache_from="${cache_from_args[@]}"
 
   expanded_build_args=()
 
