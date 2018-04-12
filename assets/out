@@ -131,7 +131,6 @@ elif [ -n "$build" ]; then
     load_images+=("$load_image")
   done
 
-  echo "=====${load_images[@]}"
   for load_image in "${load_images[@]}"; do
     docker load -i "${load_image}/image"
     docker tag \
