@@ -117,21 +117,27 @@ elif [ -n "$build" ]; then
     exit 1
   fi
 
+  load_images=()
+
   if [ -n "$load_base" ]; then
-    docker load -i "${load_base}/image"
-    docker tag \
-      "$(cat "${load_base}/image-id")" \
-      "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+    load_images+=("$load_base")
   fi
 
-  if [ -n "$load_bases" ]; then
-    for load_base in $(echo $load_bases | jq -r '.[]'); do
-      docker load -i "${load_base}/image"
-      docker tag \
-        "$(cat "${load_base}/image-id")" \
-        "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
-    done
-  fi
+  for load_image in $(echo $load_bases | jq -r '.[]'); do
+    load_images+=("$load_image")
+  done
+
+  for load_image in $(echo $cache_from | jq -r '.[]'); do
+    load_images+=("$load_image")
+  done
+
+  echo "=====${load_images[@]}"
+  for load_image in "${load_images[@]}"; do
+    docker load -i "${load_image}/image"
+    docker tag \
+      "$(cat "${load_image}/image-id")" \
+      "$(cat "${load_image}/repository"):$(cat "${load_image}/tag")"
+  done
 
   cache_from_args=()
 

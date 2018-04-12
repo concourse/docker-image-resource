@@ -359,6 +359,41 @@ var _ = Describe("Out", func() {
 			os.RemoveAll("/tmp/cache_from_2")
 		})
 
+		It("calls docker load to load the cache_from images", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"cache_from": []string{"cache_from_1", "cache_from_2"},
+				},
+			})
+			Expect(session.Err).To(gbytes.Say(docker(`load -i cache_from_1/image`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag some-image-id-1 some-repository-1:some-tag-1`)))
+
+			Expect(session.Err).To(gbytes.Say(docker(`load -i cache_from_2/image`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag some-image-id-2 some-repository-2:some-tag-2`)))
+		})
+
+		It("loads both cache_from and load_bases images", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"load_bases": []string{"cache_from_1"},
+					"cache_from": []string{"cache_from_2"},
+				},
+			})
+			Expect(session.Err).To(gbytes.Say(docker(`load -i cache_from_1/image`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag some-image-id-1 some-repository-1:some-tag-1`)))
+
+			Expect(session.Err).To(gbytes.Say(docker(`load -i cache_from_2/image`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag some-image-id-2 some-repository-2:some-tag-2`)))
+		})
+
 		It("passes the arguments correctly to the docker build command", func() {
 			session := put(map[string]interface{}{
 				"source": map[string]interface{}{
