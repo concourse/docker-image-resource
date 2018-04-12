@@ -219,6 +219,8 @@ version is the image's digest.
     { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
     ```            
 
+* `dry_run`: *Optional.*  Default `false`. If true, the image will build but not be pushed.
+
 * `additional_tags`: *Optional.* Path to a space separated list of tags. The Docker build will additionally be pushed with those tags.
 
 ## Example

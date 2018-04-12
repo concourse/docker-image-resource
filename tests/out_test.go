@@ -270,6 +270,25 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When passing dry_run ", func() {
+		It("successfully builds the image locally", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"dockerfile": "/docker-image-resource/tests/fixtures/build/Dockerfile",
+					"dry_run":    "true",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`build`)))
+			Expect(session.Err).NotTo(gbytes.Say(docker(`push test:latest`)))
+			Expect(session.Err).NotTo(gbytes.Say(docker(`push test:a`)))
+		})
+	})
+
 	Context("When only http_proxy setting is provided, with no build arguments", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := putWithEnv(map[string]interface{}{
