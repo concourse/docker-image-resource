@@ -2,6 +2,33 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["compute/metadata"]
+  revision = "29f476ffa9c4cd4fd14336b6043090ac1ad76733"
+  version = "v0.21.0"
+
+[[projects]]
+  name = "github.com/GoogleCloudPlatform/docker-credential-gcr"
+  packages = [
+    ".",
+    "auth",
+    "cli",
+    "config",
+    "credhelper",
+    "store",
+    "util",
+    "util/cmd"
+  ]
+  revision = "d95e329ec299b02e3acbf5dcb389348acca2badf"
+  version = "v1.4.0"
+
+[[projects]]
+  name = "github.com/Microsoft/go-winio"
+  packages = ["."]
+  revision = "7da180ee92d8bd8bb8c37fc560e673e6557c392f"
+  version = "v0.4.7"
+
+[[projects]]
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
   revision = "a283a10442df8dc09befd873fab202bf8a253d6a"
@@ -81,10 +108,44 @@
   revision = "4abae2ae560ba91db98779db2739eb97d7592fba"
 
 [[projects]]
+  name = "github.com/docker/docker"
+  packages = [
+    "api/types",
+    "api/types/blkiodev",
+    "api/types/container",
+    "api/types/filters",
+    "api/types/mount",
+    "api/types/network",
+    "api/types/registry",
+    "api/types/strslice",
+    "api/types/swarm",
+    "api/types/versions",
+    "cli/config",
+    "cli/config/configfile",
+    "pkg/homedir",
+    "pkg/idtools",
+    "pkg/system"
+  ]
+  revision = "90d35abf7b3535c1c319c872900fbd76374e521c"
+  version = "v17.05.0-ce-rc3"
+
+[[projects]]
   name = "github.com/docker/docker-credential-helpers"
   packages = ["credentials"]
   revision = "b7c53e02cd1a9a01500a58f22d83c6e964bc59db"
   version = "v0.4.1"
+
+[[projects]]
+  name = "github.com/docker/go-connections"
+  packages = ["nat"]
+  revision = "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
+  version = "v0.3.0"
+
+[[projects]]
+  name = "github.com/docker/go-units"
+  packages = ["."]
+  revision = "47565b4f722fb6ceae66b95f853feed578a4a51c"
+  version = "v0.3.3"
 
 [[projects]]
   branch = "master"
@@ -96,6 +157,18 @@
   name = "github.com/go-ini/ini"
   packages = ["."]
   revision = "060d7da055ba6ec5ea7a31f116332fe5efa04ce0"
+
+[[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/google/subcommands"
+  packages = ["."]
+  revision = "a3682377147edf596d303faabd89f81977b3f678"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -134,13 +207,6 @@
   packages = [
     ".",
     "config",
-    "ginkgo",
-    "ginkgo/convert",
-    "ginkgo/interrupthandler",
-    "ginkgo/nodot",
-    "ginkgo/testrunner",
-    "ginkgo/testsuite",
-    "ginkgo/watch",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -178,6 +244,12 @@
   revision = "9ed8da19f2156b87a803a8fdf6d126f627a12db1"
 
 [[projects]]
+  name = "github.com/opencontainers/runc"
+  packages = ["libcontainer/user"]
+  revision = "baf6536d6259209c3edfa2b22237af82942d3dfa"
+  version = "v0.1.1"
+
+[[projects]]
   name = "github.com/pivotal-golang/clock"
   packages = ["."]
   revision = "da8295109ceb031ff96dc126bb68d75dd9fddc4b"
@@ -188,14 +260,61 @@
   revision = "7639e31ce6622c55c15aa64144b85d5f4873d127"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
+  name = "github.com/toqueteos/webbrowser"
+  packages = ["."]
+  revision = "3232c91b8ede8ca86e8962981d881af78875542f"
+  version = "v1.1.0"
+
+[[projects]]
   name = "golang.org/x/net"
-  packages = ["context"]
+  packages = [
+    "context",
+    "context/ctxhttp"
+  ]
   revision = "f841c39de738b1d0df95b5a7187744f0e03d8112"
 
 [[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "google",
+    "internal",
+    "jws",
+    "jwt"
+  ]
+  revision = "6881fee410a5daf86371371f9ad451b95e168b71"
+
+[[projects]]
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "d4feaf1a7e61e1d9e79e6c4e76c6349e9cab0a03"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    ".",
+    "internal",
+    "internal/app_identity",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/modules",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
+  version = "v1.0.0"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -205,6 +324,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5c50a6af293651a98302794da7f2732fee2bc367e2ed6b3be85d57d45739615e"
+  inputs-digest = "de0e90260cb9fce4d612ee203e825151eb53809aa31a97b68810aa1cb71a4abd"
   solver-name = "gps-cdcl"
   solver-version = 1

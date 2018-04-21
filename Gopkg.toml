@@ -1,36 +1,9 @@
-# Gopkg.toml example
-#
-# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
-# for detailed Gopkg.toml documentation.
-#
-# required = ["github.com/user/thing/cmd/thing"]
-# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
-#
-# [[constraint]]
-#   name = "github.com/user/project"
-#   version = "1.0.0"
-#
-# [[constraint]]
-#   name = "github.com/user/project2"
-#   branch = "dev"
-#   source = "github.com/myfork/project2"
-#
-# [[override]]
-#   name = "github.com/x/y"
-#   version = "2.4.0"
-#
-# [prune]
-#   non-go = false
-#   go-tests = true
-#   unused-packages = true
-
+required = ["github.com/GoogleCloudPlatform/docker-credential-gcr", "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cmd"]
 
 [prune]
   go-tests = true
   unused-packages = true
 
 [[constraint]]
-  name = "github.com/awslabs/amazon-ecr-credential-helper"
-
-[[constraint]]
-  name = "github.com/onsi/ginkgo"
+  name = "github.com/GoogleCloudPlatform/docker-credential-gcr"
+  version = "1.4.0"
