@@ -207,6 +207,17 @@ elif [ -n "$build" ]; then
     done    
   fi
 
+  GCR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9-]*\.gcr\.io[^ ]*|gcr\.io[^ ]*|gcr\.kubernetes\.io[^ ]*/'
+  gcr_images=$(grep '^\s*FROM' ${dockerfile} | \
+             awk "match(\$0,${GCR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
+  if [ -n "$gcr_images" ]; then
+    for gcr_image in $gcr_images
+    do
+      # pull will perform an authentication process needed for GCR
+      docker pull "${gcr_image}"
+    done
+  fi
+
   docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then

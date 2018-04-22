@@ -16,6 +16,9 @@ import (
 	"github.com/cihub/seelog"
 	"github.com/pivotal-golang/lager"
 
+	gcrconfig "github.com/GoogleCloudPlatform/docker-credential-gcr/config"
+	gcr "github.com/GoogleCloudPlatform/docker-credential-gcr/credhelper"
+	gcrstore "github.com/GoogleCloudPlatform/docker-credential-gcr/store"
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/concourse/retryhttp"
@@ -51,6 +54,14 @@ func main() {
 	if err == nil {
 		request.Source.Username = ecrUser
 		request.Source.Password = ecrPass
+	}
+
+	gcrStore, _ := gcrstore.NewGCRCredStore()
+	gcrConfig, _ := gcrconfig.LoadUserConfig()
+	gcrUser, gcrPass, err := gcr.NewGCRCredentialHelper(gcrStore, gcrConfig).Get(request.Source.Repository)
+	if err == nil {
+		request.Source.Username = gcrUser
+		request.Source.Password = gcrPass
 	}
 
 	registryHost, repo := parseRepository(request.Source.Repository)
@@ -192,7 +203,7 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 
 	pingClient := &http.Client{
 		Transport: retryRoundTripper(logger, authTransport),
-		Timeout: 1 * time.Minute,
+		Timeout:   1 * time.Minute,
 	}
 
 	challengeManager := auth.NewSimpleChallengeManager()
