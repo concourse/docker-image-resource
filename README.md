@@ -141,24 +141,26 @@ version is the image's digest.
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 
-* `build_args`: *Optional.*  A map of Docker build arguments.
+* `build_args`: *Optional.* A map of Docker build-time variables. These will be
+  available as environment variables during the Docker build, but will not
+  persist in the intermediate or final images.
 
   Example:
 
   ```yaml
   build_args:
-    do_thing: true
-    how_many_things: 2
-    email: me@yopmail.com
+    DO_THING: true
+    HOW_MANY_THINGS: 2
+    EMAIL: me@yopmail.com
   ```
 
-* `build_args_file`: *Optional.* Path to a JSON file containing Docker build
-  arguments.
+* `build_args_file`: *Optional.* Path to a JSON file containing Docker
+  build-time variables.
 
   Example file contents:
 
   ```yaml
-  { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
+  { "EMAIL": "me@yopmail.com", "HOW_MANY_THINGS": 1, "DO_THING": false }
   ```
 
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
