@@ -135,14 +135,31 @@ version is the image's digest.
 
 #### Parameters
 
+* `additional_tags`: *Optional.* Path to a space separated list of tags. The
+  Docker build will additionally be pushed with those tags.
+
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 
-* `load`: *Optional.* The path of a directory containing an image that was
-  fetched using this same resource type with `save: true`.
+* `build_args`: *Optional.*  A map of Docker build arguments.
 
-* `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if
-  it's not at the root of the directory.
+  Example:
+
+  ```yaml
+  build_args:
+    do_thing: true
+    how_many_things: 2
+    email: me@yopmail.com
+  ```
+
+* `build_args_file`: *Optional.* Path to a JSON file containing Docker build
+  arguments.
+
+  Example file contents:
+
+  ```yaml
+  { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
+  ```
 
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
@@ -164,6 +181,14 @@ version is the image's digest.
   `latest` or the previous version. This will cause the resource to fail
   if it is set to a tag that does not exist yet.
 
+* `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if
+  it's not at the root of the directory.
+
+* `import_file`: *Optional.* A path to a file to `docker import` and then push.
+
+* `load`: *Optional.* The path of a directory containing an image that was
+  fetched using this same resource type with `save: true`.
+
 * `load_base`: *Optional.* A path to a directory containing an image to `docker
   load` before running `docker build`. The directory must have `image`,
   `image-id`, `repository`, and `tag` present, i.e. the tree produced by `/in`.
@@ -178,8 +203,6 @@ version is the image's digest.
 
 * `load_tag`: *Optional.* Default `latest`. The tag of image loaded from `load_file`
 
-* `import_file`: *Optional.* A path to a file to `docker import` and then push.
-
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.
 
@@ -189,37 +212,16 @@ version is the image's digest.
 * `tag`: *Optional.* The value should be a path to a file containing the name
   of the tag.
 
+* `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
+  be tagged as `latest` in addition to whatever other tag was specified.
+
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
 
-* `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
-  be tagged as `latest` in addition to whatever other tag was specified.
-
-* `build_args`: *Optional.*  A map of Docker build arguments.
-
 * `target_name`: *Optional.*  Specify the name of the target build stage. 
   Only supported for multi-stage Docker builds
-  
-  Example:
 
-  ```yaml
-  build_args:
-    do_thing: true
-    how_many_things: 2
-    email: me@yopmail.com
-  ```
-    
-* `build_args_file`: *Optional.* Path to a JSON file containing Docker build
-  arguments.
-
-  Example file contents:
-
-    ```yaml
-    { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
-    ```            
-
-* `additional_tags`: *Optional.* Path to a space separated list of tags. The Docker build will additionally be pushed with those tags.
 
 ## Example
 
