@@ -109,6 +109,8 @@ pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
 target_name=$(jq -r '.params.target_name // ""' < $payload)
 
+squash_build=$(jq -r '.params.squash // ""' < $payload)
+
 if [ -n "$load" ]; then
   docker load -i "${load}/image"
   docker tag $(cat "${load}/image-id") "${repository}:${tag_name}"
@@ -192,6 +194,13 @@ elif [ -n "$build" ]; then
    target+=("${target_name}")
   fi
 
+  if [ "$squash_build" = "true" ]; then
+    squash_arg="--squash"
+  else
+    squash_arg=""
+  fi
+
+
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
   ecr_images=$(grep '^\s*FROM' ${dockerfile} | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
@@ -207,7 +216,7 @@ elif [ -n "$build" ]; then
     done    
   fi
 
-  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" $build_args ${squash_arg} -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"

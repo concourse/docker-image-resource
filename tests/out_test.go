@@ -430,5 +430,33 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--cache-from`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`some-repository-2:some-tag-2`)))
 		})
+
+		It("passes the squash argument correctly to the docker build command", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"squash":     true,
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--squash`)))
+		})
+
+		It("when squash=false does not pass the squash argument to the docker build command", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"squash":     false,
+				},
+			})
+
+			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`--squash`)))
+		})
 	})
 })
