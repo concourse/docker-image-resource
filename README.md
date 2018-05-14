@@ -223,6 +223,10 @@ version is the image's digest.
 
 * `target_name`: *Optional.*  Specify the name of the target build stage. 
   Only supported for multi-stage Docker builds
+  
+* `squash`: *Optional.* Default `false`. When the `build` parameter is set,
+  squash the resultant build, so that any intermediate build layers for this 
+  image are removed and only the `FROM` and final build layers are used.  
 
 
 ## Example
