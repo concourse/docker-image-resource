@@ -39,6 +39,7 @@ max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < $payload)
 export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // ""' < $payload)
 export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < $payload)
 export AWS_SESSION_TOKEN=$(jq -r '.source.aws_session_token // ""' < $payload)
+export AWS_DEFAULT_REGION=$(jq -r '.source.aws_default_region // ""' < $payload)
 
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
@@ -227,6 +228,21 @@ else
 fi
 
 image_id="$(image_from_tag "$repository" "$tag_name")"
+
+# Ensure repository is created if repository is an ECR repo
+ecr_image=$(echo $repository | \
+           awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
+
+if [ -n "$ecr_image" ]; then
+  repository_name=$(echo $repository | awk -F/ '{print substr($0, index($0, $2))}')
+  repo_exists=$(aws ecr describe-repositories --repository-names $repository_name 2>/dev/null | jq '.|length')
+  if [ ! -n "$repo_exists" ]; then
+    aws ecr create-repository --repository-name ${repository_name}
+    echo "${repository_name} created in ECR"
+  else
+    echo "${repository_name} already exists in ECR"
+  fi
+fi
 
 # afaict there's no clean way to get the digest after a push. docker prints
 # this line at the end at least:
