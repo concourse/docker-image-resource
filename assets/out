@@ -227,8 +227,6 @@ else
   exit 1
 fi
 
-image_id="$(image_from_tag "$repository" "$tag_name")"
-
 # Ensure repository is created if repository is an ECR repo
 ecr_image=$(echo $repository | \
            awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
@@ -243,6 +241,8 @@ if [ -n "$ecr_image" ]; then
     echo "${repository_name} already exists in ECR"
   fi
 fi
+
+image_id="$(image_from_tag "$repository" "$tag_name")"
 
 # afaict there's no clean way to get the digest after a push. docker prints
 # this line at the end at least:
