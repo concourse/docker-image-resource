@@ -80,8 +80,9 @@ start_docker() {
 
   sleep 1
 
+  echo waiting for docker to come up...
+
   until docker info >/dev/null 2>&1; do
-    echo waiting for docker to come up...
     sleep 1
   done
 }
