@@ -102,6 +102,31 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when labels are provided", func() {
+		It("passes the labels correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"labels": map[string]string{
+						"label1": "foo",
+						"label2": "bar\nspam",
+						"label3": "eggs eggs eggs",
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`label1=foo`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`label2=bar\nspam`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`label3=eggs eggs eggs`)))
+		})
+	})
+
 	Context("when configured with limited up and download", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{
@@ -267,6 +292,36 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(docker(`push test:b`)))
 			Expect(session.Err).To(gbytes.Say(docker(`tag test:latest test:c`)))
 			Expect(session.Err).To(gbytes.Say(docker(`push test:c`)))
+		})
+	})
+
+	Context("When passing mirror repositories ", func() {
+		It("should push the image to all the listed repositories", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"tag":   "/docker-image-resource/tests/fixtures/tag",
+					"mirror_repositories": []interface{}{
+						map[string]string{
+							"repository": "mirror1",
+						},
+						map[string]string{
+							"repository": "mirror2",
+							"username":   "myself",
+							"password":   "secret123@",
+						},
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker(`push test:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:tagme mirror1:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push mirror1:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:tagme mirror2:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push mirror2:tagme`)))
 		})
 	})
 
