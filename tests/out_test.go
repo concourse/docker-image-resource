@@ -77,6 +77,28 @@ var _ = Describe("Out", func() {
 		Expect(session.Err).To(gbytes.Say(dockerd(`.*--data-root /scratch/docker.*`)))
 	})
 
+	Context("when build flags are provided", func() {
+		It("passes the flags correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"build_flags": []string{
+						"--arg0",
+						"--arg1-with-dash",
+						"--arg2",
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--arg0`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--arg1-with-dash`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--arg2`)))
+		})
+	})
+
 	Context("when build arguments are provided", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := put(map[string]interface{}{
