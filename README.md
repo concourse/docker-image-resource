@@ -127,6 +127,13 @@ The following files will be placed in the destination:
 * `skip_download`: *Optional.* Skip `docker pull` of image. Artifacts based
   on the image will not be present.
 
+As with all concourse resources, to modify params of the implicit `get` step after each `put` step you may also set these parameters under a `put` `get_params`. For example:
+
+```yaml
+put: foo
+params: {...}
+get_params: {skip_download: true}
+```
 
 ### `out`: Push an image, or build and push a `Dockerfile`.
 
