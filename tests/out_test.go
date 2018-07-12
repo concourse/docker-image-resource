@@ -136,7 +136,7 @@ var _ = Describe("Out", func() {
 				},
 			})
 
-			Expect(session.Err).To(gbytes.Say(`Failed to parse build_args_file (/docker-image-resource/tests/fixtures/build_args_malformed)`))
+			Expect(session.Err).To(gbytes.Say(`Failed to parse build_args_file \(/docker-image-resource/tests/fixtures/build_args_malformed\)`))
 		})
 	})
 
