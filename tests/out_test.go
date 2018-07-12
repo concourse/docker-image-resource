@@ -102,6 +102,44 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when build arguments file is provided", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"build_args_file": "/docker-image-resource/tests/fixtures/build_args",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg1=arg with space`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg2=arg with\nnewline`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg3=normal`)))
+		})
+	})
+
+	// this is close, but this test is broken. Not sure look for output
+	Context("when build arguments file is malformed", func() {
+		It("provides a useful error message", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"build_args_file": "/docker-image-resource/tests/fixtures/build_args_malformed",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(`Failed to parse build_args_file (/docker-image-resource/tests/fixtures/build_args_malformed)`))
+		})
+	})
+
 	Context("when configured with limited up and download", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{

@@ -176,13 +176,18 @@ elif [ -n "$build" ]; then
   fi
 
   if [ -n "$build_args_file" ]; then
-    build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
-    if [ "${#build_arg_keys[@]}" -gt 0 ]; then
-      for key in "${build_arg_keys[@]}"; do
-        value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
-        expanded_build_args+=("--build-arg")
-        expanded_build_args+=("${key}=${value}")
-      done
+    if jq . "$build_args_file" >/dev/null 2>&1; then
+      build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+      if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+        for key in "${build_arg_keys[@]}"; do
+          value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
+          expanded_build_args+=("--build-arg")
+          expanded_build_args+=("${key}=${value}")
+        done
+      fi
+    else
+      echo "Failed to parse build_args_file ($build_args_file)"
+      exit 1
     fi
   fi
 

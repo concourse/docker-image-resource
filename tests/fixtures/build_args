@@ -1,0 +1,5 @@
+{
+  "arg1": "arg with space",
+  "arg2": "arg with\nnewline",
+  "arg3": "normal"
+}
