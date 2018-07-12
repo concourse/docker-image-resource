@@ -218,19 +218,46 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  **DEPRECATED. Use `get` and `load` instead.** Default
   `latest`. The tag of the repository to pull down via `pull_repository`.
 
-* `tag`: *Optional.* The value should be a path to a file containing the name
-  of the tag.
+* `tag_name`: *Optional.* The tag. This takes precedence over `tag_file`. Will be prefixed/suffixed if those params are present.
 
+* `tag`: **DEPRECATED. Use `tag_file` instead**
+* `tag_file`: *Optional.* The value should be a path to a file containing the name
+  of the tag. Will be prefixed/suffixed if those params are present.
+  
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
   be tagged as `latest` in addition to whatever other tag was specified.
 
 * `tag_prefix`: *Optional.* If specified, the tag read from the file will be
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
+  
+* `tag_suffix`: *Optional.* Adds a suffix to the tag. Useful for things like `-$BUILD_ID`
 
 * `target_name`: *Optional.*  Specify the name of the target build stage. 
   Only supported for multi-stage Docker builds
+  
+* `additional_tags`: **DEPRECATED. Use `additional_tags_file` instead**
+* `additional_tags_file`: *Optional.* Path to a space separated list of tags. The Docker build will additonally be pushed with those tags. **Will Not** be prefixed/suffixed.
 
+* `build_args`: *Optional.*  A map of Docker build arguments.
+  
+  Example:
+
+  ```yaml
+  build_args:
+    do_thing: true
+    how_many_things: 2
+    email: me@yopmail.com
+  ```
+    
+* `build_args_file`: *Optional.* Path to a JSON file containing Docker build
+  arguments.
+
+  Example file contents:
+
+    ```yaml
+    { "email": "me@yopmail.com", "how_many_things": 1, "do_thing": false }
+    ```
 
 ## Example
 

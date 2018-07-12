@@ -256,7 +256,7 @@ var _ = Describe("Out", func() {
 				},
 				"params": map[string]interface{}{
 					"build":           "/docker-image-resource/tests/fixtures/build",
-					"additional_tags": "/docker-image-resource/tests/fixtures/tags",
+					"additional_tags_file": "/docker-image-resource/tests/fixtures/tags",
 				},
 			},
 			)
@@ -267,6 +267,39 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(docker(`push test:b`)))
 			Expect(session.Err).To(gbytes.Say(docker(`tag test:latest test:c`)))
 			Expect(session.Err).To(gbytes.Say(docker(`push test:c`)))
+		})
+	})
+
+	Context("When passing prefix and suffix ", func() {
+		It("should add prefix and suffix to default tag", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"tag_prefix": "p-",
+					"tag_suffix": "-s",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:p-latest-s`)))
+		})
+
+		It("should add prefix and suffix to tag from file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"tag_file":   "/docker-image-resource/tests/fixtures/tag",
+					"tag_prefix": "p-",
+					"tag_suffix": "-s",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:p-footag-s`)))
 		})
 	})
 
