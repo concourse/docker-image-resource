@@ -10,7 +10,7 @@ RUN go build -o /assets/ecr-login github.com/concourse/docker-image-resource/ven
 ENV CGO_ENABLED 1
 RUN set -e; \
     for pkg in $(go list ./...); do \
-		  go test -o "/tests/$(basename $pkg).test" -c $pkg; \
+      go test -o "/tests/$(basename $pkg).test" -c $pkg; \
     done
 
 # stage: resource
