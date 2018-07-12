@@ -57,9 +57,12 @@ log_in "$username" "$password" "$registry"
 
 tag_source=$(jq -r '.source.tag // "latest"' < ${payload})
 
-# backwards compatibility
-tag_file=$(jq -r '.params.tag // ""' < ${payload})
 tag_file=$(jq -r '.params.tag_file // ""' < ${payload})
+# backwards compatibility
+if [ -z "${tag_file}" ]; then
+  tag_file=$(jq -r '.params.tag // ""' < ${payload})
+fi
+
 
 # this should ideally just be `tag`, but to maintain backwards compatibility, we can't use that
 tag_name_param=$(jq -r '.params.tag_name // ""' < ${payload})
@@ -67,9 +70,11 @@ tag_name_param=$(jq -r '.params.tag_name // ""' < ${payload})
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < ${payload})
 tag_suffix=$(jq -r '.params.tag_suffix // ""' < ${payload})
 
-# backwards compatibility
-additional_tags_file=$(jq -r '.params.additional_tags // ""' < ${payload})
 additional_tags_file=$(jq -r '.params.additional_tags_file // ""' < ${payload})
+# backwards compatibility
+if [ -z "${additional_tags_file}" ]; then
+  additional_tags_file=$(jq -r '.params.additional_tags // ""' < ${payload})
+fi
 
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < ${payload})
 build_args=$(jq -r '.params.build_args // {}' < ${payload})
