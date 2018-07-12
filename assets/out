@@ -106,7 +106,6 @@ fi
 
 load=$(jq -r '.params.load // ""' < ${payload})
 
-
 load_base=$(jq -r '.params.load_base // ""' < ${payload})
 load_bases=$(jq -r '.params.load_bases // ""' < ${payload})
 build=$(jq -r '.params.build // ""' < ${payload})
