@@ -15,7 +15,7 @@ RUN set -e; for pkg in $(go list ./...); do \
 # stage: resource
 FROM alpine:edge AS resource
 RUN apk --no-cache add \
-		  bash \
+			bash \
 			docker \
 			jq \
 			ca-certificates \
