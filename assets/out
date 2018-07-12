@@ -38,6 +38,7 @@ max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < ${payload
 
 export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // ""' < ${payload})
 export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < ${payload})
+export AWS_SESSION_TOKEN=$(jq -r '.source.aws_session_token // ""' < $payload)
 
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
@@ -105,11 +106,13 @@ fi
 
 load=$(jq -r '.params.load // ""' < ${payload})
 
+
 load_base=$(jq -r '.params.load_base // ""' < ${payload})
 load_bases=$(jq -r '.params.load_bases // empty' < ${payload})
 build=$(jq -r '.params.build // ""' < ${payload})
 cache=$(jq -r '.params.cache' < ${payload})
 cache_tag=$(jq -r ".params.cache_tag // \"${tag_name}\"" < ${payload})
+cache_from=$(jq -r '.params.cache_from // empty' < ${payload})
 dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < ${payload})
 
 load_file=$(jq -r '.params.load_file // ""' < ${payload})
@@ -120,6 +123,7 @@ import_file=$(jq -r '.params.import_file // ""' < ${payload})
 
 pull_repository=$(jq -r '.params.pull_repository // ""' < ${payload})
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < ${payload})
+target_name=$(jq -r '.params.target_name // ""' < ${payload})
 
 if [ -n "$load" ]; then
   docker load -i "${load}/image"
@@ -130,27 +134,43 @@ elif [ -n "$build" ]; then
     exit 1
   fi
 
+  load_images=()
+
   if [ -n "$load_base" ]; then
-    docker load -i "${load_base}/image"
-    docker tag \
-      "$(cat "${load_base}/image-id")" \
-      "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+    load_images+=("$load_base")
   fi
 
-  if [ -n "$load_bases" ]; then
-    for load_base in $(echo ${load_bases} | jq -r '.[]'); do
-      docker load -i "${load_base}/image"
-      docker tag \
-        "$(cat "${load_base}/image-id")" \
-        "$(cat "${load_base}/repository"):$(cat "${load_base}/tag")"
+  for load_image in $(echo "${load_bases}" | jq -r '.[]'); do
+    load_images+=("${load_image}")
+  done
+
+  for load_image in $(echo "${cache_from}" | jq -r '.[]'); do
+    load_images+=("${load_image}")
+  done
+
+  for load_image in "${load_images[@]}"; do
+    docker load -i "${load_image}/image"
+    docker tag \
+      "$(cat "${load_image}/image-id")" \
+      "$(cat "${load_image}/repository"):$(cat "${load_image}/tag")"
+  done
+
+  cache_from_args=()
+
+  if [ "$cache" = "true" ]; then
+    docker_pull "${repository}:${cache_tag}"
+    cache_from_args+=("--cache-from ${repository}:${cache_tag}")
+  fi
+
+  if [ -n "$cache_from" ]; then
+    for cache_from_dir in $(echo $cache_from | jq -r '.[]'); do
+      cache_image="$(cat "${cache_from_dir}/repository")"
+      cache_tag="$(cat "${cache_from_dir}/tag")"
+      cache_from_args+=("--cache-from ${cache_image}:${cache_tag}")
     done
   fi
 
-  cache_from=""
-  if [ "$cache" = "true" ]; then
-    docker_pull "${repository}:${cache_tag}"
-    cache_from="--cache-from ${repository}:${cache_tag}"
-  fi
+  cache_from="${cache_from_args[@]}"
 
   expanded_build_args=()
 
@@ -182,6 +202,12 @@ elif [ -n "$build" ]; then
     fi
   fi
 
+  target=()
+  if [ -n "${target_name}" ]; then
+   target+=("--target")
+   target+=("${target_name}")
+  fi
+
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
   ecr_images=$(grep '^\s*FROM' ${dockerfile} | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
@@ -197,7 +223,7 @@ elif [ -n "$build" ]; then
     done    
   fi
 
-  docker build -t "${repository}:${tag_name}" "${expanded_build_args[@]}" -f "$dockerfile" ${cache_from} "$build"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "${dockerfile}" "${cache_from} "${build}"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
