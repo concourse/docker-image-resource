@@ -248,6 +248,55 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When passing tag ", func() {
+		It("should pull tag from file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"tag":   "/docker-image-resource/tests/fixtures/tag",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
+		})
+	})
+
+	Context("When passing tag_file", func() {
+		It("should pull tag from file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":    "/docker-image-resource/tests/fixtures/build",
+					"tag_file": "/docker-image-resource/tests/fixtures/tag",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
+		})
+	})
+
+	Context("When passing tag and tag_file", func() {
+		It("should pull tag from file (prefer tag_file param)", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":    "/docker-image-resource/tests/fixtures/build",
+					"tag":      "/docker-image-resource/tests/fixtures/doesnotexist",
+					"tag_file": "/docker-image-resource/tests/fixtures/tag",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
+		})
+	})
+
 	Context("When passing additional_tags ", func() {
 		It("should push add the additional_tags", func() {
 			session := put(map[string]interface{}{

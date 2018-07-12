@@ -218,7 +218,8 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  **DEPRECATED. Use `get` and `load` instead.** Default
   `latest`. The tag of the repository to pull down via `pull_repository`.
 
-* `tag`: *Optional.* The value should be a path to a file containing the name
+* `tag`: **DEPRECATED - Use `tag_file` instead**
+* `tag_file`: *Optional.* The value should be a path to a file containing the name
   of the tag.
 
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
