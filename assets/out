@@ -159,29 +159,32 @@ elif [ -n "$build" ]; then
     load_images+=("${load_image}")
   done
 
-  for load_image in "${load_images[@]}"; do
+  for load_image in ${load_images[@]}; do
     docker load -i "${load_image}/image"
     docker tag \
-      "$(cat "${load_image}/image-id")" \
-      "$(cat "${load_image}/repository"):$(cat "${load_image}/tag")"
+      $(cat "${load_image}/image-id") \
+      $(cat "${load_image}/repository"):$(cat "${load_image}/tag")
   done
 
   cache_from_args=()
 
-  if [ "$cache" = "true" ]; then
+  if [ "${cache}" = "true" ]; then
     docker_pull "${repository}:${cache_tag}"
     cache_from_args+=("--cache-from ${repository}:${cache_tag}")
   fi
 
   if [ -n "$cache_from" ]; then
-    for cache_from_dir in $(echo $cache_from | jq -r '.[]'); do
-      cache_image="$(cat "${cache_from_dir}/repository")"
-      cache_tag="$(cat "${cache_from_dir}/tag")"
+    for cache_from_dir in $(echo "${cache_from}" | jq -r '.[]'); do
+      cache_image=$(cat "${cache_from_dir}/repository")
+      cache_tag=$(cat "${cache_from_dir}/tag")
       cache_from_args+=("--cache-from ${cache_image}:${cache_tag}")
     done
   fi
 
-  cache_from="${cache_from_args[@]}"
+  cache_from_final="${cache_from_args[@]}"
+  
+  # debugging, don't forget to remove!
+  echo "${cache_from_final}" 1>&2
 
   expanded_build_args=()
 
@@ -205,7 +208,7 @@ elif [ -n "$build" ]; then
   if [ -n "$build_args_file" ]; then
     build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
     if [ "${#build_arg_keys[@]}" -gt 0 ]; then
-      for key in "${build_arg_keys[@]}"; do
+      for key in ${build_arg_keys[@]}; do
         value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
         expanded_build_args+=("--build-arg")
         expanded_build_args+=("${key}=${value}")
@@ -234,10 +237,10 @@ elif [ -n "$build" ]; then
     done    
   fi
 
-  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "${dockerfile}" "${cache_from}" "${build}"
-elif [ -n "$load_file" ]; then
-  if [ -n "$load_repository" ]; then
-    docker load -i "$load_file"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "${dockerfile}" "${cache_from_final}" "${build}"
+elif [ -n "${load_file}" ]; then
+  if [ -n "${load_repository}" ]; then
+    docker load -i "${load_file}"
     docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
   else
     echo "must specify load_repository param"
@@ -253,7 +256,7 @@ else
   exit 1
 fi
 
-image_id="$(image_from_tag "$repository" "$tag_name")"
+image_id=$(image_from_tag "${repository}" "${tag_name}")
 
 # afaict there's no clean way to get the digest after a push. docker prints
 # this line at the end at least:
@@ -292,7 +295,7 @@ fi
 
 jq -n "{
   version: {
-    digest: $(echo $digest | jq -R .)
+    digest: $(echo "${digest}" | jq -R .)
   },
   metadata: [
     { name: \"image\", value: $(echo ${image_id} | head -c 12 | jq -R .) }
