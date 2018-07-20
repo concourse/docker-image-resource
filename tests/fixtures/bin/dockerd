@@ -2,5 +2,11 @@
 
 echo "DOCKERD:" "$@"
 
-# pretend to actually be running something, as dockerd would
-exec sleep 9999
+if [ -f /tmp/docker_failing ]; then
+  rm /tmp/docker_failing
+elif [ "$FAIL_ONCE" == "true" ]; then
+  touch /tmp/docker_failing
+  exec sleep 1
+fi
+
+exec sleep 999

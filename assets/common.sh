@@ -1,5 +1,6 @@
 LOG_FILE=${LOG_FILE:-/tmp/docker.log}
 SKIP_PRIVILEGED=${SKIP_PRIVILEGED:-false}
+STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-120}
 
 sanitize_cgroups() {
   mkdir -p /sys/fs/cgroup
@@ -73,18 +74,28 @@ start_docker() {
     server_args="${server_args} --registry-mirror $4"
   fi
 
-  dockerd --data-root /scratch/docker ${server_args} >$LOG_FILE 2>&1 &
-  echo $! > /tmp/docker.pid
+  try_start() {
+    dockerd --data-root /scratch/docker ${server_args} >$LOG_FILE 2>&1 &
+    echo $! > /tmp/docker.pid
 
-  trap stop_docker EXIT
+    trap stop_docker EXIT
+    sleep 1
 
-  sleep 1
-
-  if ! docker info >/dev/null 2>&1; then
     echo waiting for docker to come up...
     until docker info >/dev/null 2>&1; do
       sleep 1
+      if ! kill -0 "$(cat /tmp/docker.pid)" 2>/dev/null; then
+        return 1
+      fi
     done
+  }
+
+  export server_args LOG_FILE
+  declare -fxr stop_docker try_start
+
+  if ! timeout -t ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
+    echo Docker failed to start within ${STARTUP_TIMEOUT} seconds.
+    return 1
   fi
 }
 

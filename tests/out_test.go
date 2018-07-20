@@ -64,6 +64,38 @@ var _ = Describe("Out", func() {
 		return "DOCKERD: " + cmd
 	}
 
+	It("retries starting dockerd if it fails", func() {
+		session := putWithEnv(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "test",
+			},
+			"params": map[string]interface{}{
+				"build": "/docker-image-resource/tests/fixtures/build",
+			},
+		}, map[string]string{
+			"STARTUP_TIMEOUT": "5",
+			"FAIL_ONCE": "true",
+		})
+
+		Expect(session.Err).To(gbytes.Say("(?s:DOCKERD.*DOCKERD.*)"))
+	})
+
+	It("times out retrying dockerd", func() {
+		session := putWithEnv(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "test",
+			},
+			"params": map[string]interface{}{
+				"build": "/docker-image-resource/tests/fixtures/build",
+			},
+		}, map[string]string{
+			"STARTUP_TIMEOUT": "1",
+			"FAIL_ONCE": "true",
+		})
+
+		Expect(session.Err).To(gbytes.Say(".*Docker failed to start.*"))
+	})
+
 	It("starts dockerd with --data-root under /scratch", func() {
 		session := put(map[string]interface{}{
 			"source": map[string]interface{}{
