@@ -78,7 +78,6 @@ start_docker() {
     dockerd --data-root /scratch/docker ${server_args} >$LOG_FILE 2>&1 &
     echo $! > /tmp/docker.pid
 
-    trap stop_docker EXIT
     sleep 1
 
     echo waiting for docker to come up...
@@ -94,9 +93,11 @@ start_docker() {
   declare -fxr stop_docker try_start
 
   if ! timeout -t ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
+    trap stop_docker EXIT
     echo Docker failed to start within ${STARTUP_TIMEOUT} seconds.
     return 1
   fi
+  trap stop_docker EXIT
 }
 
 stop_docker() {
