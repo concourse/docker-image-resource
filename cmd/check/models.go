@@ -5,6 +5,7 @@ import "encoding/json"
 type Source struct {
 	Repository         string          `json:"repository"`
 	Tag                json.Number     `json:"tag"`
+	Digest             string          `json:"digest"`
 	Username           string          `json:"username"`
 	Password           string          `json:"password"`
 	InsecureRegistries []string        `json:"insecure_registries"`
