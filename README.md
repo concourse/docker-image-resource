@@ -150,7 +150,10 @@ version is the image's digest.
 
 * `build_args`: *Optional.* A map of Docker build-time variables. These will be
   available as environment variables during the Docker build, but will not
-  persist in the intermediate or final images.
+  persist in the intermediate or final images. The
+  [build metadata](https://concourse-ci.org/implementing-resources.html#resource-metadata)
+  environment variables provided by Concourse will be expanded in the values
+  (the syntax is `$SOME_ENVVAR` or `${SOME_ENVVAR}`).
 
   Example:
 
@@ -159,6 +162,7 @@ version is the image's digest.
     DO_THING: true
     HOW_MANY_THINGS: 2
     EMAIL: me@yopmail.com
+    CI_BUILD_ID: concourse-$BUILD_ID
   ```
 
 * `build_args_file`: *Optional.* Path to a JSON file containing Docker

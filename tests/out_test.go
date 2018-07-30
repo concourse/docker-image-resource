@@ -172,6 +172,63 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when build arguments contain envvars", func() {
+		It("expands envvars and passes the arguments correctly to the docker daemon", func() {
+			session := putWithEnv(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"build_args": map[string]string{
+						"arg01": "no envvars",
+						"arg02": "this is the:\n$BUILD_ID",
+						"arg03": "this is the:\n$BUILD_NAME",
+						"arg04": "this is the:\n$BUILD_JOB_NAME",
+						"arg05": "this is the:\n$BUILD_PIPELINE_NAME",
+						"arg06": "this is the:\n$BUILD_TEAM_NAME",
+						"arg07": "this is the:\n$ATC_EXTERNAL_URL",
+						"arg08": "this syntax also works:\n${ATC_EXTERNAL_URL}",
+						"arg09": "multiple envvars in one arg also works:\n$BUILD_ID\n$BUILD_NAME",
+						"arg10": "$BUILD_ID at the beginning of the arg",
+						"arg11": "at the end of the arg is the $BUILD_ID",
+					},
+				},
+			}, map[string]string{
+				"BUILD_ID":		"value of the:\nBUILD_ID envvar",
+				"BUILD_NAME":		"value of the:\nBUILD_NAME envvar",
+				"BUILD_JOB_NAME":	"value of the:\nBUILD_JOB_NAME envvar",
+				"BUILD_PIPELINE_NAME":	"value of the:\nBUILD_PIPELINE_NAME envvar",
+				"BUILD_TEAM_NAME":	"value of the:\nBUILD_TEAM_NAME envvar",
+				"ATC_EXTERNAL_URL":	"value of the:\nATC_EXTERNAL_URL envvar",
+			})
+
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg01=no envvars`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg02=this is the:\nvalue of the:\nBUILD_ID envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg03=this is the:\nvalue of the:\nBUILD_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg04=this is the:\nvalue of the:\nBUILD_JOB_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg05=this is the:\nvalue of the:\nBUILD_PIPELINE_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg06=this is the:\nvalue of the:\nBUILD_TEAM_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg07=this is the:\nvalue of the:\nATC_EXTERNAL_URL envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg08=this syntax also works:\nvalue of the:\nATC_EXTERNAL_URL envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg09=multiple envvars in one arg also works:\nvalue of the:\nBUILD_ID envvar\nvalue of the:\nBUILD_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg10=value of the:\nBUILD_ID envvar at the beginning of the arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg11=at the end of the arg is the value of the:\nBUILD_ID envvar`)))
+		})
+	})
+
 	Context("when configured with limited up and download", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{
