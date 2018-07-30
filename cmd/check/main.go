@@ -75,21 +75,30 @@ func main() {
 	ub, err := v2.NewURLBuilderFromString(registryURL, false)
 	fatalIf("failed to construct registry URL builder", err)
 
-	namedRef, err := reference.WithName(repo)
+	baseNamedRef, err := reference.WithName(repo)
 	fatalIf("failed to construct named reference", err)
 
 	var response CheckResponse
+	var namedref reference.Named
 
-	taggedRef, err := reference.WithTag(namedRef, tag)
-	fatalIf("failed to construct tagged reference", err)
+	// If we have a source digest, use it, otherwise, use the tag.
+	if request.Source.Digest != "" {
+		// Override the Version value if any.
+		request.Version.Digest = request.Source.Digest
+		namedref, err = reference.WithDigest(baseNamedRef, digest.Digest(request.Source.Digest))
+		fatalIf("failed to construct digested reference", err)
+	} else {
+		namedref, err = reference.WithTag(baseNamedRef, tag)
+		fatalIf("failed to construct tagged reference", err)
+	}
 
-	latestManifestURL, err := ub.BuildManifestURL(taggedRef)
+	latestManifestURL, err := ub.BuildManifestURL(namedref)
 	fatalIf("failed to build latest manifest URL", err)
 
 	latestDigest, foundLatest := fetchDigest(client, latestManifestURL)
 
 	if request.Version.Digest != "" {
-		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
+		digestRef, err := reference.WithDigest(baseNamedRef, digest.Digest(request.Version.Digest))
 		fatalIf("failed to build cursor manifest URL", err)
 
 		cursorManifestURL, err := ub.BuildManifestURL(digestRef)
@@ -98,12 +107,24 @@ func main() {
 		cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL)
 
 		if foundCursor && cursorDigest != latestDigest {
+			// If the digest was set in the source, make sure it is matches.
+			if request.Source.Digest != "" && request.Source.Digest != cursorDigest {
+				fatalIf("invalid digest response", fmt.Errorf("%q != %q", request.Source.Digest, cursorDigest))
+			}
 			response = append(response, Version{cursorDigest})
 		}
 	}
 
 	if foundLatest {
+		// If the digest was set in the source, make sure it is matches.
+		if request.Source.Digest != "" && request.Source.Digest != latestDigest {
+			fatalIf("invalid digest response", fmt.Errorf("%q != %q", request.Source.Digest, latestDigest))
+		}
 		response = append(response, Version{latestDigest})
+	}
+
+	if request.Source.Digest != "" && len(response) == 0 {
+		fatalIf("digest not found", fmt.Errorf("%q", request.Source.Digest))
 	}
 
 	json.NewEncoder(os.Stdout).Encode(response)
@@ -192,7 +213,7 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 
 	pingClient := &http.Client{
 		Transport: retryRoundTripper(logger, authTransport),
-		Timeout: 1 * time.Minute,
+		Timeout:   1 * time.Minute,
 	}
 
 	challengeManager := auth.NewSimpleChallengeManager()

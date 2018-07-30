@@ -30,6 +30,7 @@ username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
+digest="$(jq -r '.source.digest // ""' < $payload)"
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 client_certs=$(jq -r '.source.client_certs // []' < $payload)
 max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)
@@ -45,7 +46,8 @@ else
   registry=
 fi
 
-digest="$(jq -r '.version.digest' < $payload)"
+# If the source digest is set, it takes precedence.
+[ -z "$digest" ] && digest="$(jq -r '.version.digest' < $payload)"
 
 rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
