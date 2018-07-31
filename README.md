@@ -14,6 +14,8 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `tag`: *Optional.* The tag to track. Defaults to `latest`.
 
+* `Digest`: *Optional.* The image digest. If set `tag` will be ignored.
+
 * `username`: *Optional.* The username to authenticate with when pushing.
 
 * `password`: *Optional.* The password to use when authenticating.

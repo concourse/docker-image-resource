@@ -66,44 +66,48 @@ func main() {
 		tag = "latest"
 	}
 
-	transport, registryURL := makeTransport(logger, request, registryHost, repo)
-
-	client := &http.Client{
-		Transport: retryRoundTripper(logger, transport),
-	}
-
-	ub, err := v2.NewURLBuilderFromString(registryURL, false)
-	fatalIf("failed to construct registry URL builder", err)
-
-	namedRef, err := reference.WithName(repo)
-	fatalIf("failed to construct named reference", err)
-
 	var response CheckResponse
 
-	taggedRef, err := reference.WithTag(namedRef, tag)
-	fatalIf("failed to construct tagged reference", err)
+	if request.Source.Digest != "" {
+		response = append(response, Version{request.Source.Digest})
+	} else {
+		transport, registryURL := makeTransport(logger, request, registryHost, repo)
 
-	latestManifestURL, err := ub.BuildManifestURL(taggedRef)
-	fatalIf("failed to build latest manifest URL", err)
-
-	latestDigest, foundLatest := fetchDigest(client, latestManifestURL)
-
-	if request.Version.Digest != "" {
-		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
-		fatalIf("failed to build cursor manifest URL", err)
-
-		cursorManifestURL, err := ub.BuildManifestURL(digestRef)
-		fatalIf("failed to build manifest URL", err)
-
-		cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL)
-
-		if foundCursor && cursorDigest != latestDigest {
-			response = append(response, Version{cursorDigest})
+		client := &http.Client{
+			Transport: retryRoundTripper(logger, transport),
 		}
-	}
 
-	if foundLatest {
-		response = append(response, Version{latestDigest})
+		ub, err := v2.NewURLBuilderFromString(registryURL, false)
+		fatalIf("failed to construct registry URL builder", err)
+
+		namedRef, err := reference.WithName(repo)
+		fatalIf("failed to construct named reference", err)
+
+		taggedRef, err := reference.WithTag(namedRef, tag)
+		fatalIf("failed to construct tagged reference", err)
+
+		latestManifestURL, err := ub.BuildManifestURL(taggedRef)
+		fatalIf("failed to build latest manifest URL", err)
+
+		latestDigest, foundLatest := fetchDigest(client, latestManifestURL)
+
+		if request.Version.Digest != "" {
+			digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
+			fatalIf("failed to build cursor manifest URL", err)
+
+			cursorManifestURL, err := ub.BuildManifestURL(digestRef)
+			fatalIf("failed to build manifest URL", err)
+
+			cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL)
+
+			if foundCursor && cursorDigest != latestDigest {
+				response = append(response, Version{cursorDigest})
+			}
+		}
+
+		if foundLatest {
+			response = append(response, Version{latestDigest})
+		}
 	}
 
 	json.NewEncoder(os.Stdout).Encode(response)
@@ -192,7 +196,7 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 
 	pingClient := &http.Client{
 		Transport: retryRoundTripper(logger, authTransport),
-		Timeout: 1 * time.Minute,
+		Timeout:   1 * time.Minute,
 	}
 
 	challengeManager := auth.NewSimpleChallengeManager()
