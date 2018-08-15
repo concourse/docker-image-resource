@@ -188,6 +188,24 @@ version is the image's digest.
 
 * `import_file`: *Optional.* A path to a file to `docker import` and then push.
 
+* `labels`: *Optional.* A map of labels that will be added to the image.
+
+  Example:
+
+  ```yaml
+  labels:
+    commit: b4d4823
+    version: 1.0.3
+  ```
+
+* `labels_file`: *Optional.* Path to a JSON file containing the image labels.
+
+  Example file contents:
+
+  ```json
+  { "commit": "b4d4823", "version": "1.0.3" }
+  ```
+
 * `load`: *Optional.* The path of a directory containing an image that was
   fetched using this same resource type with `save: true`.
 
@@ -204,6 +222,12 @@ version is the image's digest.
 * `load_repository`: *Optional.* The repository of the image loaded from `load_file`.
 
 * `load_tag`: *Optional.* Default `latest`. The tag of image loaded from `load_file`
+
+* `pull_image_id` *Optional.* The ID of the image to pull down, and then push
+    to this resource.
+
+* `mirror_repositories`: *Optional.* The same image will be pushed to all
+    the repositories in the list using the same tag.
 
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.
