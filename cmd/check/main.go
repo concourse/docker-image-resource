@@ -227,7 +227,10 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 	err := challengeManager.AddResponse(pingResp)
 	fatalIf("failed to add response to challenge manager", err)
 
-	credentialStore := dumbCredentialStore{request.Source.Username, request.Source.Password}
+	credentialStore := dumbCredentialStore{
+		username: strings.TrimSpace(request.Source.Username),
+		password: strings.TrimSpace(request.Source.Password),
+	}
 	tokenHandler := auth.NewTokenHandler(authTransport, credentialStore, repository, "pull")
 	basicHandler := auth.NewBasicHandler(credentialStore)
 	authorizer := auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler)
