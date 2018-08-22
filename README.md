@@ -149,8 +149,7 @@ version is the image's digest.
   build.
 
 * `build_args`: *Optional.* A map of Docker build-time variables. These will be
-  available as environment variables during the Docker build, but will not
-  persist in the intermediate or final images.
+  available as environment variables during the Docker build. While not stored in the image layers, they are stored in image metadata and so it is recommend to avoid using these to pass secrets into the build context. In multi-stage builds `ARG`s in earlier stages will not be copied to the later stages, or in the metadata of the final stage.
 
   Example:
 
