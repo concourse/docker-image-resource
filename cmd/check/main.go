@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -33,9 +34,11 @@ import (
 
 func main() {
 	logger := lager.NewLogger("http")
+	rECRRepo, err := regexp.Compile(`[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*`)
+	fatalIf("failed to compile ECR regex", err)
 
 	var request CheckRequest
-	err := json.NewDecoder(os.Stdin).Decode(&request)
+	err = json.NewDecoder(os.Stdin).Decode(&request)
 	fatalIf("failed to read request", err)
 
 	os.Setenv("AWS_ACCESS_KEY_ID", request.Source.AWSAccessKeyID)
@@ -45,10 +48,11 @@ func main() {
 	// silence benign ecr-login errors/warnings
 	seelog.UseLogger(seelog.Disabled)
 
-	ecrUser, ecrPass, err := ecr.ECRHelper{
-		ClientFactory: ecrapi.DefaultClientFactory{},
-	}.Get(request.Source.Repository)
-	if err == nil {
+	if rECRRepo.MatchString(request.Source.Repository) == true {
+		ecrUser, ecrPass, err := ecr.ECRHelper{
+			ClientFactory: ecrapi.DefaultClientFactory{},
+		}.Get(request.Source.Repository)
+		fatalIf("failed to get ECR credentials", err)
 		request.Source.Username = ecrUser
 		request.Source.Password = ecrPass
 	}
@@ -192,7 +196,7 @@ func makeTransport(logger lager.Logger, request CheckRequest, registryHost strin
 
 	pingClient := &http.Client{
 		Transport: retryRoundTripper(logger, authTransport),
-		Timeout: 1 * time.Minute,
+		Timeout:   1 * time.Minute,
 	}
 
 	challengeManager := auth.NewSimpleChallengeManager()
