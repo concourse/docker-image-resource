@@ -283,6 +283,51 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When using GCR", func() {
+		It("calls docker pull with the GCR registry", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/gcr",
+					"dockerfile": "/docker-image-resource/tests/fixtures/gcr/Dockerfile",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker("pull gcr.io:443/testing")))
+		})
+
+		It("calls docker pull for GCR image in a multi build docker file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/gcr",
+					"dockerfile": "/docker-image-resource/tests/fixtures/gcr/Dockerfile.multi",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker("pull gcr.io:443/testing")))
+		})
+
+		It("calls docker pull for all GCR images in a multi build docker file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/gcr",
+					"dockerfile": "/docker-image-resource/tests/fixtures/gcr/Dockerfile.multi-gcr",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker("pull gcr.io:443/testing")))
+			Expect(session.Err).To(gbytes.Say(docker("pull gcr.io:443/testing2")))
+		})
+	})
+
 	Context("When all proxy settings are provided with build args", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := putWithEnv(map[string]interface{}{

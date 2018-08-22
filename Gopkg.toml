@@ -1,0 +1,9 @@
+required = ["github.com/GoogleCloudPlatform/docker-credential-gcr", "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cmd"]
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  name = "github.com/GoogleCloudPlatform/docker-credential-gcr"
+  version = "1.4.0"

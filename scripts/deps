@@ -1,6 +1,0 @@
-#!/bin/bash
-
-godep save \
-  ./... \
-  github.com/onsi/ginkgo/ginkgo \
-  github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cmd

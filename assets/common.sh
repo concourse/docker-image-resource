@@ -118,6 +118,13 @@ log_in() {
   else
     mkdir -p ~/.docker
     echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
+
+    # If the image is in gcr.io, configure that credential helper
+    if grep -q '^gcr.io[^ ]*' <<< ${registry}; then
+      # This will overwrite the default ECR provider
+      rm ~/.docker/config.json
+      docker-credential-gcr configure-docker
+    fi
   fi
 }
 

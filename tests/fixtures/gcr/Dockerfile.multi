@@ -1,0 +1,6 @@
+FROM ubuntu as u
+
+FROM gcr.io:443/testing as test
+
+FROM ubuntu
+
