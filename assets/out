@@ -66,6 +66,7 @@ build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 labels=$(jq -r '.params.labels // {}' < $payload)
 labels_file=$(jq -r '.params.labels_file // ""' < $payload)
 mirror_repositories=$(jq -r '.params.mirror_repositories // empty' < $payload)
+static_tags=$(jq -r '.params.static_tags // ""' < $payload)
 
 tag_name=""
 if [ -n "$tag_params" ]; then
@@ -85,6 +86,10 @@ if [ -n "$additional_tags" ]; then
     exit 1
   fi
   additional_tag_names="$(cat $additional_tags)"
+fi
+
+if [ -n "$static_tags" ]; then
+  additional_tag_names="$(echo "$static_tags" | jq -r '.[]' | tr '\n' ' ') $additional_tag_names"
 fi
 
 if [ -z "$repository" ]; then
