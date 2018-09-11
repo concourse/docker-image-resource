@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/user"
 	"runtime"
 	"syscall"
 
@@ -23,9 +22,8 @@ type imageMetadata struct {
 
 var _ = Describe("print-metadata", func() {
 	var (
-		cmd             *exec.Cmd
-		userFile        *os.File
-		currentUserName string
+		cmd      *exec.Cmd
+		userFile *os.File
 
 		metadata imageMetadata
 	)
@@ -60,25 +58,21 @@ var _ = Describe("print-metadata", func() {
 
 		Context("when password file contains current user", func() {
 			BeforeEach(func() {
-				currentUser, err := user.Current()
-				Expect(err).NotTo(HaveOccurred())
-
-				currentUserName = currentUser.Username
 				currentUsedID := syscall.Getuid()
 
-				_, err = userFile.WriteString(fmt.Sprintf(
+				_, err := userFile.WriteString(fmt.Sprintf(
 					"%s:*:%d:%d:System Administrator:/var/%s:/bin/sh\n",
-					currentUserName,
+					"some-user",
 					currentUsedID,
 					currentUsedID,
-					currentUserName,
+					"some-user",
 				))
 				Expect(err).NotTo(HaveOccurred())
 				userFile.Sync()
 			})
 
 			It("sets current user in metadata", func() {
-				Expect(metadata.User).To(Equal(currentUserName))
+				Expect(metadata.User).To(Equal("some-user"))
 			})
 		})
 	})
