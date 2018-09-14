@@ -7,6 +7,7 @@ COPY assets/ /assets
 RUN go build -o /assets/check github.com/concourse/docker-image-resource/cmd/check
 RUN go build -o /assets/print-metadata github.com/concourse/docker-image-resource/cmd/print-metadata
 RUN go build -o /assets/ecr-login github.com/concourse/docker-image-resource/vendor/github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cmd
+RUN apk add --update gcc g++
 RUN set -e; \
     for pkg in $(go list ./...); do \
       go test -o "/tests/$(basename $pkg).test" -c $pkg; \

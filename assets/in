@@ -29,7 +29,11 @@ registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
-tag="$(jq -r '.source.tag // "latest"' < $payload)"
+if [[ ! -z $(jq -r '.version.tag' < ${payload}) ]]; then
+  tag="$(jq -r '.version.tag' < ${payload})"
+else
+  tag="$(jq -r '.source.tag // "latest"' < ${payload})"
+fi
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 client_certs=$(jq -r '.source.client_certs // []' < $payload)
 max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)

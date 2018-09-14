@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,7 +22,6 @@ import (
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/concourse/retryhttp"
 	"github.com/docker/distribution"
-	"github.com/docker/distribution/digest"
 	_ "github.com/docker/distribution/manifest/schema1"
 	_ "github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
@@ -65,11 +65,6 @@ func main() {
 		registryHost = registryMirrorUrl.Host
 	}
 
-	tag := request.Source.Tag.String()
-	if tag == "" {
-		tag = "latest"
-	}
-
 	transport, registryURL := makeTransport(logger, request, registryHost, repo)
 
 	client := &http.Client{
@@ -84,6 +79,9 @@ func main() {
 
 	var response CheckResponse
 
+  //tags defined here
+  tag := CheckTags(client, request)[0]
+
 	taggedRef, err := reference.WithTag(namedRef, tag)
 	fatalIf("failed to construct tagged reference", err)
 
@@ -92,25 +90,101 @@ func main() {
 
 	latestDigest, foundLatest := fetchDigest(client, latestManifestURL)
 
-	if request.Version.Digest != "" {
-		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
-		fatalIf("failed to build cursor manifest URL", err)
+  if foundLatest {
+    response = append(response, Version{latestDigest, tag})
+  }
+  json.NewEncoder(os.Stdout).Encode(response)
+}
 
-		cursorManifestURL, err := ub.BuildManifestURL(digestRef)
-		fatalIf("failed to build manifest URL", err)
+func CheckTags(client *http.Client, request CheckRequest) ([]string) {
+	tag := request.Source.Tag.String()//prefilled tag
+	if tag == "" {
+		tag = "latest"
+	}
+	parts := strings.SplitN(request.Source.Repository, "/", 2)
+	host, repository := parts[0], parts[1]
+	resp, err := client.Get(fmt.Sprintf("https://%s/v2/%s/tags/list", host, repository))
+	if err != nil {
+		fatalIf("Problem happened with host error : ", err)
+		}
+	defer resp.Body.Close()
+	type target_struct struct{
+		Name      string
+		Tags      []string
+		}
+	var target target_struct
+	err = json.NewDecoder(resp.Body).Decode(&target)
+	if err != nil {
+		fatalIf("Couldn't decode with error :", err)
+	}
+	tags := target.Tags
+	versionGiven := request.Source.Tag.String() != ""
+	var versions []string
+	var versions_final []string
+	if request.Source.Regex == "" {
+		versions_final = append(versions_final, tag)
+	} else {
+		VersionRegex = regexp.MustCompile(request.Source.Regex)
+		for _, raw := range tags {
+			err := ParsedVersion(raw)
+			if err != nil {
+				continue
+				// No problem. It means the tag was filtered by the regexp
+			}
+			if !versionGiven {
+				versions = append(versions, raw)
+				}
+			}
+		latest_tag := findRecentTag(client, host, repository, versions)
+		versions_final = append(versions_final, latest_tag)
+	}
+	if versionGiven || len(versions_final) == 0 {
+		return versions_final
+	} else {
+		return versions_final[:1]
+	}
+}
 
-		cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL)
+func findRecentTag(client *http.Client, host string, repository string, versions []string) (string){
+	var list_date_of_tag []string
+	date_of_recent_tag := "1970-01-02T15:04:05"
+	latest_tag := ""
+	for _, tag := range versions {
+		resp, err := client.Get(fmt.Sprintf("https://%s/v2/%s/manifests/%s", host, repository, tag))
+		if err != nil {
+			fatalIf("Failed with error :", err)
+		}
+		defer resp.Body.Close()
+		var jsonManResp ManifestResponse
+		decoder := json.NewDecoder(resp.Body)
+		decoder.Decode(&jsonManResp)
 
-		if foundCursor && cursorDigest != latestDigest {
-			response = append(response, Version{cursorDigest})
+		for i := range jsonManResp.History {
+			var comp V1Compatibility
+			if err := json.Unmarshal([]byte(jsonManResp.History[i].V1CompatibilityRaw), &comp); err != nil {
+				fatalIf("Failed with error :", err)
+			}
+			jsonManResp.History[i].V1Compatibility = comp
+			list_date_of_tag = append(list_date_of_tag, jsonManResp.History[i].V1Compatibility.Created)
+			sort.Sort(sort.Reverse(sort.StringSlice(list_date_of_tag)))
+			date_of_tag := list_date_of_tag[0][0:19]
+			trial, err := time.Parse("2006-01-02T15:04:05", date_of_tag)
+			if err != nil {
+				fatalIf("Failed with error :", err)
+			}
+			recent, err := time.Parse("2006-01-02T15:04:05", date_of_recent_tag)
+			if err != nil {
+				fatalIf("Failed with error :", err)
+			}
+			delta := trial.Sub(recent)
+			if delta.Minutes() > 0 {
+				latest_tag, date_of_recent_tag = tag, date_of_tag
+			}else {
+				continue
+				}
 		}
 	}
-
-	if foundLatest {
-		response = append(response, Version{latestDigest})
-	}
-
-	json.NewEncoder(os.Stdout).Encode(response)
+	return latest_tag
 }
 
 func fetchDigest(client *http.Client, manifestURL string) (string, bool) {

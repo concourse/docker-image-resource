@@ -14,6 +14,20 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `tag`: *Optional.* The tag to track. Defaults to `latest`.
 
+* `regex`: *Optional.* Filter image tags using this regex.
+
+  /!\ If both tag and regexp are here, defaults to `regexp`
+  If both are empty, default to `latest`
+
+  Example :
+  ``` yaml
+  - name: etcd.repository
+    type: docker-image
+    source:
+      repository: containers.io/coreos/etcd
+      regex: "^prod-\\S*$"
+  ```
+
 * `username`: *Optional.* The username to authenticate with when pushing.
 
 * `password`: *Optional.* The password to use when authenticating.
