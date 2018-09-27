@@ -33,5 +33,12 @@ RUN set -e; \
       $test -ginkgo.v; \
     done
 
+# stage: shelltests
+FROM resource AS shelltests
+ADD . /docker-image-resource
+WORKDIR /docker-image-resource/tests/shell-tests
+ADD . https://raw.githubusercontent.com/kward/shunit2/v2.1.7/shunit2
+RUN ./test.sh
+
 # final output stage
 FROM resource
