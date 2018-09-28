@@ -67,7 +67,7 @@ additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
 raw_build_args=$(jq -r '.params.build_args // {}' < $payload)
 build_args=""
-if [[ $(has_from_file "$raw_build_args") ]]
+if [[ $(has_from_file "$raw_build_args") = true ]]
 then
   build_args=$(elevate_from_file_kvps "$raw_build_args")
 else

@@ -1,8 +1,13 @@
 #! usr/bin/env bash
 
 has_from_file() {
-  result=$(echo "$1" | jq 'has("from_file")')
-  echo "$result"
+  if [[ -z "$1" ]]
+  then
+    echo false
+  else
+    result=$(echo "$1" | jq 'has("from_file")')
+    echo "$result"
+  fi
 }
 
 elevate_from_file_kvps() {

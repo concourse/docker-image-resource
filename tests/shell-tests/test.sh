@@ -1,5 +1,12 @@
 #! /usr/bin/env bash
 
+testHasFromFileWithNoBuildArgsReturnsFalse() {
+  full_input='{"params":{"foo":"bar"}}'
+  build_args=$(buildArgExtractionCopiedFromProd "$full_input")
+  actual=$(has_from_file "$build_args")
+  assertFalse "$actual"
+}
+
 testHasFromFileWithNoFromFileReturnsFalse() {
   full_input='{"params":{"build_args":{"foo":"bar"}}}'
   build_args=$(buildArgExtractionCopiedFromProd "$full_input")
@@ -12,6 +19,21 @@ testHasFromFileWithFromFileReturnsTrue() {
   build_args=$(buildArgExtractionCopiedFromProd "$full_input")
   actual=$(has_from_file "$build_args")
   assertTrue "$actual"
+}
+
+testHasFromFileWithNullReturnsFalse() {
+  actual=$(has_from_file "$empty_var")
+  assertFalse "$actual"
+}
+
+testHasFromFileWithEmptyStringReturnsFalse() {
+  actual=$(has_from_file "")
+  assertFalse "$actual"
+}
+
+testHasFromFileWithEmptyObjectReturnsFalse() {
+  actual=$(has_from_file "{}")
+  assertFalse "$actual"
 }
 
 testOnlyFileContentsReadIntoKVP() {
