@@ -313,6 +313,22 @@ resources:
   ...
 ```
 
+#### Running the shell tests locally
+
+Download [shunit](https://github.com/kward/shunit2) to this repo's `./tests/shell-tests/` directory:
+
+```sh
+wget --directory-prefix ./tests/shell-tests/ https://raw.githubusercontent.com/kward/shunit2/v2.1.7/shunit2
+```
+
+Invoke the tests from this repo's `./tests/shell-tests/` directory:
+
+```sh
+cd tests/shell-tests/ && ./test.sh
+```
+
+Note that these tests are also executed during `docker build...`.
+
 ### Contributing
 
 Please make all pull requests to the `master` branch and ensure tests pass
