@@ -39,7 +39,9 @@ elevate_from_file_kvps() {
 
   rejsoned+='}'
 
-  result="$rejsoned"
+  no_more_from_file=$(echo "$1" | jq 'del(.from_file)')
+
+  result=$(echo "$no_more_from_file" "$rejsoned" | jq -c -s add)
 
   echo "$result"
 }

@@ -30,6 +30,18 @@ testOnlyFileContentsReadIntoKVP() {
   assertEquals "$expected" "$actual"
 }
 
+testFileContentsMergeWithOtherBuildArgs() {
+  tempfile=$(mktemp)
+  echo "qux" >> "$tempfile"
+  full_input='{"params":{"build_args":{"spam":"eggs","from_file":{"foo":"'
+  full_input+="$tempfile"
+  full_input+='"}}}}'
+  build_args=$(buildArgExtractionCopiedFromProd "$full_input")
+  expected='{"spam":"eggs","foo":"qux"}'
+  actual=$(elevate_from_file_kvps "$build_args")
+  assertEquals "$expected" "$actual"
+}
+
 oneTimeSetUp() {
   . ../../assets/resource-based-build-args.sh
 }
