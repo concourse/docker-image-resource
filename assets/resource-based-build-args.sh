@@ -19,10 +19,10 @@ elevate_from_file_kvps() {
   done
 
   rejsoned='{'
-
+  has_skipped_first_line=false
   for key in "${!kvpmap[@]}"
   do
-    if [[ -n "$has_skipped_first_line" ]]
+    if [[ "$has_skipped_first_line" = true ]]
     then
       rejsoned+=','
     else
