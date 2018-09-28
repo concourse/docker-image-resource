@@ -171,6 +171,21 @@ version is the image's digest.
     CI_BUILD_ID: concourse-$BUILD_ID
   ```
 
+  There may be times when the contents of an arbitrary file need to be used
+  as a build arg and `build_args_file` is not sufficient. In this case, there
+  is a special form of `build_args` which uses the token `from_file` to support
+  the passing of files whose contents should be read into an arbitrary build_arg:
+
+  Example:
+
+  ```yaml
+  build_args:
+    NORMAL_BUILD_ARG: hello
+    from_file:
+      FROM_FOO_FILE: some/path/to/foo.txt
+      BAR_FILE_CONTENTS: another/path/to/bar.csv
+  ```
+
 * `build_args_file`: *Optional.* Path to a JSON file containing Docker
   build-time variables.
 
@@ -324,7 +339,7 @@ wget --directory-prefix ./tests/shell-tests/ https://raw.githubusercontent.com/k
 Invoke the tests from this repo's `./tests/shell-tests/` directory:
 
 ```sh
-cd tests/shell-tests/ && ./test.sh
+cd ./tests/shell-tests/ && ./test.sh
 ```
 
 Note that these tests are also executed during `docker build...`.
