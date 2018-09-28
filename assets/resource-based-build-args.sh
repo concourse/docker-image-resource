@@ -35,7 +35,6 @@ elevate_from_file_kvps() {
     rejsoned+='"'
     rejsoned+="${kvpmap[$key]}"
     rejsoned+='"'
-      echo "$key = ${kvpmap[$key]}" >> ./hopefully
   done
 
   rejsoned+='}'

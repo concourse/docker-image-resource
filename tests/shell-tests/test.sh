@@ -14,14 +14,18 @@ testHasFromFileWithFromFileReturnsTrue() {
   assertTrue "$actual"
 }
 
-testFromSingleFileContentsReadIntoKVP() {
-  tempfile=$(mktemp)
-  echo "qux" >> "$tempfile"
+testOnlyFileContentsReadIntoKVP() {
+  tempfile1=$(mktemp)
+  tempfile2=$(mktemp)
+  echo "qux" >> "$tempfile1"
+  echo "eggs" >> "$tempfile2"
   full_input='{"params":{"build_args":{"from_file":{"foo":"'
-  full_input+="$tempfile"
+  full_input+="$tempfile1"
+  full_input+='","spam":"'
+  full_input+="$tempfile2"
   full_input+='"}}}}'
   build_args=$(buildArgExtractionCopiedFromProd "$full_input")
-  expected='{"foo":"qux"}'
+  expected='{"spam":"eggs","foo":"qux"}'
   actual=$(elevate_from_file_kvps "$build_args")
   assertEquals "$expected" "$actual"
 }
