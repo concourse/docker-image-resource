@@ -71,7 +71,7 @@ if [[ $(has_from_file "$raw_build_args") ]]
 then
   build_args=$(elevate_from_file_kvps "$raw_build_args")
 else
-  build_args=raw_build_args
+  build_args=$raw_build_args
 fi
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 
