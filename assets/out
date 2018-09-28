@@ -8,6 +8,8 @@ exec 1>&2 # redirect all output to stderr for logging
 
 source $(dirname $0)/common.sh
 
+source $(dirname $0)/resource-based-build-args.sh
+
 source=$1
 
 if [ -z "$source" ]; then
@@ -63,7 +65,14 @@ fi
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
-build_args=$(jq -r '.params.build_args // {}' < $payload)
+raw_build_args=$(jq -r '.params.build_args // {}' < $payload)
+build_args=""
+if [[ $(has_from_file "$raw_build_args") ]]
+then
+  build_args=$(elevate_from_file_kvps "$raw_build_args")
+else
+  build_args=raw_build_args
+fi
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 
 
