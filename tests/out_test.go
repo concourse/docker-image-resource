@@ -64,6 +64,38 @@ var _ = Describe("Out", func() {
 		return "DOCKERD: " + cmd
 	}
 
+	It("retries starting dockerd if it fails", func() {
+		session := putWithEnv(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "test",
+			},
+			"params": map[string]interface{}{
+				"build": "/docker-image-resource/tests/fixtures/build",
+			},
+		}, map[string]string{
+			"STARTUP_TIMEOUT": "5",
+			"FAIL_ONCE": "true",
+		})
+
+		Expect(session.Err).To(gbytes.Say("(?s:DOCKERD.*DOCKERD.*)"))
+	})
+
+	It("times out retrying dockerd", func() {
+		session := putWithEnv(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "test",
+			},
+			"params": map[string]interface{}{
+				"build": "/docker-image-resource/tests/fixtures/build",
+			},
+		}, map[string]string{
+			"STARTUP_TIMEOUT": "1",
+			"FAIL_ONCE": "true",
+		})
+
+		Expect(session.Err).To(gbytes.Say(".*Docker failed to start.*"))
+	})
+
 	It("starts dockerd with --data-root under /scratch", func() {
 		session := put(map[string]interface{}{
 			"source": map[string]interface{}{
@@ -124,6 +156,101 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(dockerarg(`label2=bar\nspam`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`label3=eggs eggs eggs`)))
+		})
+	})
+
+	Context("when build arguments file is provided", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"build_args_file": "/docker-image-resource/tests/fixtures/build_args",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg1=arg with space`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg2=arg with\nnewline`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg3=normal`)))
+		})
+	})
+
+	// this is close, but this test is broken. Not sure look for output
+	Context("when build arguments file is malformed", func() {
+		It("provides a useful error message", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"build_args_file": "/docker-image-resource/tests/fixtures/build_args_malformed",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(`Failed to parse build_args_file \(/docker-image-resource/tests/fixtures/build_args_malformed\)`))
+		})
+	})
+
+	Context("when build arguments contain envvars", func() {
+		It("expands envvars and passes the arguments correctly to the docker daemon", func() {
+			session := putWithEnv(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"build_args": map[string]string{
+						"arg01": "no envvars",
+						"arg02": "this is the:\n$BUILD_ID",
+						"arg03": "this is the:\n$BUILD_NAME",
+						"arg04": "this is the:\n$BUILD_JOB_NAME",
+						"arg05": "this is the:\n$BUILD_PIPELINE_NAME",
+						"arg06": "this is the:\n$BUILD_TEAM_NAME",
+						"arg07": "this is the:\n$ATC_EXTERNAL_URL",
+						"arg08": "this syntax also works:\n${ATC_EXTERNAL_URL}",
+						"arg09": "multiple envvars in one arg also works:\n$BUILD_ID\n$BUILD_NAME",
+						"arg10": "$BUILD_ID at the beginning of the arg",
+						"arg11": "at the end of the arg is the $BUILD_ID",
+					},
+				},
+			}, map[string]string{
+				"BUILD_ID":		"value of the:\nBUILD_ID envvar",
+				"BUILD_NAME":		"value of the:\nBUILD_NAME envvar",
+				"BUILD_JOB_NAME":	"value of the:\nBUILD_JOB_NAME envvar",
+				"BUILD_PIPELINE_NAME":	"value of the:\nBUILD_PIPELINE_NAME envvar",
+				"BUILD_TEAM_NAME":	"value of the:\nBUILD_TEAM_NAME envvar",
+				"ATC_EXTERNAL_URL":	"value of the:\nATC_EXTERNAL_URL envvar",
+			})
+
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg01=no envvars`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg02=this is the:\nvalue of the:\nBUILD_ID envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg03=this is the:\nvalue of the:\nBUILD_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg04=this is the:\nvalue of the:\nBUILD_JOB_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg05=this is the:\nvalue of the:\nBUILD_PIPELINE_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg06=this is the:\nvalue of the:\nBUILD_TEAM_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg07=this is the:\nvalue of the:\nATC_EXTERNAL_URL envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg08=this syntax also works:\nvalue of the:\nATC_EXTERNAL_URL envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg09=multiple envvars in one arg also works:\nvalue of the:\nBUILD_ID envvar\nvalue of the:\nBUILD_NAME envvar`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg10=value of the:\nBUILD_ID envvar at the beginning of the arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`arg11=at the end of the arg is the value of the:\nBUILD_ID envvar`)))
 		})
 	})
 
@@ -270,6 +397,55 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(dockerarg(`arg2=arg with\nnewline`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`arg3=normal`)))
+		})
+	})
+
+	Context("When passing tag ", func() {
+		It("should pull tag from file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"tag":   "/docker-image-resource/tests/fixtures/tag",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
+		})
+	})
+
+	Context("When passing tag_file", func() {
+		It("should pull tag from file", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":    "/docker-image-resource/tests/fixtures/build",
+					"tag_file": "/docker-image-resource/tests/fixtures/tag",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
+		})
+	})
+
+	Context("When passing tag and tag_file", func() {
+		It("should pull tag from file (prefer tag_file param)", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":    "/docker-image-resource/tests/fixtures/build",
+					"tag":      "/docker-image-resource/tests/fixtures/doesnotexist",
+					"tag_file": "/docker-image-resource/tests/fixtures/tag",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
 		})
 	})
 

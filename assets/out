@@ -25,7 +25,6 @@ cat > $payload <&0
 cd $source
 
 insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $payload)
-
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
 username=$(jq -r '.source.username // ""' < $payload)
@@ -56,7 +55,11 @@ start_docker \
 log_in "$username" "$password" "$registry"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
-tag_params=$(jq -r '.params.tag // ""' < $payload)
+tag_params=$(jq -r '.params.tag_file // ""' < $payload)
+# for backwards compatibility, check `tag` if `tag_file` is empty
+if [ -z "$tag_params" ]; then
+  tag_params=$(jq -r '.params.tag // ""' < $payload)
+fi
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
@@ -172,19 +175,28 @@ elif [ -n "$build" ]; then
   if [ "${#build_arg_keys[@]}" -gt 0 ]; then
     for key in "${build_arg_keys[@]}"; do
       value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
+      for var in BUILD_ID BUILD_NAME BUILD_JOB_NAME BUILD_PIPELINE_NAME BUILD_TEAM_NAME ATC_EXTERNAL_URL; do
+        value="${value//\$$var/${!var:-}}"
+        value="${value//\$\{$var\}/${!var:-}}"
+      done
       expanded_build_args+=("--build-arg")
       expanded_build_args+=("${key}=${value}")
     done
   fi
 
   if [ -n "$build_args_file" ]; then
-    build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
-    if [ "${#build_arg_keys[@]}" -gt 0 ]; then
-      for key in "${build_arg_keys[@]}"; do
-        value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
-        expanded_build_args+=("--build-arg")
-        expanded_build_args+=("${key}=${value}")
-      done
+    if jq . "$build_args_file" >/dev/null 2>&1; then
+      build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+      if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+        for key in "${build_arg_keys[@]}"; do
+          value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
+          expanded_build_args+=("--build-arg")
+          expanded_build_args+=("${key}=${value}")
+        done
+      fi
+    else
+      echo "Failed to parse build_args_file ($build_args_file)"
+      exit 1
     fi
   fi
 
