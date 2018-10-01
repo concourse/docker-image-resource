@@ -36,9 +36,8 @@ RUN set -e; \
 # stage: shelltests
 FROM resource AS shelltests
 ADD . /docker-image-resource
-WORKDIR /docker-image-resource/tests/shell-tests
-ADD . https://raw.githubusercontent.com/kward/shunit2/v2.1.7/shunit2
-RUN ./test.sh
+RUN wget --directory-prefix  /docker-image-resource/tests/shell-tests/ https://raw.githubusercontent.com/kward/shunit2/v2.1.7/shunit2
+RUN cd /docker-image-resource/tests/shell-tests/ && ./test.sh
 
 # final output stage
 FROM resource
