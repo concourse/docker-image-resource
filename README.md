@@ -142,7 +142,7 @@ version is the image's digest.
 
 #### Parameters
 
-* `additional_tags`: *Optional.* Path to a space separated list of tags. The
+* `additional_tags`: *Optional.* Path to a space file that contains a separated list of tags. The
   Docker build will additionally be pushed with those tags.
 
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
