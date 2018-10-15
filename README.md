@@ -145,6 +145,9 @@ version is the image's digest.
 * `additional_tags`: *Optional.* Path to a space separated list of tags. The
   Docker build will additionally be pushed with those tags.
 
+* `static_tags`: *Optional.* List of tags. The Docker build will additionally
+  be pushed with those tags.
+
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
 
@@ -239,6 +242,12 @@ version is the image's digest.
 * `load_repository`: *Optional.* The repository of the image loaded from `load_file`.
 
 * `load_tag`: *Optional.* Default `latest`. The tag of image loaded from `load_file`
+
+* `pull_image_id` *Optional.* The ID of the image to pull down, and then push
+    to this resource.
+
+* `mirror_repositories`: *Optional.* The same image will be pushed to all
+    the repositories in the list using the same tag.
 
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.

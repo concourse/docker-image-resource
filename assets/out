@@ -25,6 +25,7 @@ cat > $payload <&0
 cd $source
 
 insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $payload)
+
 registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
 username=$(jq -r '.source.username // ""' < $payload)
@@ -67,7 +68,8 @@ build_args=$(jq -r '.params.build_args // {}' < $payload)
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 labels=$(jq -r '.params.labels // {}' < $payload)
 labels_file=$(jq -r '.params.labels_file // ""' < $payload)
-
+mirror_repositories=$(jq -r '.params.mirror_repositories // empty' < $payload)
+static_tags=$(jq -r '.params.static_tags // ""' < $payload)
 
 tag_name=""
 if [ -n "$tag_params" ]; then
@@ -87,6 +89,10 @@ if [ -n "$additional_tags" ]; then
     exit 1
   fi
   additional_tag_names="$(cat $additional_tags)"
+fi
+
+if [ -n "$static_tags" ]; then
+  additional_tag_names="$(echo "$static_tags" | jq -r '. | join(" ")') $additional_tag_names"
 fi
 
 if [ -z "$repository" ]; then
@@ -297,6 +303,28 @@ if [ -n "$additional_tag_names" ]    ; then
     docker push "${repository}:${additional_tag}"
     echo "${repository}:${tag_name} tagged as ${additional_tag}"
   done
+fi
+
+if [ -n "$mirror_repositories" ]; then
+    echo "pushing to mirror repositories"
+
+    for mirror_repository in $(echo "$mirror_repositories" | jq --compact-output '.[]')
+    do
+        repository_name=$(echo ${mirror_repository} | jq -r '.repository // ""')
+        mirror_username=$(echo ${mirror_repository} | jq -r '.username // ""')
+        mirror_password=$(echo ${mirror_repository} | jq -r '.password // ""')
+
+        if private_registry "${mirror_repository}" ; then
+          mirror_registry="$(extract_registry "${mirror_repository}")"
+        else
+          mirror_registry=
+        fi
+        log_in "" "" "$mirror_registry"
+
+        docker tag "${repository}:${tag_name}" "${repository_name}:${tag_name}"
+        echo "${repository}:${tag_name} tagged as ${repository_name}:${tag_name}"
+        docker push "${repository_name}:${tag_name}"
+    done
 fi
 
 jq -n "{

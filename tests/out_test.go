@@ -471,6 +471,36 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When passing mirror repositories ", func() {
+		It("should push the image to all the listed repositories", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"tag":   "/docker-image-resource/tests/fixtures/tag",
+					"mirror_repositories": []interface{}{
+						map[string]string{
+							"repository": "mirror1",
+						},
+						map[string]string{
+							"repository": "mirror2",
+							"username":   "myself",
+							"password":   "secret123@",
+						},
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(docker(`push test:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:tagme mirror1:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push mirror1:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:tagme mirror2:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push mirror2:tagme`)))
+		})
+	})
+
 	Context("When only http_proxy setting is provided, with no build arguments", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := putWithEnv(map[string]interface{}{
