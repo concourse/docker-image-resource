@@ -127,6 +127,13 @@ The following files will be placed in the destination:
 * `skip_download`: *Optional.* Skip `docker pull` of image. Artifacts based
   on the image will not be present.
 
+As with all concourse resources, to modify params of the implicit `get` step after each `put` step you may also set these parameters under a `put` `get_params`. For example:
+
+```yaml
+put: foo
+params: {...}
+get_params: {skip_download: true}
+```
 
 ### `out`: Push an image, or build and push a `Dockerfile`.
 
@@ -145,8 +152,17 @@ version is the image's digest.
   build.
 
 * `build_args`: *Optional.* A map of Docker build-time variables. These will be
-  available as environment variables during the Docker build, but will not
-  persist in the intermediate or final images.
+  available as environment variables during the Docker build.
+  
+  While not stored in the image layers, they are stored in image metadata and
+  so it is recommend to avoid using these to pass secrets into the build
+  context. In multi-stage builds `ARG`s in earlier stages will not be copied
+  to the later stages, or in the metadata of the final stage.
+  
+  The
+  [build metadata](https://concourse-ci.org/implementing-resources.html#resource-metadata)
+  environment variables provided by Concourse will be expanded in the values
+  (the syntax is `$SOME_ENVVAR` or `${SOME_ENVVAR}`).
 
   Example:
 
@@ -155,6 +171,7 @@ version is the image's digest.
     DO_THING: true
     HOW_MANY_THINGS: 2
     EMAIL: me@yopmail.com
+    CI_BUILD_ID: concourse-$BUILD_ID
   ```
 
 * `build_args_file`: *Optional.* Path to a JSON file containing Docker
@@ -238,7 +255,8 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  **DEPRECATED. Use `get` and `load` instead.** Default
   `latest`. The tag of the repository to pull down via `pull_repository`.
 
-* `tag`: *Optional.* The value should be a path to a file containing the name
+* `tag`: **DEPRECATED - Use `tag_file` instead**
+* `tag_file`: *Optional.* The value should be a path to a file containing the name
   of the tag.
 
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will

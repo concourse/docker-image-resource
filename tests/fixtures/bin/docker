@@ -4,3 +4,13 @@ echo "DOCKER:" "$@"
 for var in "$@"; do
     echo "DOCKER ARG:" "$var"
 done
+
+pidfile=/tmp/docker.pid
+if [ -f "$pidfile" ] && ! kill -0 $(<"$pidfile") &>/dev/null; then
+    echo "Docker daemon is not runnning!" >&2
+    exit 1
+fi
+
+if [ "$1" == "info" ] && [ -f /tmp/docker_failing ]; then
+    exit 1
+fi
