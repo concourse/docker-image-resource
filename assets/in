@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # vim: set ft=sh
 
 set -e
@@ -51,19 +51,19 @@ rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
 save="$(jq -r '.params.save // false' < $payload)"
 
-certs_to_file "$ca_certs"
-set_client_certs "$client_certs"
-start_docker \
-	"${max_concurrent_downloads}" \
-	"${max_concurrent_uploads}" \
-	"$insecure_registries" \
-	"$registry_mirror"
-
 mkdir -p $destination
 
 image_name="${repository}@${digest}"
 
 if [ "$skip_download" = "false" ]; then
+  certs_to_file "$ca_certs"
+  set_client_certs "$client_certs"
+  start_docker \
+    "${max_concurrent_downloads}" \
+    "${max_concurrent_uploads}" \
+    "$insecure_registries" \
+    "$registry_mirror"
+
   log_in "$username" "$password" "$registry"
 
   docker_pull "$image_name"
