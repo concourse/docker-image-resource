@@ -94,6 +94,8 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
  * `max_concurrent_uploads`: *Optional.* Maximum concurrent uploads.
 
    Limits the number of concurrent upload threads.
+  
+  * `experimental`: *Optional.* Use Dockerd experimental option
 
 ## Behavior
 
@@ -259,6 +261,8 @@ version is the image's digest.
 
 * `target_name`: *Optional.*  Specify the name of the target build stage. 
   Only supported for multi-stage Docker builds
+* `buildkit`: *Optional.*  Default`false`. If true use　Buildkit. 
+  In order to use this option you need to enable experimental.
 
 
 ## Example

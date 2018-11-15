@@ -303,6 +303,22 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when configured with a experimental", func() {
+		It("passes it to dockerd", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository":   "test",
+					"experimental": "true",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerd(`.*--experimental.*`)))
+		})
+	})
+
 	Context("when configured with a target build stage", func() {
 		It("passes it to dockerd", func() {
 			session := put(map[string]interface{}{

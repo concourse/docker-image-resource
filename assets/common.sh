@@ -73,6 +73,9 @@ start_docker() {
   if [ -n "$4" ]; then
     server_args="${server_args} --registry-mirror $4"
   fi
+  if [ "$5" = "true" ]; then
+    server_args="${server_args} --experimental"
+  fi
 
   try_start() {
     dockerd --data-root /scratch/docker ${server_args} >$LOG_FILE 2>&1 &
