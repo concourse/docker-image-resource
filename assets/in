@@ -94,12 +94,19 @@ fi
 echo "$repository" > ${destination}/repository
 echo "$tag" > ${destination}/tag
 echo "$digest" > ${destination}/digest
+labels=$(cat ${destination}/docker_inspect.json | jq -rc '.[].Config.Labels' | jq -r 'to_entries[] | "{\"name\": \"\(.key)\", \"value\": \"\(.value)\"}"' | jq -s .)
 
-jq -n "{
+jq --argjson labels "$labels" \
+  --arg digest "$digest" \
+  --arg image_id "$image_id" \
+  -n '{
   version: {
-    digest: $(echo $digest | jq -R .)
+    digest: $digest
   },
-  metadata: [
-    { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
-  ]
-}" >&3
+  metadata: ([
+    {
+      name: "image",
+      value: $image_id
+    }
+  ] + $labels)
+}' >&3
