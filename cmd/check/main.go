@@ -88,7 +88,7 @@ func main() {
 	latestManifestURL, err := ub.BuildManifestURL(taggedRef)
 	fatalIf("failed to build latest manifest URL", err)
 
-	latestDigest, foundLatest := fetchDigest(client, latestManifestURL)
+	latestDigest, foundLatest := fetchDigest(client, latestManifestURL, request.Source.Repository, tag)
 
   if foundLatest {
     response = append(response, Version{latestDigest, tag})
@@ -187,7 +187,7 @@ func findRecentTag(client *http.Client, host string, repository string, versions
 	return latest_tag
 }
 
-func fetchDigest(client *http.Client, manifestURL string) (string, bool) {
+func fetchDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
 	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -197,13 +197,12 @@ func fetchDigest(client *http.Client, manifestURL string) (string, bool) {
 	fatalIf("failed to fetch manifest", err)
 
 	defer manifestResponse.Body.Close()
-
 	if manifestResponse.StatusCode == http.StatusNotFound {
 		return "", false
 	}
 
 	if manifestResponse.StatusCode != http.StatusOK {
-		fatal("failed to fetch digest: " + manifestResponse.Status)
+		fatal(fmt.Sprintf("failed to fetch digest for image '%s:%s': %s\ndoes the image exist?", repository, tag, manifestResponse.Status))
 	}
 
 	digest := manifestResponse.Header.Get("Docker-Content-Digest")

@@ -134,6 +134,31 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when labels are provided", func() {
+		It("passes the labels correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"labels": map[string]string{
+						"label1": "foo",
+						"label2": "bar\nspam",
+						"label3": "eggs eggs eggs",
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`label1=foo`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`label2=bar\nspam`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--label`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`label3=eggs eggs eggs`)))
+		})
+	})
+
 	Context("when build arguments file is provided", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
 			session := put(map[string]interface{}{

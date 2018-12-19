@@ -156,8 +156,9 @@ version is the image's digest.
 
 #### Parameters
 
-* `additional_tags`: *Optional.* Path to a space separated list of tags. The
-  Docker build will additionally be pushed with those tags.
+* `additional_tags`: *Optional.* Path to a file containing a
+  whitespace-separated list of tags. The Docker build will additionally be
+  pushed with those tags.
 
 * `build`: *Optional.* The path of a directory containing a `Dockerfile` to
   build.
@@ -218,6 +219,24 @@ version is the image's digest.
   it's not at the root of the directory.
 
 * `import_file`: *Optional.* A path to a file to `docker import` and then push.
+
+* `labels`: *Optional.* A map of labels that will be added to the image.
+
+  Example:
+
+  ```yaml
+  labels:
+    commit: b4d4823
+    version: 1.0.3
+  ```
+
+* `labels_file`: *Optional.* Path to a JSON file containing the image labels.
+
+  Example file contents:
+
+  ```json
+  { "commit": "b4d4823", "version": "1.0.3" }
+  ```
 
 * `load`: *Optional.* The path of a directory containing an image that was
   fetched using this same resource type with `save: true`.
