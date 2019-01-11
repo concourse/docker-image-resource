@@ -566,7 +566,7 @@ var _ = Describe("Out", func() {
 			})
 
 			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`--cache-from`)))
-			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`broken-repo:latest`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`broken-repo:latest`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`build`)))
 
 		})
