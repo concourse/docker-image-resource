@@ -550,7 +550,6 @@ var _ = Describe("Out", func() {
 					"cache":      "true",
 				},
 			})
-
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--cache-from`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`test:latest`)))
 		})
@@ -558,16 +557,18 @@ var _ = Describe("Out", func() {
 		It("does not add cache_from if pull fails", func() {
 			session := put(map[string]interface{}{
 				"source": map[string]interface{}{
-					"repository": "test",
+					"repository": "broken-repo",
 				},
 				"params": map[string]interface{}{
-					"build":      "/docker-image-resource/tests/fixtures/broken",
+					"build":     "/docker-image-resource/tests/fixtures/build",
 					"cache":      "true",
 				},
 			})
 
 			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`--cache-from`)))
-			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`test:latest`)))
+			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`broken-repo:latest`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`build`)))
+
 		})
 	});
 
