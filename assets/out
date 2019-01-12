@@ -147,8 +147,9 @@ elif [ -n "$build" ]; then
   cache_from_args=()
 
   if [ "$cache" = "true" ]; then
-    docker_pull "${repository}:${cache_tag}"
-    cache_from_args+=("--cache-from ${repository}:${cache_tag}")
+    if docker_pull "${repository}:${cache_tag}"; then
+      cache_from_args+=("--cache-from ${repository}:${cache_tag}")
+    fi
   fi
 
   if [ -n "$cache_from" ]; then

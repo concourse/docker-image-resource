@@ -197,7 +197,7 @@ docker_pull() {
 
     if docker pull "$1"; then
       printf "\nSuccessfully pulled ${GREEN}%s${NC}.\n\n" "$1"
-      return
+      return 0
     fi
 
     echo
@@ -206,5 +206,5 @@ docker_pull() {
   done
 
   printf "\n${RED}Failed to pull image %s.${NC}" "$1"
-  exit 1
+  return 1
 }
