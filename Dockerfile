@@ -35,6 +35,7 @@ RUN set -e; \
 
 # stage: shelltests
 FROM resource AS shelltests
+RUN apk update && apk add libressl
 ADD . /docker-image-resource
 RUN wget --directory-prefix  /docker-image-resource/tests/shell-tests/ https://raw.githubusercontent.com/kward/shunit2/v2.1.7/shunit2
 RUN cd /docker-image-resource/tests/shell-tests/ && ./test.sh
