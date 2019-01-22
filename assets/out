@@ -284,7 +284,7 @@ if [ -e /tmp/push-failed ]; then
   exit 1
 fi
 
-digest="$(tail -1 push-output | awk '{print $3}')"
+digest="$(grep 'digest' push-output | awk '{print $3}')"
 
 if [ "$need_tag_as_latest" = "true" ] && [ "${tag_name}" != "latest"  ]; then
   docker tag "${repository}:${tag_name}" "${repository}:latest"
