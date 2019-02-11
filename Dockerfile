@@ -1,5 +1,5 @@
 # stage: builder
-FROM golang:alpine AS builder
+FROM concourse/golang-builder AS builder
 
 COPY . /go/src/github.com/concourse/docker-image-resource
 ENV CGO_ENABLED 0
@@ -13,15 +13,14 @@ RUN set -e; \
     done
 
 # stage: resource
-FROM alpine:edge AS resource
-RUN apk --no-cache add \
-      bash \
-      docker \
-      jq \
-      ca-certificates \
-      xz \
-      util-linux \
-    ;
+FROM ubuntu:bionic AS resource
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    docker \
+    jq \
+    ca-certificates \
+    xz-utils \
+    iproute2 \
+  && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /assets /opt/resource
 RUN ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
 
