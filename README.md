@@ -261,7 +261,7 @@ version is the image's digest.
 
 * `target_name`: *Optional.*  Specify the name of the target build stage. 
   Only supported for multi-stage Docker builds
-* `buildkit`: *Optional.*  Default`false`. If true use　Buildkit. 
+* `buildkit`: *Optional.* Default `false`. If `true`, use Buildkit. 
   In order to use this option you need to enable experimental.
 
 
