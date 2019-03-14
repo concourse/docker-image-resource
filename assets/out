@@ -230,7 +230,7 @@ elif [ -n "$build" ]; then
   fi
 
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
-  ecr_images=$(grep '^\s*FROM' ${dockerfile} | \
+  ecr_images=$(egrep '^\s*FROM|^\s*ARG' ${dockerfile} | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
   if [ -n "$ecr_images" ]; then
     for ecr_image in $ecr_images
