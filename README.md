@@ -309,10 +309,11 @@ environment is consistent across any `docker` enabled platform. When the docker
 image builds, the test are run inside the docker container, on failure they
 will stop the build.
 
-Build the image and run the tests with the following command:
+Run the tests with the following commands for both `alpine` and `ubuntu` images:
 
 ```sh
-docker build -t docker-image-resource .
+docker build -t docker-image-resource -f dockerfiles/alpine/Dockerfile .
+docker build -t docker-image-resource -f dockerfiles/ubuntu/Dockerfile .
 ```
 
 To use the newly built image, push it to a docker registry that's accessible to
