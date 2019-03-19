@@ -2,10 +2,6 @@ LOG_FILE=${LOG_FILE:-/tmp/docker.log}
 SKIP_PRIVILEGED=${SKIP_PRIVILEGED:-false}
 STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-120}
 
-check_distro() {
-  grep $1 /etc/issue > /dev/null
-}
-
 sanitize_cgroups() {
   mkdir -p /sys/fs/cgroup
   mountpoint -q /sys/fs/cgroup || \
@@ -97,12 +93,7 @@ start_docker() {
   declare -fx try_start
   trap stop_docker EXIT
 
-  timeout_dur_flag=""
-  if check_distro "Alpine" ; then
-    timeout_dur_flag="-t"
-  fi
-
-  if ! timeout ${timeout_dur_flag} ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
+  if ! timeout ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
     echo Docker failed to start within ${STARTUP_TIMEOUT} seconds.
     return 1
   fi
