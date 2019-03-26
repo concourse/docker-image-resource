@@ -308,4 +308,3 @@ jq -n "{
     { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
   ]
 }" >&3
-
