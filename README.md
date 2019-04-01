@@ -152,12 +152,12 @@ version is the image's digest.
 
 * `build_args`: *Optional.* A map of Docker build-time variables. These will be
   available as environment variables during the Docker build.
-  
+
   While not stored in the image layers, they are stored in image metadata and
   so it is recommend to avoid using these to pass secrets into the build
   context. In multi-stage builds `ARG`s in earlier stages will not be copied
   to the later stages, or in the metadata of the final stage.
-  
+
   The
   [build metadata](https://concourse-ci.org/implementing-resources.html#resource-metadata)
   environment variables provided by Concourse will be expanded in the values
@@ -259,8 +259,13 @@ version is the image's digest.
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
 
-* `target_name`: *Optional.*  Specify the name of the target build stage. 
+* `target_name`: *Optional.*  Specify the name of the target build stage.
   Only supported for multi-stage Docker builds
+
+* `repository_file`: *Optional.* Override source repository. The value should be a path to a file containing the name
+  of the repository path.
+
+* `repository`: *Optional.* Override source repository. Value used only if `repository_file` is unset
 
 
 ## Example
