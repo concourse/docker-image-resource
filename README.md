@@ -262,8 +262,7 @@ version is the image's digest.
 * `target_name`: *Optional.*  Specify the name of the target build stage.
   Only supported for multi-stage Docker builds
 
-* `repository_file`: *Optional.* Override source repository. The value should be a path to a file containing the name
-  of the repository path.
+* `repository_file`: *Optional.* Override source repository. The value should be a path to a file containing the repository path.
 
 * `repository`: *Optional.* Override source repository. Value used only if `repository_file` is unset
 
