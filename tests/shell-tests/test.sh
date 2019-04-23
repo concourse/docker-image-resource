@@ -47,7 +47,7 @@ testOnlyFileContentsReadIntoKVP() {
   full_input+="$tempfile2"
   full_input+='"}}}}'
   build_args=$(buildArgExtractionCopiedFromProd "$full_input")
-  expected='{"spam":"eggs","foo":"qux"}'
+  expected='{"foo":"qux","spam":"eggs"}'
   actual=$(elevate_from_file_kvps "$build_args")
   assertEquals "$expected" "$actual"
 }
