@@ -1,5 +1,5 @@
 # stage: builder
-FROM golang:alpine AS builder
+FROM concourse/golang-builder AS builder
 
 COPY . /go/src/github.com/concourse/docker-image-resource
 ENV CGO_ENABLED 0
