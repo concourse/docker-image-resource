@@ -56,6 +56,7 @@ log_in "$username" "$password" "$registry"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag_file // ""' < $payload)
+tag_command=$(jq -r '.params.tag_command // ""' < $payload)
 # for backwards compatibility, check `tag` if `tag_file` is empty
 if [ -z "$tag_params" ]; then
   tag_params=$(jq -r '.params.tag // ""' < $payload)
@@ -70,16 +71,19 @@ labels_file=$(jq -r '.params.labels_file // ""' < $payload)
 
 
 tag_name=""
-if [ -n "$tag_params" ]; then
-  if [ ! -f "$tag_params" ]; then
-    echo "tag file '$tag_params' does not exist"
-    exit 1
-  fi
-  tag_name="${tag_prefix}$(cat $tag_params)"
+if [ -n "$tag_command" ]; then
+  tag_name="${tag_command}"
 else
-  tag_name="$tag_source"
+  if [ -n "$tag_params" ]; then
+    if [ ! -f "$tag_params" ]; then
+      echo "tag file '$tag_params' does not exist"
+      exit 1
+    fi
+    tag_name="${tag_prefix}$(cat $tag_params)"
+  else
+    tag_name="$tag_source"
+  fi
 fi
-
 additional_tag_names=""
 if [ -n "$additional_tags" ]; then
   if [ ! -f "$additional_tags" ]; then
