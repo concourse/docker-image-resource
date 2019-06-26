@@ -54,7 +54,7 @@ var _ = Describe("Check", func() {
 		session := check(map[string]interface{}{
 			"source": map[string]interface{}{
 				"repository": repository,
-				"tag": tag,
+				"tag":        tag,
 			},
 		})
 
