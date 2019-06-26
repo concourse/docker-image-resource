@@ -92,7 +92,7 @@ func main() {
 
 	latestDigest, foundLatest := fetchDigest(client, latestManifestURL, request.Source.Repository, tag)
 
-	if request.Version.Digest != "" {
+	if request.Version != nil && request.Version.Digest != "" {
 		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
 		fatalIf("failed to build cursor manifest URL", err)
 
