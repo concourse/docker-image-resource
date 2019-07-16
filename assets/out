@@ -251,8 +251,10 @@ elif [ -n "$load_file" ]; then
     docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
   else
     vartag=$(docker load -i  "$load_file" | awk -F ":" '{print $3}') || echo "Could not automatically discover the loaded image tag"
+    echo "Found tag '$vartag'."
     varimg=$(docker load -i  "$load_file" | awk -F ":" '{print $2}') || echo "Could not automatically discover the loaded image name"
-    docker tag "${varimg}:${vartag}" "${repository}:${tag_name}"
+    echo "Found image '$varimg'."
+    docker tag ${varimg}:${vartag} ${repository}:${tag_name}
   fi
 elif [ -n "$import_file" ]; then
   cat "$import_file" | docker import - "${repository}:${tag_name}"
