@@ -237,9 +237,9 @@ version is the image's digest.
 
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
 
-* `load_repository`: *Optional.* Explicitly set the repository of the image loaded from `load_file`.
+* `load_repository`: *Optional.* Explicitly set the repository of the image loaded from `load_file`. If not set, the resource will try to discover the name itself.
 
-* `load_tag`: *Optional.* Explicitly set the tag of the image loaded from `load_file`. Default `latest`. The tag of image loaded from `load_file`
+* `load_tag`: *Optional.* Explicitly set the tag of the image loaded from `load_file`. Default `latest`. The tag of image loaded from `load_file` If not set, the resource will try to discover the tag itself.
 
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.
