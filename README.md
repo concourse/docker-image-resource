@@ -152,12 +152,12 @@ version is the image's digest.
 
 * `build_args`: *Optional.* A map of Docker build-time variables. These will be
   available as environment variables during the Docker build.
-  
+
   While not stored in the image layers, they are stored in image metadata and
   so it is recommend to avoid using these to pass secrets into the build
   context. In multi-stage builds `ARG`s in earlier stages will not be copied
   to the later stages, or in the metadata of the final stage.
-  
+
   The
   [build metadata](https://concourse-ci.org/implementing-resources.html#resource-metadata)
   environment variables provided by Concourse will be expanded in the values
@@ -236,11 +236,10 @@ version is the image's digest.
   multiple images.
 
 * `load_file`: *Optional.* A path to a file to `docker load` and then push.
-  Requires `load_repository`.
 
-* `load_repository`: *Optional.* The repository of the image loaded from `load_file`.
+* `load_repository`: *Optional.* Explicitly set the repository of the image loaded from `load_file`.
 
-* `load_tag`: *Optional.* Default `latest`. The tag of image loaded from `load_file`
+* `load_tag`: *Optional.* Explicitly set the tag of the image loaded from `load_file`. Default `latest`. The tag of image loaded from `load_file`
 
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.
@@ -259,7 +258,7 @@ version is the image's digest.
   prepended with this string. This is useful for adding `v` in front of version
   numbers.
 
-* `target_name`: *Optional.*  Specify the name of the target build stage. 
+* `target_name`: *Optional.*  Specify the name of the target build stage.
   Only supported for multi-stage Docker builds
 
 

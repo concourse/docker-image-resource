@@ -241,7 +241,7 @@ elif [ -n "$build" ]; then
       # see https://github.com/moby/moby/pull/32677
       # and https://github.com/awslabs/amazon-ecr-credential-helper/issues/9
       docker pull "${ecr_image}"
-    done    
+    done
   fi
 
   docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_labels[@]}" -f "$dockerfile" $cache_from "$build"
@@ -250,8 +250,9 @@ elif [ -n "$load_file" ]; then
     docker load -i "$load_file"
     docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
   else
-    echo "must specify load_repository param"
-    exit 1
+    vartag=$(docker load -i  "$load_file" | awk -F ":" '{print $3}') || echo "Could not automatically discover the loaded image tag"
+    varimg=$(docker load -i  "$load_file" | awk -F ":" '{print $2}') || echo "Could not automatically discover the loaded image name"
+    docker tag "${varimg}:${vartag}" "${repository}:${tag_name}"
   fi
 elif [ -n "$import_file" ]; then
   cat "$import_file" | docker import - "${repository}:${tag_name}"
