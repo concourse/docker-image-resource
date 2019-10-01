@@ -64,7 +64,7 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
   ```yaml
   client_certs:
-  - domain: example.com:443
+  - domain: example.com
     cert: |
       -----BEGIN CERTIFICATE-----
       ...
@@ -73,7 +73,7 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
       -----BEGIN RSA PRIVATE KEY-----
       ...
       -----END RSA PRIVATE KEY-----
-  - domain: 10.244.6.2:443
+  - domain: 10.244.6.2
     cert: |
       -----BEGIN CERTIFICATE-----
       ...
@@ -86,7 +86,7 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
   Each entry specifies the x509 certificate and key to use for authenticating
   against the docker registry residing at the specified domain. The domain
-  should match the first component of `repository`, including the port.
+  should match the first component of `repository`.
 
  * `max_concurrent_downloads`: *Optional.* Maximum concurrent downloads.
 
