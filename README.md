@@ -159,7 +159,7 @@ version is the image's digest.
   to the later stages, or in the metadata of the final stage.
   
   The
-  [build metadata](https://concourse-ci.org/implementing-resources.html#resource-metadata)
+  [build metadata](https://concourse-ci.org/implementing-resource-types.html#resource-metadata)
   environment variables provided by Concourse will be expanded in the values
   (the syntax is `$SOME_ENVVAR` or `${SOME_ENVVAR}`).
 
