@@ -56,11 +56,8 @@ start_docker \
 log_in "$username" "$password" "$registry"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
-tag_params=$(jq -r '.params.tag_file // ""' < $payload)
-# for backwards compatibility, check `tag` if `tag_file` is empty
-if [ -z "$tag_params" ]; then
-  tag_params=$(jq -r '.params.tag // ""' < $payload)
-fi
+pull_image_id=$(jq -r '.params.pull_image_id // ""' < $payload)
+tag_params=$(jq -r '.params.tag // ""' < $payload)
 tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
@@ -181,39 +178,28 @@ elif [ -n "$build" ]; then
   if [ "${#build_arg_keys[@]}" -gt 0 ]; then
     for key in "${build_arg_keys[@]}"; do
       value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
-      for var in BUILD_ID BUILD_NAME BUILD_JOB_NAME BUILD_PIPELINE_NAME BUILD_TEAM_NAME ATC_EXTERNAL_URL; do
-        value="${value//\$$var/${!var:-}}"
-        value="${value//\$\{$var\}/${!var:-}}"
-      done
       expanded_build_args+=("--build-arg")
       expanded_build_args+=("${key}=${value}")
     done
   fi
 
   if [ -n "$build_args_file" ]; then
-    if jq . "$build_args_file" >/dev/null 2>&1; then
-      build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
-      if [ "${#build_arg_keys[@]}" -gt 0 ]; then
-        for key in "${build_arg_keys[@]}"; do
-          value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
-          expanded_build_args+=("--build-arg")
-          expanded_build_args+=("${key}=${value}")
-        done
-      fi
-    else
-      echo "Failed to parse build_args_file ($build_args_file)"
-      exit 1
+    build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+    if [ "${#build_arg_keys[@]}" -gt 0 ]; then
+      for key in "${build_arg_keys[@]}"; do
+        value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
+        expanded_build_args+=("--build-arg")
+        expanded_build_args+=("${key}=${value}")
+      done
     fi
   fi
-
-  expanded_labels=()
 
   label_keys=($(echo "$labels" | jq -r 'keys | join(" ")'))
   if [ "${#label_keys[@]}" -gt 0 ]; then
     for key in "${label_keys[@]}"; do
       value=$(echo "$labels" | jq -r --arg "k" "$key" '.[$k]')
-      expanded_labels+=("--label")
-      expanded_labels+=("${key}=${value}")
+      expanded_build_args+=("--label")
+      expanded_build_args+=("${key}=${value}")
     done
   fi
 
@@ -222,8 +208,8 @@ elif [ -n "$build" ]; then
     if [ "${#labels_keys[@]}" -gt 0 ]; then
       for key in "${labels_keys[@]}"; do
         value=$(jq -r --arg "k" "$key" '.[$k]' "$labels_file")
-        expanded_labels+=("--label")
-        expanded_labels+=("${key}=${value}")
+        expanded_build_args+=("--label")
+        expanded_build_args+=("${key}=${value}")
       done
     fi
   fi
@@ -246,10 +232,10 @@ elif [ -n "$build" ]; then
       # see https://github.com/moby/moby/pull/32677
       # and https://github.com/awslabs/amazon-ecr-credential-helper/issues/9
       docker pull "${ecr_image}"
-    done    
+    done
   fi
 
-  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_labels[@]}" -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
@@ -263,8 +249,12 @@ elif [ -n "$import_file" ]; then
 elif [ -n "$pull_repository" ]; then
   docker pull "${pull_repository}:${pull_tag}"
   docker tag "${pull_repository}:${pull_tag}" "${repository}:${tag_name}"
+elif [ -n "$pull_image_id" ]; then
+  pull_image_id="$(cat $pull_image_id)"
+  docker pull "${repository}@${pull_image_id}"
+  docker tag "${repository}@${pull_image_id}" "${repository}:${tag_name}"
 else
-  echo "must specify build, load, load_file, import_file, or pull_repository params"
+  echo "must specify build, load, load_file, import_file, pull_repository, or pull_image_id params"
   exit 1
 fi
 
@@ -313,13 +303,21 @@ if [ -n "$mirror_repositories" ]; then
         repository_name=$(echo ${mirror_repository} | jq -r '.repository // ""')
         mirror_username=$(echo ${mirror_repository} | jq -r '.username // ""')
         mirror_password=$(echo ${mirror_repository} | jq -r '.password // ""')
+        aws_access_key_id=$(echo ${mirror_repository} | jq -r '.aws_access_key_id // ""')
+        aws_secret_access_key=$(echo ${mirror_repository} | jq -r '.aws_secret_access_key // ""')
+        aws_session_token=$(echo ${mirror_repository} | jq -r '.aws_session_token // ""')
 
         if private_registry "${mirror_repository}" ; then
-          mirror_registry="$(extract_registry "${mirror_repository}")"
+          mirror_registry="$(extract_registry "${repository_name}")"
         else
           mirror_registry=
         fi
-        log_in "" "" "$mirror_registry"
+
+        export AWS_ACCESS_KEY_ID=${aws_access_key_id}
+        export AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}
+        export AWS_SESSION_TOKEN=${aws_session_token}
+
+        log_in "$username" "$password" "$mirror_registry"
 
         docker tag "${repository}:${tag_name}" "${repository_name}:${tag_name}"
         echo "${repository}:${tag_name} tagged as ${repository_name}:${tag_name}"
