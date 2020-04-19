@@ -54,7 +54,7 @@ var _ = Describe("Check", func() {
 		session := check(map[string]interface{}{
 			"source": map[string]interface{}{
 				"repository": repository,
-				"tag": tag,
+				"tag":        tag,
 			},
 		})
 
@@ -66,6 +66,28 @@ var _ = Describe("Check", func() {
 		session := check(map[string]interface{}{
 			"source": map[string]interface{}{
 				"repository": "alpine",
+			},
+		})
+
+		Expect(session.Out).To(gbytes.Say(`{"digest":`))
+	})
+
+	It("prints out the digest for a existent image and quoted numeric tag", func() {
+		session := check(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "alpine",
+				"tag":        "3.7",
+			},
+		})
+
+		Expect(session.Out).To(gbytes.Say(`{"digest":`))
+	})
+
+	It("prints out the digest for a existent image and numeric tag", func() {
+		session := check(map[string]interface{}{
+			"source": map[string]interface{}{
+				"repository": "alpine",
+				"tag":        3.7,
 			},
 		})
 

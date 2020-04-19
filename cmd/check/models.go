@@ -4,7 +4,7 @@ import "encoding/json"
 
 type Source struct {
 	Repository         string          `json:"repository"`
-	Tag                json.Number     `json:"tag"`
+	Tag                Tag             `json:"tag"`
 	Username           string          `json:"username"`
 	Password           string          `json:"password"`
 	InsecureRegistries []string        `json:"insecure_registries"`
@@ -37,4 +37,21 @@ type ClientCertKey struct {
 	Domain string `json:"domain"`
 	Cert   string `json:"cert"`
 	Key    string `json:"key"`
+}
+
+// Tag refers to a tag for an image in the registry.
+type Tag string
+
+// UnmarshalJSON accepts numeric and string values.
+func (tag *Tag) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err == nil {
+		*tag = Tag(s)
+	} else {
+		var n json.RawMessage
+		if err = json.Unmarshal(b, &n); err == nil {
+			*tag = Tag(n)
+		}
+	}
+	return err
 }
