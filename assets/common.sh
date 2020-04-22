@@ -93,7 +93,7 @@ start_docker() {
   declare -fx try_start
   trap stop_docker EXIT
 
-  if ! timeout -t ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
+  if ! timeout ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
     echo Docker failed to start within ${STARTUP_TIMEOUT} seconds.
     return 1
   fi
@@ -197,7 +197,7 @@ docker_pull() {
 
     if docker pull "$1"; then
       printf "\nSuccessfully pulled ${GREEN}%s${NC}.\n\n" "$1"
-      return
+      return 0
     fi
 
     echo
@@ -206,5 +206,5 @@ docker_pull() {
   done
 
   printf "\n${RED}Failed to pull image %s.${NC}" "$1"
-  exit 1
+  return 1
 }

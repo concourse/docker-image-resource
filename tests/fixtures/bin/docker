@@ -14,3 +14,7 @@ fi
 if [ "$1" == "info" ] && [ -f /tmp/docker_failing ]; then
     exit 1
 fi
+
+if [ "$1" == "pull" ] && [ "$2" == "broken-repo:latest" ]; then
+    exit 1
+fi

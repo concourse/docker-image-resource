@@ -569,6 +569,39 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when cache is specified are specified", func() {
+		It("adds argument to cache_from", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":      "/docker-image-resource/tests/fixtures/build",
+					"cache":      "true",
+				},
+			})
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--cache-from`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`test:latest`)))
+		})
+
+		It("does not add cache_from if pull fails", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "broken-repo",
+				},
+				"params": map[string]interface{}{
+					"build":     "/docker-image-resource/tests/fixtures/build",
+					"cache":      "true",
+				},
+			})
+
+			Expect(session.Err).ToNot(gbytes.Say(dockerarg(`--cache-from`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`broken-repo:latest`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`build`)))
+
+		})
+	});
+
 	Context("when cache_from images are specified", func() {
 		BeforeEach(func() {
 			os.Mkdir("/tmp/cache_from_1", os.ModeDir)
@@ -594,7 +627,7 @@ var _ = Describe("Out", func() {
 			session := put(map[string]interface{}{
 				"source": map[string]interface{}{
 					"repository": "test",
-				},
+				}, 
 				"params": map[string]interface{}{
 					"build":      "/docker-image-resource/tests/fixtures/build",
 					"cache_from": []string{"cache_from_1", "cache_from_2"},
