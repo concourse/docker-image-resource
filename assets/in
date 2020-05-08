@@ -84,7 +84,7 @@ if [ "$skip_download" = "false" ]; then
     "$image_name" > ${destination}/metadata.json
 
   mkdir -p ${destination}/rootfs/
-  docker export $(cat /tmp/container.cid) | tar --exclude="dev/*" -xf - -C ${destination}/rootfs/
+  docker export $(cat /tmp/container.cid) | tar --anchored --exclude="dev" -xf - -C ${destination}/rootfs/
 
   if [ "$rootfs" = "true" ]; then
     docker export $(cat /tmp/container.cid) > ${destination}/rootfs.tar
