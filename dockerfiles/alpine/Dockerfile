@@ -21,6 +21,7 @@ RUN apk --no-cache add \
       ca-certificates \
       xz \
       util-linux \
+      tar \
     ;
 COPY --from=builder /assets /opt/resource
 RUN ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
