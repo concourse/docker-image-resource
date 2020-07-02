@@ -245,6 +245,10 @@ version is the image's digest.
 
 * `load_tag`: *Optional.* Default `latest`. The tag of image loaded from `load_file`
 
+* `load_tag_file`: *Optional.* Default `<empty>`. The tag of image loaded from `load_file` read 
+  from the given file. Useful for dynamically setting the tag from within the build itself.
+  If set, supersedes `load_tag` if the file can be found and is readable.
+
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.
 

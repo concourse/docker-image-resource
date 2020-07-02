@@ -113,6 +113,16 @@ dockerfile=$(jq -r ".params.dockerfile // \"${build}/Dockerfile\"" < $payload)
 load_file=$(jq -r '.params.load_file // ""' < $payload)
 load_repository=$(jq -r '.params.load_repository // ""' < $payload)
 load_tag=$(jq -r '.params.load_tag // "latest"' < $payload)
+load_tag_file=$(jq -r '.params.load_tag_file // ""' < $payload)
+
+load_tag_name="$load_tag"
+if [ -n "$load_tag_file" ]; then
+  if [ ! -f "$load_tag_file" ]; then
+    echo "load_tag_file '$load_tag_file' does not exist"
+    exit 1
+  fi
+  load_tag_name="$(cat $load_tag_file)"
+fi
 
 import_file=$(jq -r '.params.import_file // ""' < $payload)
 
@@ -254,7 +264,8 @@ elif [ -n "$build" ]; then
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
-    docker tag "${load_repository}:${load_tag}" "${repository}:${tag_name}"
+    echo "Using load tag: $load_tag_name"
+    docker tag "${load_repository}:${load_tag_name}" "${repository}:${tag_name}"
   else
     echo "must specify load_repository param"
     exit 1
