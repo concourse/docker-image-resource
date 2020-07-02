@@ -1,10 +1,10 @@
 *
+!go.mod
+!go.sum
 !/assets
 !/cmd
-!/Godeps
 !/scripts
 !/tests
-!/vendor
 !/LICENSE
 !/NOTICE.md
 !/README.md
