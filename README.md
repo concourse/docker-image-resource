@@ -95,6 +95,9 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
  * `max_concurrent_uploads`: *Optional.* Maximum concurrent uploads.
 
    Limits the number of concurrent upload threads.
+   
+  * `debug`: *Optional (default: false).*
+  If set to `true` the bash tracing (`set -x`) will be enabled for the `in`, `out` and `check` scripts.
 
 ## Behavior
 

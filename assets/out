@@ -22,6 +22,12 @@ payload=$(mktemp /tmp/resource-in.XXXXXX)
 
 cat > $payload <&0
 
+enable_debug=$(jq -r '.source.debug // false' < ${payload})
+if [ "${enable_debug}" = "true" ]; then
+  echo "Enable debug mode"
+  set -x
+fi
+
 cd $source
 
 insecure_registries=$(jq -r '.source.insecure_registries // [] | join(" ")' < $payload)
