@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -20,12 +19,11 @@ import (
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/concourse/retryhttp"
-	"github.com/docker/distribution"
 	"github.com/docker/distribution/digest"
 	_ "github.com/docker/distribution/manifest/schema1"
 	_ "github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
-	"github.com/docker/distribution/registry/api/v2"
+	v2 "github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/hashicorp/go-multierror"
@@ -114,7 +112,7 @@ func main() {
 }
 
 func fetchDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
-	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
+	manifestRequest, err := http.NewRequest("HEAD", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	manifestRequest.Header.Add("Accept", "application/json")
@@ -133,15 +131,7 @@ func fetchDigest(client *http.Client, manifestURL, repository, tag string) (stri
 
 	digest := manifestResponse.Header.Get("Docker-Content-Digest")
 	if digest == "" {
-		ctHeader := manifestResponse.Header.Get("Content-Type")
-
-		bytes, err := ioutil.ReadAll(manifestResponse.Body)
-		fatalIf("failed to read response body", err)
-
-		_, desc, err := distribution.UnmarshalManifest(ctHeader, bytes)
-		fatalIf("failed to unmarshal manifest", err)
-
-		digest = string(desc.Digest)
+		fatal("no digest header returned")
 	}
 
 	return digest, true
