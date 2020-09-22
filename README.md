@@ -9,6 +9,9 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 * `repository`: *Required.* The name of the repository, e.g.
 `concourse/docker-image-resource`.
 
+  Note: When configuring a private registry which requires a login the 
+  registry's hostname must contain at least one '.' e.g. `registry.local`. 
+  Otherwise docker hub will be used.
   Note: When configuring a private registry **using a non-root CA**,
   you must include the port (e.g. :443 or :5000) even though the docker CLI
   does not require it.
