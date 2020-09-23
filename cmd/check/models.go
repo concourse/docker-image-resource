@@ -9,6 +9,7 @@ type Source struct {
 	Password           string          `json:"password"`
 	InsecureRegistries []string        `json:"insecure_registries"`
 	RegistryMirror     string          `json:"registry_mirror"`
+	OfficialRegistry   string          `json:"official_registry"`
 	DomainCerts        []DomainCert    `json:"ca_certs"`
 	ClientCerts        []ClientCertKey `json:"client_certs"`
 

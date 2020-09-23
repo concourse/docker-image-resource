@@ -30,6 +30,8 @@ import (
 	"github.com/pivotal-golang/clock"
 )
 
+var officialRegistry = "registry-1.docker.io"
+
 func main() {
 	logger := lager.NewLogger("http")
 	rECRRepo, err := regexp.Compile(`[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*`)
@@ -66,6 +68,10 @@ func main() {
 	tag := string(request.Source.Tag)
 	if tag == "" {
 		tag = "latest"
+	}
+
+	if len(request.Source.OfficialRegistry) > 0 {
+		officialRegistry = string(request.Source.OfficialRegistry)
 	}
 
 	transport, registryURL := makeTransport(logger, request, registryHost, repo)
@@ -254,8 +260,6 @@ func fatal(message string) {
 	println(message)
 	os.Exit(1)
 }
-
-const officialRegistry = "registry-1.docker.io"
 
 func parseRepository(repository string) (string, string) {
 	segs := strings.Split(repository, "/")

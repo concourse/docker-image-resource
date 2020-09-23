@@ -37,6 +37,8 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `registry_mirror`: *Optional.* A URL pointing to a docker registry mirror service.
 
+* `official_registry`: *Optional.* The default offcial registry is registry-1.docker.io
+
 * `ca_certs`: *Optional.* An array of objects with the following format:
 
   ```yaml
