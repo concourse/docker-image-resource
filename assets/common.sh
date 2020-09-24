@@ -124,11 +124,9 @@ log_in() {
 private_registry() {
   local repository="${1}"
 
-  if echo "${repository}" | fgrep -q '/' ; then
-    local registry="$(extract_registry "${repository}")"
-    if echo "${registry}" | fgrep -q '.' ; then
-      return 0
-    fi
+  local registry="$(extract_registry "${repository}")"
+  if echo "${registry}" | grep -q -x '.*[.:].*' ; then
+    return 0
   fi
 
   return 1
