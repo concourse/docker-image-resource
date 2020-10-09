@@ -253,7 +253,8 @@ version is the image's digest.
 
 * `tag`: **DEPRECATED - Use `tag_file` instead**
 * `tag_file`: *Optional.* The value should be a path to a file containing the name
-  of the tag.
+  of the tag. When not set, the Docker build will be pushed with tag value set by
+  `tag` in source configuration.
 
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
   be tagged as `latest` in addition to whatever other tag was specified.
