@@ -261,7 +261,7 @@ func parseRepository(repository string) (string, string) {
 	segs := strings.Split(repository, "/")
 
 	if len(segs) > 1 && (strings.Contains(segs[0], ":") || strings.Contains(segs[0], ".")) {
-		// In a private regsitry pretty much anything is valid.
+		// In a private registry pretty much anything is valid.
 		return segs[0], strings.Join(segs[1:], "/")
 	}
 	switch len(segs) {
