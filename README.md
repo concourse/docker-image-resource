@@ -9,8 +9,8 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 * `repository`: *Required.* The name of the repository, e.g.
 `concourse/docker-image-resource`.
 
-  Note: When configuring a private registry which requires a login the 
-  registry's hostname must contain at least one '.' e.g. `registry.local`. 
+  Note: When configuring a private registry which requires a login the
+  registry's hostname must contain at least one '.' e.g. `registry.local`.
   Otherwise docker hub will be used.
   Note: When configuring a private registry **using a non-root CA**,
   you must include the port (e.g. :443 or :5000) even though the docker CLI
@@ -36,6 +36,10 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
   This option overrides any entries in `ca_certs` with the same address.
 
 * `registry_mirror`: *Optional.* A URL pointing to a docker registry mirror service.
+
+  Note: `registry_mirror` is ignored if `repository` contains an explicitly-declared
+  registry-hostname-prefixed value, such as `my-registry.com/foo/bar`, in which case
+  the registry cited in the `repository` value is used instead of the `registry_mirror`.
 
 * `ca_certs`: *Optional.* An array of objects with the following format:
 
