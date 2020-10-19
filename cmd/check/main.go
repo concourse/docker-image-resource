@@ -57,10 +57,11 @@ func main() {
 
 	registryHost, repo := parseRepository(request.Source.Repository)
 
-	if len(request.Source.RegistryMirror) > 0 {
-		registryMirrorUrl, err := url.Parse(request.Source.RegistryMirror)
+	explicitlyDeclaredRegistryHost := hasExplicitlyDeclaredRegistryHost(registryHost)
+	if len(request.Source.RegistryMirror) > 0 && !explicitlyDeclaredRegistryHost {
+		registryMirrorURL, err := url.Parse(request.Source.RegistryMirror)
 		fatalIf("failed to parse registry mirror URL", err)
-		registryHost = registryMirrorUrl.Host
+		registryHost = registryMirrorURL.Host
 	}
 
 	tag := string(request.Source.Tag)
@@ -261,7 +262,7 @@ func parseRepository(repository string) (string, string) {
 	segs := strings.Split(repository, "/")
 
 	if len(segs) > 1 && (strings.Contains(segs[0], ":") || strings.Contains(segs[0], ".")) {
-		// In a private regsitry pretty much anything is valid.
+		// In a private registry pretty much anything is valid.
 		return segs[0], strings.Join(segs[1:], "/")
 	}
 	switch len(segs) {
@@ -275,6 +276,12 @@ func parseRepository(repository string) (string, string) {
 
 	fatal("malformed repository url")
 	panic("unreachable")
+}
+
+// Does the repository include an explicitly declared registry host, such as 'foo.com/baz/bar'
+// that differs from the officialRegistry?
+func hasExplicitlyDeclaredRegistryHost(registryHost string) bool {
+	return strings.Contains(registryHost, ".") && registryHost != officialRegistry
 }
 
 func isInsecure(hostOrCIDR string, hostPort string) bool {
