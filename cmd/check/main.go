@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,6 +20,7 @@ import (
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/concourse/retryhttp"
+	"github.com/docker/distribution"
 	"github.com/docker/distribution/digest"
 	_ "github.com/docker/distribution/manifest/schema1"
 	_ "github.com/docker/distribution/manifest/schema2"
@@ -111,7 +113,7 @@ func main() {
 	json.NewEncoder(os.Stdout).Encode(response)
 }
 
-func fetchDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
+func headDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
 	manifestRequest, err := http.NewRequest("HEAD", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -121,6 +123,7 @@ func fetchDigest(client *http.Client, manifestURL, repository, tag string) (stri
 	fatalIf("failed to fetch manifest", err)
 
 	defer manifestResponse.Body.Close()
+
 	if manifestResponse.StatusCode == http.StatusNotFound {
 		return "", false
 	}
@@ -131,10 +134,40 @@ func fetchDigest(client *http.Client, manifestURL, repository, tag string) (stri
 
 	digest := manifestResponse.Header.Get("Docker-Content-Digest")
 	if digest == "" {
-		fatal("no digest header returned")
+		return fetchDigest(client, manifestURL, repository, tag)
 	}
 
 	return digest, true
+}
+
+func fetchDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
+	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
+	fatalIf("failed to build manifest request", err)
+	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	manifestRequest.Header.Add("Accept", "application/json")
+
+	manifestResponse, err := client.Do(manifestRequest)
+	fatalIf("failed to fetch manifest", err)
+
+	defer manifestResponse.Body.Close()
+
+	if manifestResponse.StatusCode == http.StatusNotFound {
+		return "", false
+	}
+
+	if manifestResponse.StatusCode != http.StatusOK {
+		fatal(fmt.Sprintf("failed to fetch digest for image '%s:%s': %s\ndoes the image exist?", repository, tag, manifestResponse.Status))
+	}
+
+	ctHeader := manifestResponse.Header.Get("Content-Type")
+
+	bytes, err := ioutil.ReadAll(manifestResponse.Body)
+	fatalIf("failed to read response body", err)
+
+	_, desc, err := distribution.UnmarshalManifest(ctHeader, bytes)
+	fatalIf("failed to unmarshal manifest", err)
+
+	return string(desc.Digest), true
 }
 
 func makeTransport(logger lager.Logger, request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
