@@ -91,7 +91,7 @@ func main() {
 	latestManifestURL, err := ub.BuildManifestURL(taggedRef)
 	fatalIf("failed to build latest manifest URL", err)
 
-	latestDigest, foundLatest := fetchDigest(client, latestManifestURL, request.Source.Repository, tag)
+	latestDigest, foundLatest := headDigest(client, latestManifestURL, request.Source.Repository, tag)
 
 	if request.Version.Digest != "" {
 		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
@@ -100,7 +100,7 @@ func main() {
 		cursorManifestURL, err := ub.BuildManifestURL(digestRef)
 		fatalIf("failed to build manifest URL", err)
 
-		cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL, request.Source.Repository, tag)
+		cursorDigest, foundCursor := headDigest(client, cursorManifestURL, request.Source.Repository, tag)
 
 		if foundCursor && cursorDigest != latestDigest {
 			response = append(response, Version{cursorDigest})
