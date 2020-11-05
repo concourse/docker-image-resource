@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: concourse/docker-image-resource
+
+params:
+  REPOSITORY: ~
+
+outputs:
+- name: fetched-image
+
+run:
+  path: /bin/bash
+  args:
+  - -exc
+  - |
+    pushd fetched-image
+      jq -n '{source: {repository: $repo}}' --arg repo $REPOSITORY | \
+        /opt/resource/check | \
+        jq '{source: {repository: $repo}, version: last}' --arg repo $REPOSITORY | \
+        /opt/resource/in .
+    popd

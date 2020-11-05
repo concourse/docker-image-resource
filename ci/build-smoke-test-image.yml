@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: vito/oci-build-task
+
+inputs:
+- name: docker-image-resource
+  path: .
+
+outputs:
+- name: image
+
+params:
+  DOCKERFILE: ~
+  UNPACK_ROOTFS: 'true'
+
+run:
+  path: build

@@ -25,7 +25,7 @@ import (
 	_ "github.com/docker/distribution/manifest/schema1"
 	_ "github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
-	"github.com/docker/distribution/registry/api/v2"
+	v2 "github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/hashicorp/go-multierror"
@@ -59,10 +59,11 @@ func main() {
 
 	registryHost, repo := parseRepository(request.Source.Repository)
 
-	if len(request.Source.RegistryMirror) > 0 {
-		registryMirrorUrl, err := url.Parse(request.Source.RegistryMirror)
+	explicitlyDeclaredRegistryHost := hasExplicitlyDeclaredRegistryHost(registryHost)
+	if len(request.Source.RegistryMirror) > 0 && !explicitlyDeclaredRegistryHost {
+		registryMirrorURL, err := url.Parse(request.Source.RegistryMirror)
 		fatalIf("failed to parse registry mirror URL", err)
-		registryHost = registryMirrorUrl.Host
+		registryHost = registryMirrorURL.Host
 	}
 
 	tag := string(request.Source.Tag)
@@ -90,7 +91,7 @@ func main() {
 	latestManifestURL, err := ub.BuildManifestURL(taggedRef)
 	fatalIf("failed to build latest manifest URL", err)
 
-	latestDigest, foundLatest := fetchDigest(client, latestManifestURL, request.Source.Repository, tag)
+	latestDigest, foundLatest := headDigest(client, latestManifestURL, request.Source.Repository, tag)
 
 	if request.Version.Digest != "" {
 		digestRef, err := reference.WithDigest(namedRef, digest.Digest(request.Version.Digest))
@@ -99,7 +100,7 @@ func main() {
 		cursorManifestURL, err := ub.BuildManifestURL(digestRef)
 		fatalIf("failed to build manifest URL", err)
 
-		cursorDigest, foundCursor := fetchDigest(client, cursorManifestURL, request.Source.Repository, tag)
+		cursorDigest, foundCursor := headDigest(client, cursorManifestURL, request.Source.Repository, tag)
 
 		if foundCursor && cursorDigest != latestDigest {
 			response = append(response, Version{cursorDigest})
@@ -113,8 +114,8 @@ func main() {
 	json.NewEncoder(os.Stdout).Encode(response)
 }
 
-func fetchDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
-	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
+func headDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
+	manifestRequest, err := http.NewRequest("HEAD", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	manifestRequest.Header.Add("Accept", "application/json")
@@ -133,18 +134,40 @@ func fetchDigest(client *http.Client, manifestURL, repository, tag string) (stri
 
 	digest := manifestResponse.Header.Get("Docker-Content-Digest")
 	if digest == "" {
-		ctHeader := manifestResponse.Header.Get("Content-Type")
-
-		bytes, err := ioutil.ReadAll(manifestResponse.Body)
-		fatalIf("failed to read response body", err)
-
-		_, desc, err := distribution.UnmarshalManifest(ctHeader, bytes)
-		fatalIf("failed to unmarshal manifest", err)
-
-		digest = string(desc.Digest)
+		return fetchDigest(client, manifestURL, repository, tag)
 	}
 
 	return digest, true
+}
+
+func fetchDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
+	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
+	fatalIf("failed to build manifest request", err)
+	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	manifestRequest.Header.Add("Accept", "application/json")
+
+	manifestResponse, err := client.Do(manifestRequest)
+	fatalIf("failed to fetch manifest", err)
+
+	defer manifestResponse.Body.Close()
+
+	if manifestResponse.StatusCode == http.StatusNotFound {
+		return "", false
+	}
+
+	if manifestResponse.StatusCode != http.StatusOK {
+		fatal(fmt.Sprintf("failed to fetch digest for image '%s:%s': %s\ndoes the image exist?", repository, tag, manifestResponse.Status))
+	}
+
+	ctHeader := manifestResponse.Header.Get("Content-Type")
+
+	bytes, err := ioutil.ReadAll(manifestResponse.Body)
+	fatalIf("failed to read response body", err)
+
+	_, desc, err := distribution.UnmarshalManifest(ctHeader, bytes)
+	fatalIf("failed to unmarshal manifest", err)
+
+	return string(desc.Digest), true
 }
 
 func makeTransport(logger lager.Logger, request CheckRequest, registryHost string, repository string) (http.RoundTripper, string) {
@@ -271,7 +294,7 @@ func parseRepository(repository string) (string, string) {
 	segs := strings.Split(repository, "/")
 
 	if len(segs) > 1 && (strings.Contains(segs[0], ":") || strings.Contains(segs[0], ".")) {
-		// In a private regsitry pretty much anything is valid.
+		// In a private registry pretty much anything is valid.
 		return segs[0], strings.Join(segs[1:], "/")
 	}
 	switch len(segs) {
@@ -285,6 +308,12 @@ func parseRepository(repository string) (string, string) {
 
 	fatal("malformed repository url")
 	panic("unreachable")
+}
+
+// Does the repository include an explicitly declared registry host, such as 'foo.com/baz/bar'
+// that differs from the officialRegistry?
+func hasExplicitlyDeclaredRegistryHost(registryHost string) bool {
+	return strings.Contains(registryHost, ".") && registryHost != officialRegistry
 }
 
 func isInsecure(hostOrCIDR string, hostPort string) bool {

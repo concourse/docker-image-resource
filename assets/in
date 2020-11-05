@@ -84,7 +84,7 @@ if [ "$skip_download" = "false" ]; then
     "$image_name" > ${destination}/metadata.json
 
   mkdir -p ${destination}/rootfs/
-  docker export $(cat /tmp/container.cid) | tar --exclude="dev/*" -xf - -C ${destination}/rootfs/
+  docker export $(cat /tmp/container.cid) | tar --anchored --exclude="dev" -xf - -C ${destination}/rootfs/
 
   if [ "$rootfs" = "true" ]; then
     docker export $(cat /tmp/container.cid) > ${destination}/rootfs.tar
@@ -100,6 +100,8 @@ jq -n "{
     digest: $(echo $digest | jq -R .)
   },
   metadata: [
+    { name: \"repository\", value: $(echo $repository | jq -R .) },
+    { name: \"tag\", value: $(echo $tag | jq -R .) },
     { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
   ]
-}" >&3
+}" | jq '{version: .version} + {metadata: [.metadata[] | select(.value != "")]}' >&3

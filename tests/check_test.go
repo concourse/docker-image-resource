@@ -3,6 +3,7 @@ package docker_image_resource_test
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"os/exec"
 
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("Check", func() {
@@ -92,5 +94,74 @@ var _ = Describe("Check", func() {
 		})
 
 		Expect(session.Out).To(gbytes.Say(`{"digest":`))
+	})
+
+	Context("when a registry mirror is configured", func() {
+		var (
+			registry         *ghttp.Server
+			session          *gexec.Session
+			latestFakeDigest string = "sha256:c4c25c2cd70e3071f08cf124c4b5c656c061dd38247d166d97098d58eeea8aa6"
+		)
+
+		BeforeEach(func() {
+			registry = ghttp.NewServer()
+
+			BeforeEach(func() {
+				registry.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/v2/"),
+						ghttp.RespondWith(http.StatusOK, "fake mirror"),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("HEAD", "/v2/some/fake-image/manifests/latest"),
+						ghttp.RespondWith(http.StatusOK, `{"fake":"manifest"}`, http.Header{
+							"Docker-Content-Digest": {latestFakeDigest},
+						}),
+					),
+				)
+			})
+
+			AfterEach(func() {
+				registry.Close()
+			})
+
+			Context("when the repository contains no registry hostname", func() {
+				BeforeEach(func() {
+					session = check(map[string]interface{}{
+						"source": map[string]interface{}{
+							"repository":      "some/fake-image",
+							"registry_mirror": registry.URL(),
+						},
+					})
+				})
+
+				It("fetches the image data from the mirror and prints out the digest and tag", func() {
+					Expect(session.Out).To(gbytes.Say(fmt.Sprintf(`[{"digest":"%s"}]`, latestFakeDigest)))
+				})
+
+				It("does not error", func() {
+					Expect(session.Err).To(Equal(""))
+				})
+			})
+
+			Context("when the repository contains a registry hostname different from the mirror", func() {
+				BeforeEach(func() {
+					session = check(map[string]interface{}{
+						"source": map[string]interface{}{
+							"repository":      registry.URL() + "/some/fake-image",
+							"registry_mirror": "https://thisregistrydoesnotexist.nothing",
+						},
+					})
+				})
+
+				It("fetches the image data from the registry cited in the repository rather than the mirror and prints out the digest and tag", func() {
+					Expect(session.Out).To(gbytes.Say(fmt.Sprintf(`[{"digest":"%s"}]`, latestFakeDigest)))
+				})
+
+				It("does not error", func() {
+					Expect(session.Err).To(Equal(""))
+				})
+			})
+		})
 	})
 })

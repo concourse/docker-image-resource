@@ -9,6 +9,11 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 * `repository`: *Required.* The name of the repository, e.g.
 `concourse/docker-image-resource`.
 
+  Note: When configuring a private registry which requires a login, the 
+  registry's address must contain at least one '.' e.g. `registry.local` 
+  or contain the port (e.g. `registry:443` or `registry:5000`).
+  Otherwise docker hub will be used.
+  
   Note: When configuring a private registry **using a non-root CA**,
   you must include the port (e.g. :443 or :5000) even though the docker CLI
   does not require it.
@@ -33,6 +38,10 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
   This option overrides any entries in `ca_certs` with the same address.
 
 * `registry_mirror`: *Optional.* A URL pointing to a docker registry mirror service.
+
+  Note: `registry_mirror` is ignored if `repository` contains an explicitly-declared
+  registry-hostname-prefixed value, such as `my-registry.com/foo/bar`, in which case
+  the registry cited in the `repository` value is used instead of the `registry_mirror`.
 
 * `ca_certs`: *Optional.* An array of objects with the following format:
 
@@ -259,7 +268,8 @@ version is the image's digest.
 
 * `tag`: **DEPRECATED - Use `tag_file` instead**
 * `tag_file`: *Optional.* The value should be a path to a file containing the name
-  of the tag.
+  of the tag. When not set, the Docker build will be pushed with tag value set by
+  `tag` in source configuration.
 
 * `tag_as_latest`: *Optional.*  Default `false`. If true, the pushed image will
   be tagged as `latest` in addition to whatever other tag was specified.
