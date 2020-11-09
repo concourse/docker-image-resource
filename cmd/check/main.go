@@ -124,6 +124,7 @@ func headDigest(client *http.Client, manifestURL, repository, tag string) (strin
 	fatalIf("failed to fetch manifest", err)
 
 	defer manifestResponse.Body.Close()
+
 	if manifestResponse.StatusCode == http.StatusNotFound {
 		return "", false
 	}

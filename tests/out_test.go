@@ -493,11 +493,11 @@ var _ = Describe("Out", func() {
 				},
 			})
 
-			Expect(session.Err).To(gbytes.Say(docker(`push test:tagme`)))
-			Expect(session.Err).To(gbytes.Say(docker(`tag test:tagme mirror1:tagme`)))
-			Expect(session.Err).To(gbytes.Say(docker(`push mirror1:tagme`)))
-			Expect(session.Err).To(gbytes.Say(docker(`tag test:tagme mirror2:tagme`)))
-			Expect(session.Err).To(gbytes.Say(docker(`push mirror2:tagme`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push test:foo`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror1:foo`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push mirror1:foo`)))
+			Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror2:foo`)))
+			Expect(session.Err).To(gbytes.Say(docker(`push mirror2:foo`)))
 		})
 	})
 
