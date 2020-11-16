@@ -3,3 +3,4 @@ assets/print-metadata
 tar-src/
 *.test
 .idea
+config.json

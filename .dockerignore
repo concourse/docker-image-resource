@@ -1,4 +1,5 @@
 *
+!config.json
 !go.mod
 !go.sum
 !/assets

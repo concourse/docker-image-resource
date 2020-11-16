@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /assets /opt/resource
+COPY config.json /root/.docker/config.json
 RUN ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
 
 # stage: tests

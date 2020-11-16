@@ -29,6 +29,7 @@ RUN apk --no-cache add \
       tar \
     ;
 COPY --from=builder /assets /opt/resource
+COPY config.json /root/.docker/config.json
 RUN ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
 
 # stage: tests
