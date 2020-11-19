@@ -1,1 +1,8 @@
-* @xtremerui
+# https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+#  _last_ match wins
+# directory/ - recursive match
+# directory/* - _non_ recursive match
+# *.tf - all Terraform
+
+*  @PlutoFlume/platform-reviewers @alex-plutoflume @federico-plutoflume @backend
+
