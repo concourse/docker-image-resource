@@ -27,6 +27,8 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 * `aws_access_key_id`: *Optional.* AWS access key to use for acquiring ECR
   credentials.
 
+* `docker_config_json` : *Optional.* The raw `config.json` file used for authenticating with Docker registries. If specified, `username` and `password` parameters will be ignored. You may find this useful if you need to be authenticated against multiple registries (e.g. pushing to a private registry, but you also also need to pull authenticate to pull images from Docker Hub without being rate-limited).
+
 * `aws_secret_access_key`: *Optional.* AWS secret key to use for acquiring ECR
   credentials.
 
