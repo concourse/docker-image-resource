@@ -41,7 +41,7 @@ sanitize_cgroups() {
     fi
   done
 
-  if ! test -e /sys/fs/cgroup/systemd ; then
+  if [ ! -e /sys/fs/cgroup/systemd ] && [ $(cat /proc/self/cgroup | grep '^1:name=openrc:' | wc -l) -eq 0 ]; then
     mkdir /sys/fs/cgroup/systemd
     mount -t cgroup -o none,name=systemd none /sys/fs/cgroup/systemd
   fi
