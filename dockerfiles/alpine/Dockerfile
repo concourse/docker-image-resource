@@ -1,5 +1,8 @@
+ARG base_image=alpine:latest
+ARG builder_image=concourse/golang-builder
+
 # stage: builder
-FROM concourse/golang-builder AS builder
+FROM ${builder_image} AS builder
 
 WORKDIR /concourse/docker-image-resource
 COPY go.mod .
@@ -18,7 +21,7 @@ RUN set -e; \
     done
 
 # stage: resource
-FROM alpine:edge AS resource
+FROM ${base_image} AS resource
 RUN apk --no-cache add \
       bash \
       docker \
