@@ -191,6 +191,8 @@ version is the image's digest.
   { "EMAIL": "me@yopmail.com", "HOW_MANY_THINGS": 1, "DO_THING": false }
   ```
 
+* `build_once`: *Optional.* If this parameter is set to "true", the resource will check the image existence in the registry to avoid rebuilding unnecessarily the image.
+  
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building). This will cause the resource to fail
