@@ -348,6 +348,14 @@ if [ -n "$mirror_repositories" ]; then
         docker tag "${repository}:${tag_name}" "${repository_name}:${tag_name}"
         echo "${repository}:${tag_name} tagged as ${repository_name}:${tag_name}"
         docker push "${repository_name}:${tag_name}"
+
+        if [ -n "$additional_tag_names" ]    ; then
+          for additional_tag in $additional_tag_names; do
+            docker tag "${repository}:${tag_name}" "${repository_name}:${additional_tag}"
+            docker push "${repository_name}:${additional_tag}"
+            echo "${repository}:${tag_name} tagged as ${repository_name}:${additional_tag}"
+          done
+        fi
     done
 fi
 
