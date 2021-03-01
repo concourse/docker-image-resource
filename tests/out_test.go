@@ -499,6 +499,41 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror2:foo`)))
 			Expect(session.Err).To(gbytes.Say(docker(`push mirror2:foo`)))
 		})
+
+		It("should push all tags to all repositories", func() {
+		    session := put(map[string]interface{}{
+		        "source": map[string]interface{}{
+		            "repository": "test",
+		        },
+		        "params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"tag":   "/docker-image-resource/tests/fixtures/tag",
+					"additional_tags": "/docker-image-resource/tests/fixtures/tags"
+					"mirror_repositories": []interface{}{
+						map[string]string{
+							"repository": "mirror1",
+						},
+					},
+				},
+		    })
+
+		    Expect(session.Err).To(gbytes.Say(docker(`push test:foo`))
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo test:a`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push test:a`))
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo test:b`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push test:b`))
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo test:c`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push test:c`))
+
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror1:foo`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push mirror1:foo`))
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror1:a`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push mirror1:a`))
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror1:b`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push mirror1:b`))
+		    Expect(session.Err).To(gbytes.Say(docker(`tag test:foo mirror1:c`))
+		    Expect(session.Err).To(gbytes.Say(docker(`push mirror1:c`))
+		})
 	})
 
 	Context("When only http_proxy setting is provided, with no build arguments", func() {
