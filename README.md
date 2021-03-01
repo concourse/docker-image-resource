@@ -258,7 +258,7 @@ version is the image's digest.
     to this resource.
 
 * `mirror_repositories`: *Optional.* The same image will be pushed to all
-    the repositories in the list using the same tag.
+    the repositories in the list using the same tags (main tag and additional tags).
 
 * `pull_repository`: *Optional.* **DEPRECATED. Use `get` and `load` instead.** A
   path to a repository to pull down, and then push to this resource.
