@@ -322,7 +322,7 @@ will stop the build.
 Run the tests with the following commands for both `alpine` and `ubuntu` images:
 
 ```sh
-docker build -t docker-image-resource -f dockerfiles/alpine/Dockerfile .
+docker build -t docker-image-resource -f dockerfiles/alpine/Dockerfile --build-arg base_image=ubuntu:latest .
 docker build -t docker-image-resource -f dockerfiles/ubuntu/Dockerfile .
 ```
 
