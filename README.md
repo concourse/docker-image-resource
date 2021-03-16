@@ -214,6 +214,9 @@ version is the image's digest.
 * `dockerfile`: *Optional.* The path of the `Dockerfile` in the directory if
   it's not at the root of the directory.
 
+* `docker_buildkit`: *Optional.* This enables a Docker BuildKit build. The value
+  should be set to 1 if applicable.
+
 * `import_file`: *Optional.* A path to a file to `docker import` and then push.
 
 * `labels`: *Optional.* A map of labels that will be added to the image.
