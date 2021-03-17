@@ -260,6 +260,11 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  **DEPRECATED. Use `get` and `load` instead.** Default
   `latest`. The tag of the repository to pull down via `pull_repository`.
 
+* `ssh_identity`: *Optional.* Only applies when `docker_buildkit` is set to `1`.
+  Set to an openssh private SSH key (i.e. -----BEGIN OPENSSH PRIVATE KEY----- ...),
+  this identity will be passed to `docker build` via the `--ssh default` argument
+  through a temporary `ssh-agent` instance.
+
 * `tag`: **DEPRECATED - Use `tag_file` instead**
 * `tag_file`: *Optional.* The value should be a path to a file containing the name
   of the tag. When not set, the Docker build will be pushed with tag value set by

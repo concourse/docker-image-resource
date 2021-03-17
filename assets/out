@@ -40,6 +40,15 @@ export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // ""' < $pa
 export AWS_SESSION_TOKEN=$(jq -r '.source.aws_session_token // ""' < $payload)
 export DOCKER_BUILDKIT=$(jq -r '.source.docker_buildkit // 0' < $payload)
 
+ssh_identity=$(jq -r '.source.ssh_identity // ""' < $payload)
+if [ -n "$ssh_identity" ] && [ "${DOCKER_BUILDIT}" -eq "1" ] then
+  eval `ssh-agent`
+  trap 'kill -9 ${SSH_AGENT_PID}' EXIT
+  buildkit_ssh_args="--ssh default"
+else
+  buildkit_ssh_args=""
+fi
+
 if private_registry "${repository}" ; then
   registry="$(extract_registry "${repository}")"
 else
@@ -245,7 +254,7 @@ elif [ -n "$build" ]; then
     done
   fi
 
-  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_labels[@]}" -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${buildkit_ssh_args}" "${expanded_build_args[@]}" "${expanded_labels[@]}" -f "$dockerfile" $cache_from "$build"
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
     docker load -i "$load_file"
