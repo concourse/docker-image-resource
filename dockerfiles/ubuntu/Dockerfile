@@ -30,7 +30,8 @@ RUN apt-get update; \
     ca-certificates \
     curl \
     gnupg-agent \
-    software-properties-common; \
+    software-properties-common \
+    openssh-client; \
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - ; \
   add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
