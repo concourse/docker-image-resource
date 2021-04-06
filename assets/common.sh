@@ -118,7 +118,9 @@ log_in() {
     echo "${password}" | docker login -u "${username}" --password-stdin ${registry}
   else
     mkdir -p ~/.docker
-    echo '{"credsStore":"ecr-login"}' >> ~/.docker/config.json
+    touch ~/.docker/config.json
+    # This ensures the resulting JSON object remains syntactically valid
+    echo "$(cat ~/.docker/config.json){\"credsStore\":\"ecr-login\"}" | jq -s add > ~/.docker/config.json
   fi
 }
 
