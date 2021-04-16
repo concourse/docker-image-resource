@@ -172,9 +172,9 @@ elif [ -n "$build" ]; then
     fi
   done
 
-  build_arg_keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
-  if [ "${#build_arg_keys[@]}" -gt 0 ]; then
-    for key in "${build_arg_keys[@]}"; do
+  build_args_keys=($(echo "$build_args" | jq -r 'keys | join(" ")'))
+  if [ "${#build_args_keys[@]}" -gt 0 ]; then
+    for key in "${build_args_keys[@]}"; do
       value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
       for var in BUILD_ID BUILD_NAME BUILD_JOB_NAME BUILD_PIPELINE_NAME BUILD_TEAM_NAME ATC_EXTERNAL_URL; do
         value="${value//\$$var/${!var:-}}"
@@ -187,9 +187,9 @@ elif [ -n "$build" ]; then
 
   if [ -n "$build_args_file" ]; then
     if jq . "$build_args_file" >/dev/null 2>&1; then
-      build_arg_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
-      if [ "${#build_arg_keys[@]}" -gt 0 ]; then
-        for key in "${build_arg_keys[@]}"; do
+      build_args_file_keys=($(jq -r 'keys | join(" ")' "$build_args_file"))
+      if [ "${#build_args_file_keys[@]}" -gt 0 ]; then
+        for key in "${build_args_file_keys[@]}"; do
           value=$(jq -r --arg "k" "$key" '.[$k]' "$build_args_file")
           expanded_build_args+=("--build-arg")
           expanded_build_args+=("${key}=${value}")
@@ -229,8 +229,16 @@ elif [ -n "$build" ]; then
    target+=("${target_name}")
   fi
 
+  from=$(egrep '^\s*FROM|^\s*ARG' ${dockerfile})
+  if [ "${#build_args_keys[@]}" -gt 0 ]; then
+    for key in "${build_args_keys[@]}"; do
+      value=$(echo "$build_args" | jq -r --arg "k" "$key" '.[$k]')
+      from=$(echo "$from" | sed "s;\${$key};$(echo -E $value);g")
+    done
+  fi
+
   ECR_REGISTRY_PATTERN='/[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*/'
-  ecr_images=$(egrep '^\s*FROM|^\s*ARG' ${dockerfile} | \
+  ecr_images=$(echo "${from}" | \
              awk "match(\$0,${ECR_REGISTRY_PATTERN}){print substr(\$0, RSTART, RLENGTH)}" )
   if [ -n "$ecr_images" ]; then
     for ecr_image in $ecr_images
