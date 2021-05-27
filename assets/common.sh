@@ -3,6 +3,10 @@ SKIP_PRIVILEGED=${SKIP_PRIVILEGED:-false}
 STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-120}
 
 sanitize_cgroups() {
+  if [ -e /sys/fs/cgroup/cgroup.controllers ]; then
+    return
+  fi
+
   mkdir -p /sys/fs/cgroup
   mountpoint -q /sys/fs/cgroup || \
     mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
