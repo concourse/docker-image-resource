@@ -3,13 +3,13 @@ module github.com/concourse/docker-image-resource
 go 1.14
 
 require (
-	github.com/Sirupsen/logrus v0.10.1-0.20160716025631-a283a10442df // indirect
 	github.com/aws/aws-sdk-go v1.6.6-0.20161219233417-8e3cbe8bc611 // indirect
 	github.com/awslabs/amazon-ecr-credential-helper v0.0.0-20170308192640-b689e22ad1e9
 	github.com/cihub/seelog v0.0.0-20160420184328-a98235bd6d92
 	github.com/concourse/retryhttp v0.0.0-20160627222715-dd24ee5a434d
-	github.com/docker/distribution v2.5.0-rc.1.0.20160722180724-4abae2ae560b+incompatible
+	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker-credential-helpers v0.4.1 // indirect
+	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/go-ini/ini v0.0.0-20151105010020-060d7da055ba // indirect
 	github.com/golang/mock v1.4.3 // indirect
@@ -23,11 +23,12 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.2.1-0.20160722022339-09289bfe14b6
 	github.com/onsi/gomega v0.0.0-20160718190435-9ed8da19f215
+	github.com/opencontainers/go-digest v1.0.0
+	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pivotal-golang/clock v0.0.0-20160705185712-da8295109ceb
 	github.com/pivotal-golang/lager v0.0.0-20160311180000-7639e31ce662
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/stevvooe/resumable v0.0.0-20180830230917-22b14a53ba50 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/yaml.v2 v2.0.0-20160715033755-e4d366fc3c79 // indirect
 )
