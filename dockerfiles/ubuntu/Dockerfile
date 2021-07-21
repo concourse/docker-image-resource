@@ -23,9 +23,10 @@ RUN set -e; \
 # stage: resource
 FROM ${base_image} AS resource
 
+RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
 # docker hosts their own packages, this steps sets up the repo for apt-get
-RUN apt-get update; \
-  apt-get install -y --no-install-recommends \
+RUN apt update; \
+  apt install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -37,7 +38,7 @@ RUN apt-get update; \
    $(lsb_release -cs) \
    stable";
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt update && apt install -y --no-install-recommends \
     docker-ce \
     jq \
     ca-certificates \
