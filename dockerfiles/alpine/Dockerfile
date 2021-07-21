@@ -22,6 +22,7 @@ RUN set -e; \
 
 # stage: resource
 FROM ${base_image} AS resource
+RUN apk update && apk upgrade
 RUN apk --no-cache add \
       bash \
       docker \
