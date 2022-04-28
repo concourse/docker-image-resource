@@ -28,6 +28,7 @@ registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
+docker_config_json=$(jq -r '.source.docker_config_json // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
@@ -64,7 +65,11 @@ if [ "$skip_download" = "false" ]; then
     "$insecure_registries" \
     "$registry_mirror"
 
-  log_in "$username" "$password" "$registry"
+  if [ -z "$docker_config_json" ]; then
+    log_in "$username" "$password" "$registry"
+  else
+    docker_config_json_to_file "$docker_config_json"
+  fi
 
   docker_pull "$image_name"
 

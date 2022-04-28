@@ -2,6 +2,9 @@ LOG_FILE=${LOG_FILE:-/tmp/docker.log}
 SKIP_PRIVILEGED=${SKIP_PRIVILEGED:-false}
 STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-120}
 
+# Otherwise we get "certificate relies on legacy Common Name field"
+export GODEBUG="x509ignoreCN=0"
+
 sanitize_cgroups() {
   if [ -e /sys/fs/cgroup/cgroup.controllers ]; then
     return
@@ -212,4 +215,10 @@ docker_pull() {
 
   printf "\n${RED}Failed to pull image %s.${NC}" "$1"
   return 1
+}
+
+docker_config_json_to_file() {
+  local docker_config_json="${1}"
+  mkdir -p ~/.docker
+  echo "${1}" > ~/.docker/config.json
 }
