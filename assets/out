@@ -53,7 +53,6 @@ start_docker \
 	"$insecure_registries" \
 	"$registry_mirror"
 
-
 # idea to use base64 to iterate over an array of json objects
 # borrowed from https://www.starkandwayne.com/blog/bash-for-loop-over-json-array-using-jq/
 additional_private_registries_base64=$(jq -r '.source.additional_private_registries // []' < $payload | jq -r '.[] | @base64')
