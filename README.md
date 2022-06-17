@@ -24,6 +24,23 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 * `password`: *Optional.* The password to use when authenticating.
 
+* `additional_private_registries`: *Optional.* An array of objects with the
+  following format:
+
+  ```yaml
+  additional_private_registries:
+  - registry: example.com/my-private-docker-registry
+    username: my-username
+    password: ((my-secret:my-secret))
+  - registry: example.com/another-private-docker-registry
+    username: another-username
+    password: ((another-secret:another-secret))
+  ```
+
+  Each entry specifies a private docker registry and credentials to be passed
+  to `docker login`. This is used when a Dockerfile contains a FROM instruction
+  referring to an image hosted in a docker registry that requires a login.
+
 * `aws_access_key_id`: *Optional.* AWS access key to use for acquiring ECR
   credentials.
 

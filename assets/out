@@ -52,6 +52,21 @@ start_docker \
 	"${max_concurrent_uploads}" \
 	"$insecure_registries" \
 	"$registry_mirror"
+
+
+# idea to use base64 to iterate over an array of json objects
+# borrowed from https://www.starkandwayne.com/blog/bash-for-loop-over-json-array-using-jq/
+additional_private_registries_base64=$(jq -r '.source.additional_private_registries // []' < $payload | jq -r '.[] | @base64')
+
+# authenticate to additional registries (if any)
+for base64_line in ${additional_private_registries_base64}; do
+  additional_registry=$(echo $base64_line | base64 --decode | jq -r '.registry')
+  additional_username=$(echo $base64_line | base64 --decode | jq -r '.username')
+  additional_password=$(echo $base64_line | base64 --decode | jq -r '.password')
+  log_in "$additional_username" "$additional_password" "$additional_registry"
+done
+
+# authenticate to primary registry last
 log_in "$username" "$password" "$registry"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
