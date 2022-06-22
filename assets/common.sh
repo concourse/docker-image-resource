@@ -118,12 +118,6 @@ log_in() {
   local password="$2"
   local registry="$3"
 
-  # workaround for docker hub login problem https://github.com/concourse/docker-image-resource/pull/343 https://github.com/docker/hub-feedback/issues/1250
-  if [[ -z ${registry} ]]; then
-    # if $registry is empty, that implies that we are trying to auth to docker hub, and we need this workaround
-    docker logout https://index.docker.io/v1/
-  fi
-
   if [ -n "${username}" ] && [ -n "${password}" ]; then
     echo "${password}" | docker login -u "${username}" --password-stdin ${registry}
   else
