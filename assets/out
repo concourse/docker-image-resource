@@ -262,7 +262,7 @@ elif [ -n "$build" ]; then
   cp ~/.docker/config.json ~/.docker/config.json.bak
   cat <<< "$(jq 'del(.credsStore)' ~/.docker/config.json)" > ~/.docker/config.json
   docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_labels[@]}" "${ssh_args[@]}" -f "$dockerfile" $cache_from "$build"
-  mv ~/.docker/config.json.bak ~/.docker/config.json
+  mv ~/.docker/config.json.bak ~/.docker/config.json # This restores the credsStore: ecr-login to config.json if needed
 
 elif [ -n "$load_file" ]; then
   if [ -n "$load_repository" ]; then
