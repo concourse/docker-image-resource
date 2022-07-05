@@ -117,7 +117,7 @@ log_in() {
   local username="$1"
   local password="$2"
   local registry="$3"
-  docker logout
+
   if [ -n "${username}" ] && [ -n "${password}" ]; then
     echo "${password}" | docker login -u "${username}" --password-stdin ${registry}
   else
