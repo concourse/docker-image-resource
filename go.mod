@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/aws/aws-sdk-go v1.6.6-0.20161219233417-8e3cbe8bc611 // indirect
-	github.com/awslabs/amazon-ecr-credential-helper v0.0.0-20170308192640-b689e22ad1e9
+	github.com/awslabs/amazon-ecr-credential-helper v0.6.0
 	github.com/cihub/seelog v0.0.0-20160420184328-a98235bd6d92
 	github.com/concourse/retryhttp v0.0.0-20160627222715-dd24ee5a434d
 	github.com/docker/distribution v2.8.0+incompatible

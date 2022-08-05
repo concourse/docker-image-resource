@@ -50,9 +50,9 @@ func main() {
 	seelog.UseLogger(seelog.Disabled)
 
 	if rECRRepo.MatchString(request.Source.Repository) == true {
-		ecrUser, ecrPass, err := ecr.ECRHelper{
-			ClientFactory: ecrapi.DefaultClientFactory{},
-		}.Get(request.Source.Repository)
+		ecrUser, ecrPass, err := ecr.NewECRHelper(
+			ecr.WithClientFactory(ecrapi.DefaultClientFactory{}),
+        ).Get(request.Source.Repository)
 		fatalIf("failed to get ECR credentials", err)
 		request.Source.Username = ecrUser
 		request.Source.Password = ecrPass
