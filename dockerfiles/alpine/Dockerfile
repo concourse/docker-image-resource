@@ -20,7 +20,7 @@ RUN set -e; \
       go test -o "/tests/$(basename $pkg).test" -c $pkg; \
     done
 
-## stage: resource
+# stage: resource
 FROM ${base_image} AS resource
 RUN apk update && apk upgrade
 RUN apk --no-cache add \
