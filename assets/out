@@ -59,9 +59,9 @@ additional_private_registries_base64=$(jq -r '.source.additional_private_registr
 
 # authenticate to additional registries (if any)
 for base64_line in ${additional_private_registries_base64}; do
-  additional_registry=$(echo $base64_line | base64 --decode | jq -r '.registry')
-  additional_username=$(echo $base64_line | base64 --decode | jq -r '.username')
-  additional_password=$(echo $base64_line | base64 --decode | jq -r '.password')
+  additional_registry=$(echo $base64_line | base64 -d | jq -r '.registry')
+  additional_username=$(echo $base64_line | base64 -d | jq -r '.username')
+  additional_password=$(echo $base64_line | base64 -d | jq -r '.password')
   log_in "$additional_username" "$additional_password" "$additional_registry"
 done
 
