@@ -271,6 +271,42 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when configured with additional private registries", func() {
+		It("passes them to docker login", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+					"additional_private_registries": []interface{}{
+						map[string]string{
+							"registry": "example.com/my-private-docker-registry",
+							"username": "my-username",
+							"password": "my-secret",
+						},
+						map[string]string{
+							"registry": "example.com/another-private-docker-registry",
+							"username": "another-username",
+							"password": "another-secret",
+						},
+					},
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`login`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`-u`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`my-username`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--password-stdin`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`example.com/my-private-docker-registry`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`login`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`-u`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`another-username`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--password-stdin`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`example.com/another-private-docker-registry`)))
+		})
+	})
+
 	Context("when configured with a insecure registries", func() {
 		It("passes them to dockerd", func() {
 			session := put(map[string]interface{}{
