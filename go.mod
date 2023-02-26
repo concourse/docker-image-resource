@@ -18,7 +18,7 @@ require (
 	github.com/onsi/ginkgo v1.2.1-0.20160722022339-09289bfe14b6
 	github.com/onsi/gomega v0.0.0-20160718190435-9ed8da19f215
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pivotal-golang/clock v0.0.0-20160705185712-da8295109ceb
 	github.com/pivotal-golang/lager v0.0.0-20160311180000-7639e31ce662
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
