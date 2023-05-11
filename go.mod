@@ -6,7 +6,7 @@ require (
 	github.com/awslabs/amazon-ecr-credential-helper/ecr-login v0.0.0-20220802171026-617dc7abb2ea
 	github.com/cihub/seelog v0.0.0-20160420184328-a98235bd6d92
 	github.com/concourse/retryhttp v0.0.0-20160627222715-dd24ee5a434d
-	github.com/docker/distribution v2.8.0+incompatible
+	github.com/docker/distribution v2.8.2+incompatible
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
