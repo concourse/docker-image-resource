@@ -31,6 +31,7 @@ RUN apk --no-cache add \
       xz \
       util-linux \
       tar \
+      openssh-client \
     ;
 COPY --from=builder /assets /opt/resource
 RUN ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
