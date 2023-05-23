@@ -22,6 +22,7 @@ RUN set -e; \
 
 # stage: resource
 FROM ${base_image} AS resource
+USER root
 
 RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
 # docker hosts their own packages, this steps sets up the repo for apt-get
