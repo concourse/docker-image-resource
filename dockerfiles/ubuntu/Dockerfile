@@ -22,6 +22,7 @@ RUN set -e; \
 
 # stage: resource
 FROM ${base_image} AS resource
+USER root
 
 RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
 # docker hosts their own packages, this steps sets up the repo for apt-get
@@ -32,11 +33,13 @@ RUN apt update; \
     curl \
     gnupg-agent \
     software-properties-common; \
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - ; \
-  add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable";
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  gpg --dearmor -o /etc/apt/keyrings/docker.gpg | \
+  chmod a+r /etc/apt/keyrings/docker.gpg | \
+  echo \
+  "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 RUN apt update && apt install -y --no-install-recommends \
     docker-ce \
