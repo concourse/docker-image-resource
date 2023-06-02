@@ -48,6 +48,7 @@ RUN apt update && apt install -y --no-install-recommends \
     xz-utils \
     iproute2 \
   && rm -rf /var/lib/apt/lists/*
+RUN apt remove -y python3
 
 COPY --from=builder /assets /opt/resource
 RUN ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
