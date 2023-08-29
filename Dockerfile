@@ -43,6 +43,7 @@ RUN apt update; \
 
 RUN apt update && apt install -y --no-install-recommends \
     docker-ce \
+    docker-buildx-plugin \
     jq \
     ca-certificates \
     xz-utils \
