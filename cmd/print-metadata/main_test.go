@@ -3,7 +3,6 @@ package main_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
@@ -41,7 +40,7 @@ var _ = Describe("print-metadata", func() {
 	Context("when user file exists", func() {
 		BeforeEach(func() {
 			var err error
-			userFile, err = ioutil.TempFile("", "print-metadata-test")
+			userFile, err = os.CreateTemp("", "print-metadata-test")
 			Expect(err).NotTo(HaveOccurred())
 
 			cmd = exec.Command(printMetadataPath, "-userFile", userFile.Name())

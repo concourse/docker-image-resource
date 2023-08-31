@@ -2,7 +2,6 @@ package passwd_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -26,7 +25,7 @@ var _ = Describe("Passwd", func() {
 	})
 
 	JustBeforeEach(func() {
-		path, err := ioutil.TempDir("", "passwd")
+		path, err := os.MkdirTemp("", "passwd")
 		Expect(err).ToNot(HaveOccurred())
 
 		etcPasswdDir = path
@@ -36,7 +35,7 @@ var _ = Describe("Passwd", func() {
 			etcPasswdContents += fmt.Sprintf("%s:*:%d:1:User Name:/dev/null:/usr/bin/false\n", user.Username, user.ID)
 		}
 
-		err = ioutil.WriteFile(etcPasswdPath, []byte(etcPasswdContents), 0600)
+		err = os.WriteFile(etcPasswdPath, []byte(etcPasswdContents), 0600)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
