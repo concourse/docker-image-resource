@@ -3,7 +3,6 @@ package docker_image_resource_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os/exec"
 
 	"encoding/json"
@@ -529,22 +528,22 @@ var _ = Describe("Out", func() {
 		BeforeEach(func() {
 			os.Mkdir("/tmp/expected_base_1", os.ModeDir)
 			// this image should really be an actual tarball, but the test passes with text. :shrug:
-			ioutil.WriteFile("/tmp/expected_base_1/image", []byte("some-image-1"), os.ModePerm)
-			ioutil.WriteFile("/tmp/expected_base_1/repository", []byte("some-repository-1"), os.ModePerm)
-			ioutil.WriteFile("/tmp/expected_base_1/image-id", []byte("some-image-id-1"), os.ModePerm)
-			ioutil.WriteFile("/tmp/expected_base_1/tag", []byte("some-tag-1"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_1/image", []byte("some-image-1"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_1/repository", []byte("some-repository-1"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_1/image-id", []byte("some-image-id-1"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_1/tag", []byte("some-tag-1"), os.ModePerm)
 
 			os.Mkdir("/tmp/expected_base_2", os.ModeDir)
-			ioutil.WriteFile("/tmp/expected_base_2/image", []byte("some-image-2"), os.ModePerm)
-			ioutil.WriteFile("/tmp/expected_base_2/repository", []byte("some-repository-2"), os.ModePerm)
-			ioutil.WriteFile("/tmp/expected_base_2/image-id", []byte("some-image-id-2"), os.ModePerm)
-			ioutil.WriteFile("/tmp/expected_base_2/tag", []byte("some-tag-2"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_2/image", []byte("some-image-2"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_2/repository", []byte("some-repository-2"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_2/image-id", []byte("some-image-id-2"), os.ModePerm)
+			os.WriteFile("/tmp/expected_base_2/tag", []byte("some-tag-2"), os.ModePerm)
 
 			os.Mkdir("/tmp/unexpected_base", os.ModeDir)
-			ioutil.WriteFile("/tmp/unexpected_base/image", []byte("some-image-3"), os.ModePerm)
-			ioutil.WriteFile("/tmp/unexpected_base/repository", []byte("some-repository-3"), os.ModePerm)
-			ioutil.WriteFile("/tmp/unexpected_base/image-id", []byte("some-image-id-3"), os.ModePerm)
-			ioutil.WriteFile("/tmp/unexpected_base/tag", []byte("some-tag-3"), os.ModePerm)
+			os.WriteFile("/tmp/unexpected_base/image", []byte("some-image-3"), os.ModePerm)
+			os.WriteFile("/tmp/unexpected_base/repository", []byte("some-repository-3"), os.ModePerm)
+			os.WriteFile("/tmp/unexpected_base/image-id", []byte("some-image-id-3"), os.ModePerm)
+			os.WriteFile("/tmp/unexpected_base/tag", []byte("some-tag-3"), os.ModePerm)
 		})
 
 		AfterEach(func() {
@@ -612,16 +611,16 @@ var _ = Describe("Out", func() {
 		BeforeEach(func() {
 			os.Mkdir("/tmp/cache_from_1", os.ModeDir)
 			// this image should really be an actual tarball, but the test passes with text. :shrug:
-			ioutil.WriteFile("/tmp/cache_from_1/image", []byte("some-image-1"), os.ModePerm)
-			ioutil.WriteFile("/tmp/cache_from_1/repository", []byte("some-repository-1"), os.ModePerm)
-			ioutil.WriteFile("/tmp/cache_from_1/image-id", []byte("some-image-id-1"), os.ModePerm)
-			ioutil.WriteFile("/tmp/cache_from_1/tag", []byte("some-tag-1"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_1/image", []byte("some-image-1"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_1/repository", []byte("some-repository-1"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_1/image-id", []byte("some-image-id-1"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_1/tag", []byte("some-tag-1"), os.ModePerm)
 
 			os.Mkdir("/tmp/cache_from_2", os.ModeDir)
-			ioutil.WriteFile("/tmp/cache_from_2/image", []byte("some-image-2"), os.ModePerm)
-			ioutil.WriteFile("/tmp/cache_from_2/repository", []byte("some-repository-2"), os.ModePerm)
-			ioutil.WriteFile("/tmp/cache_from_2/image-id", []byte("some-image-id-2"), os.ModePerm)
-			ioutil.WriteFile("/tmp/cache_from_2/tag", []byte("some-tag-2"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_2/image", []byte("some-image-2"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_2/repository", []byte("some-repository-2"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_2/image-id", []byte("some-image-id-2"), os.ModePerm)
+			os.WriteFile("/tmp/cache_from_2/tag", []byte("some-tag-2"), os.ModePerm)
 		})
 
 		AfterEach(func() {

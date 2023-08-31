@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -163,7 +163,7 @@ func fetchDigest(client *http.Client, manifestURL, repository, tag string) (stri
 
 	ctHeader := manifestResponse.Header.Get("Content-Type")
 
-	bytes, err := ioutil.ReadAll(manifestResponse.Body)
+	bytes, err := io.ReadAll(manifestResponse.Body)
 	fatalIf("failed to read response body", err)
 
 	_, desc, err := distribution.UnmarshalManifest(ctHeader, bytes)
