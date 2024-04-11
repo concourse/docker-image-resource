@@ -126,6 +126,7 @@ import_file=$(jq -r '.params.import_file // ""' < $payload)
 
 pull_repository=$(jq -r '.params.pull_repository // ""' < $payload)
 pull_tag=$(jq -r '.params.pull_tag // "latest"' < $payload)
+ssh_identity=$(jq -r '.params.ssh_identity // ""' < $payload)
 target_name=$(jq -r '.params.target_name // ""' < $payload)
 
 if [ -n "$load" ]; then
@@ -235,6 +236,20 @@ elif [ -n "$build" ]; then
         expanded_labels+=("${key}=${value}")
       done
     fi
+  fi
+
+  ssh_args=()
+  if [ -n "$ssh_identity" ]; then
+    export DOCKER_BUILDKIT=1
+    eval "$(ssh-agent)"
+    trap "ssh-agent -k; $( trap -p EXIT | cut -f2 -d \' )" EXIT
+    if [ -f "$ssh_identity" ]; then
+      ssh-add "$ssh_identity"
+    else
+      ssh-add <(echo "$ssh_identity")
+    fi
+    ssh_args+=("--ssh")
+    ssh_args+=("default")
   fi
 
   target=()

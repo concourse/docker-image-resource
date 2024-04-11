@@ -277,6 +277,27 @@ version is the image's digest.
 * `pull_tag`: *Optional.*  **DEPRECATED. Use `get` and `load` instead.** Default
   `latest`. The tag of the repository to pull down via `pull_repository`.
 
+* `ssh_identity`: *Optional.* Set to an openssh private SSH key (it can be a file
+  or an inline key). This identity will be passed to `docker build` via the 
+  `--ssh default` argument through a temporary `ssh-agent` instance.
+
+  Examples:
+
+  ```yaml
+  ssh_identity: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        0000000000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000==
+        -----END OPENSSH PRIVATE KEY-----
+  ```
+
+  ```yaml
+  ssh_identity: /path/to/key
+  ```
+
 * `tag`: **DEPRECATED - Use `tag_file` instead**
 * `tag_file`: *Optional.* The value should be a path to a file containing the name
   of the tag. When not set, the Docker build will be pushed with tag value set by

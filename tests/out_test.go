@@ -484,6 +484,49 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("When specifying ssh_identity file", func() {
+		It("should set ssh args", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"additional_tags": "/docker-image-resource/tests/fixtures/tags",
+				  "ssh_identity": "/docker-image-resource/tests/fixtures/ssh_identity",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--ssh`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`default`)))
+		})
+	})
+
+
+	Context("When specifying ssh_identity key", func() {
+		It("should set ssh args", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build":           "/docker-image-resource/tests/fixtures/build",
+					"additional_tags": "/docker-image-resource/tests/fixtures/tags",
+				  "ssh_identity": "-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+                          "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n" +
+                          "QyNTUxOQAAACCTcY7/Q4JTr+zc5uuLSndCM8uiMBdf2H3JHTaCw1POrQAAAJiSPsoAkj7K\n" +
+                          "AAAAAAtzc2gtZWQyNTUxOQAAACCTcY7/Q4JTr+zc5uuLSndCM8uiMBdf2H3JHTaCw1POrQ\n" +
+                          "AAAEBhwFGOegUZ/wTf18i/9SNbDgZ0P/BJtPUoGHdvi2bNtJNxjv9DglOv7Nzm64tKd0Iz\n" +
+                          "y6IwF1/YfckdNoLDU86tAAAAE3NvbWVvbmVAZXhhbXBsZS5jb20BAg==\n" +
+                          "-----END OPENSSH PRIVATE KEY-----",
+				},
+			},
+			)
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--ssh`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`default`)))
+		})
+	})
+
 	Context("When passing additional_tags ", func() {
 		It("should push add the additional_tags", func() {
 			session := put(map[string]interface{}{
