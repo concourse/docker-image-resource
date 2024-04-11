@@ -208,6 +208,22 @@ version is the image's digest.
   { "EMAIL": "me@yopmail.com", "HOW_MANY_THINGS": 1, "DO_THING": false }
   ```
 
+* `secrets`: *Optional.* A map of Docker build-time secrets. These will be
+  available as mounted paths only during the docker build phase.
+  
+  Secrets are not stored in any metadata or layers, so they are safe to use for
+  access tokens and the like during the build.
+
+  Example:
+
+  ```yaml
+  secrets:
+    secret1: 
+      env: BUILD_ID
+    secret2:
+      source: /a/secret/file.txt
+  ```
+
 * `cache`: *Optional.* Default `false`. When the `build` parameter is set,
   first pull `image:tag` from the Docker registry (so as to use cached
   intermediate images when building). This will cause the resource to fail
