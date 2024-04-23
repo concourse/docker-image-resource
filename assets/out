@@ -78,6 +78,7 @@ tag_prefix=$(jq -r '.params.tag_prefix // ""' < $payload)
 additional_tags=$(jq -r '.params.additional_tags // ""' < $payload)
 need_tag_as_latest=$(jq -r '.params.tag_as_latest // "false"' < $payload)
 build_args=$(jq -r '.params.build_args // {}' < $payload)
+secrets=$(jq -r '.params.secrets // {}' < $payload)
 build_args_file=$(jq -r '.params.build_args_file // ""' < $payload)
 labels=$(jq -r '.params.labels // {}' < $payload)
 labels_file=$(jq -r '.params.labels_file // ""' < $payload)
@@ -215,6 +216,32 @@ elif [ -n "$build" ]; then
     fi
   fi
 
+  expanded_secrets=()
+
+  secret_keys=($(echo "$secrets" | jq -r 'keys | join(" ")'))
+  if [ "${#secret_keys[@]}" -gt 0 ]; then
+    # Force buildkit on
+    export DOCKER_BUILDKIT=1
+    for key in "${secret_keys[@]}"; do
+      value=$(echo "$secrets" | jq -r --arg "k" "$key" '.[$k]')
+      for var in BUILD_ID BUILD_NAME BUILD_JOB_NAME BUILD_PIPELINE_NAME BUILD_TEAM_NAME ATC_EXTERNAL_URL; do
+        value="${value//\$$var/${!var:-}}"
+        value="${value//\$\{$var\}/${!var:-}}"
+      done
+      secret="id=${key}"
+      sub=$(jq -r ".params.secrets.${key} // {}" < $payload)
+      sub_keys=($(echo "$sub" | jq -r 'keys | join(" ")'))
+      if [ "${#sub_keys[@]}" -gt 0 ]; then
+        expanded_secrets+=("--secret")
+        for key in "${sub_keys[@]}"; do
+          value=$(echo "$sub" | jq -r --arg "k" "$key" '.[$k]')
+          secret="${secret},${key}=${value}"
+        done
+        expanded_secrets+=("${secret}")
+      fi
+    done
+  fi
+
   expanded_labels=()
 
   label_keys=($(echo "$labels" | jq -r 'keys | join(" ")'))
@@ -261,7 +288,7 @@ elif [ -n "$build" ]; then
   # NOTE: deactivate amazon-ecr-credential-helper so that builds go through with the DOCKER_BUILDKIT set
   cp ~/.docker/config.json ~/.docker/config.json.bak
   cat <<< "$(jq 'del(.credsStore)' ~/.docker/config.json)" > ~/.docker/config.json
-  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_labels[@]}" "${ssh_args[@]}" -f "$dockerfile" $cache_from "$build"
+  docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_secrets[@]}" "${expanded_labels[@]}" "${ssh_args[@]}" -f "$dockerfile" $cache_from "$build"
   mv ~/.docker/config.json.bak ~/.docker/config.json # This restores the credsStore: ecr-login to config.json if needed
 
 elif [ -n "$load_file" ]; then

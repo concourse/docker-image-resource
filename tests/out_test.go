@@ -133,6 +133,37 @@ var _ = Describe("Out", func() {
 		})
 	})
 
+	Context("when secrets are provided", func() {
+		It("passes the arguments correctly to the docker daemon", func() {
+			session := put(map[string]interface{}{
+				"source": map[string]interface{}{
+					"repository": "test",
+				},
+				"params": map[string]interface{}{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"secrets": map[string]interface{}{
+						"secret1": map[string]interface{}{
+              "env": "GITHUB_TOKEN",
+            },
+						"secret2": map[string]interface{}{
+              "source": "/a/file/path.txt",
+            },
+						"secret3": map[string]interface{}{
+              "source": "/a/file/path with a space in it.txt",
+            },
+					},
+				},
+			})
+
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--secret`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`id=secret1,env=GITHUB_TOKEN`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--secret`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`id=secret2,source=/a/file/path.txt`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`--secret`)))
+			Expect(session.Err).To(gbytes.Say(dockerarg(`id=secret3,source=/a/file/path with a space in it.txt`)))
+		})
+	})
+
 	Context("when labels are provided", func() {
 		It("passes the labels correctly to the docker daemon", func() {
 			session := put(map[string]interface{}{
