@@ -114,6 +114,11 @@ var _ = Describe("Check", func() {
 					),
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("HEAD", "/v2/some/fake-image/manifests/latest"),
+						ghttp.VerifyHeaderKV("Accept",
+							"application/vnd.docker.distribution.manifest.v2+json",
+							"application/vnd.oci.image.index.v1+json",
+							"application/json",
+						),
 						ghttp.RespondWith(http.StatusOK, `{"fake":"manifest"}`, http.Header{
 							"Docker-Content-Digest": {latestFakeDigest},
 						}),
