@@ -52,7 +52,7 @@ func main() {
 	if rECRRepo.MatchString(request.Source.Repository) == true {
 		ecrUser, ecrPass, err := ecr.NewECRHelper(
 			ecr.WithClientFactory(ecrapi.DefaultClientFactory{}),
-        ).Get(request.Source.Repository)
+		).Get(request.Source.Repository)
 		fatalIf("failed to get ECR credentials", err)
 		request.Source.Username = ecrUser
 		request.Source.Password = ecrPass
@@ -119,6 +119,7 @@ func headDigest(client *http.Client, manifestURL, repository, tag string) (strin
 	manifestRequest, err := http.NewRequest("HEAD", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	manifestRequest.Header.Add("Accept", "application/vnd.oci.image.index.v1+json")
 	manifestRequest.Header.Add("Accept", "application/json")
 
 	manifestResponse, err := client.Do(manifestRequest)
@@ -146,6 +147,7 @@ func fetchDigest(client *http.Client, manifestURL, repository, tag string) (stri
 	manifestRequest, err := http.NewRequest("GET", manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	manifestRequest.Header.Add("Accept", "application/vnd.oci.image.index.v1+json")
 	manifestRequest.Header.Add("Accept", "application/json")
 
 	manifestResponse, err := client.Do(manifestRequest)
