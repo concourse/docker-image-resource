@@ -76,6 +76,7 @@ if [ "$skip_download" = "false" ]; then
 
   echo "$image_id" > ${destination}/image-id
   docker inspect $image_id > ${destination}/docker_inspect.json
+  labels="$(cat ${destination}/docker_inspect.json | jq -r '.[0].Config.Labels // {} | to_entries | map("\(.key)=\(.value)") | join(", ")')"
 
   docker run \
     --cidfile=/tmp/container.cid \
@@ -102,6 +103,7 @@ jq -n "{
   metadata: [
     { name: \"repository\", value: $(echo $repository | jq -R .) },
     { name: \"tag\", value: $(echo $tag | jq -R .) },
-    { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) }
+    { name: \"image\", value: $(echo $image_id | head -c 12 | jq -R .) },
+    { name: \"labels\", value: $(echo $labels | jq -R .) }
   ]
 }" | jq '{version: .version} + {metadata: [.metadata[] | select(.value != "")]}' >&3
