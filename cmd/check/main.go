@@ -14,23 +14,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cihub/seelog"
-	"github.com/pivotal-golang/lager"
-
+	"code.cloudfoundry.org/lager/v3"
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
+	"github.com/cihub/seelog"
 	"github.com/concourse/retryhttp"
+	"github.com/distribution/reference"
 	"github.com/docker/distribution"
 	_ "github.com/docker/distribution/manifest/schema1"
 	_ "github.com/docker/distribution/manifest/schema2"
-	"github.com/docker/distribution/reference"
 	v2 "github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/hashicorp/go-multierror"
 	digest "github.com/opencontainers/go-digest"
-	"github.com/pivotal-golang/clock"
 )
 
 func main() {
@@ -339,12 +337,9 @@ func isInsecure(hostOrCIDR string, hostPort string) bool {
 
 func retryRoundTripper(logger lager.Logger, rt http.RoundTripper) http.RoundTripper {
 	return &retryhttp.RetryRoundTripper{
-		Logger:  logger,
-		Sleeper: clock.NewClock(),
-		RetryPolicy: retryhttp.ExponentialRetryPolicy{
-			Timeout: 5 * time.Minute,
-		},
-		RoundTripper: rt,
+		Logger:         logger,
+		BackOffFactory: retryhttp.NewExponentialBackOffFactory(5 * time.Minute),
+		RoundTripper:   rt,
 	}
 }
 
