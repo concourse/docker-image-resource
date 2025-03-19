@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -23,7 +23,7 @@ var _ = Describe("Check", func() {
 		os.Setenv("LOG_FILE", "/dev/stderr")
 	})
 
-	check := func(params map[string]interface{}) *gexec.Session {
+	check := func(params map[string]any) *gexec.Session {
 		command := exec.Command("/opt/resource/check", "/tmp")
 
 		resourceInput, err := json.Marshal(params)
@@ -40,8 +40,8 @@ var _ = Describe("Check", func() {
 	It("errors when image is unknown", func() {
 		repository := "kjlasdfaklklj12"
 		tag := "latest"
-		session := check(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := check(map[string]any{
+			"source": map[string]any{
 				"repository": repository,
 			},
 		})
@@ -53,8 +53,8 @@ var _ = Describe("Check", func() {
 	It("errors when image:tag is unknown", func() {
 		repository := "kjlasdfaklklj12"
 		tag := "aklsdf123"
-		session := check(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := check(map[string]any{
+			"source": map[string]any{
 				"repository": repository,
 				"tag":        tag,
 			},
@@ -65,8 +65,8 @@ var _ = Describe("Check", func() {
 	})
 
 	It("prints out the digest for a existent image", func() {
-		session := check(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := check(map[string]any{
+			"source": map[string]any{
 				"repository": "alpine",
 			},
 		})
@@ -75,8 +75,8 @@ var _ = Describe("Check", func() {
 	})
 
 	It("prints out the digest for a existent image and quoted numeric tag", func() {
-		session := check(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := check(map[string]any{
+			"source": map[string]any{
 				"repository": "alpine",
 				"tag":        "3.7",
 			},
@@ -86,8 +86,8 @@ var _ = Describe("Check", func() {
 	})
 
 	It("prints out the digest for a existent image and numeric tag", func() {
-		session := check(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := check(map[string]any{
+			"source": map[string]any{
 				"repository": "alpine",
 				"tag":        3.7,
 			},
@@ -132,8 +132,8 @@ var _ = Describe("Check", func() {
 
 			Context("when the repository contains no registry hostname", func() {
 				BeforeEach(func() {
-					session = check(map[string]interface{}{
-						"source": map[string]interface{}{
+					session = check(map[string]any{
+						"source": map[string]any{
 							"repository":      "some/fake-image",
 							"registry_mirror": registry.URL(),
 						},
@@ -151,8 +151,8 @@ var _ = Describe("Check", func() {
 
 			Context("when the repository contains a registry hostname different from the mirror", func() {
 				BeforeEach(func() {
-					session = check(map[string]interface{}{
-						"source": map[string]interface{}{
+					session = check(map[string]any{
+						"source": map[string]any{
 							"repository":      registry.URL() + "/some/fake-image",
 							"registry_mirror": "https://thisregistrydoesnotexist.nothing",
 						},

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -21,7 +21,7 @@ var _ = Describe("Out", func() {
 		os.Setenv("LOG_FILE", "/dev/stderr")
 	})
 
-	putWithEnv := func(params map[string]interface{}, extraEnv map[string]string) *gexec.Session {
+	putWithEnv := func(params map[string]any, extraEnv map[string]string) *gexec.Session {
 		command := exec.Command("/opt/resource/out", "/tmp")
 
 		// Get current process environment variables
@@ -47,7 +47,7 @@ var _ = Describe("Out", func() {
 		return session
 	}
 
-	put := func(params map[string]interface{}) *gexec.Session {
+	put := func(params map[string]any) *gexec.Session {
 		return putWithEnv(params, nil)
 	}
 
@@ -64,43 +64,43 @@ var _ = Describe("Out", func() {
 	}
 
 	It("retries starting dockerd if it fails", func() {
-		session := putWithEnv(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := putWithEnv(map[string]any{
+			"source": map[string]any{
 				"repository": "test",
 			},
-			"params": map[string]interface{}{
+			"params": map[string]any{
 				"build": "/docker-image-resource/tests/fixtures/build",
 			},
 		}, map[string]string{
 			"STARTUP_TIMEOUT": "5",
-			"FAIL_ONCE": "true",
+			"FAIL_ONCE":       "true",
 		})
 
 		Expect(session.Err).To(gbytes.Say("(?s:DOCKERD.*DOCKERD.*)"))
 	})
 
 	It("times out retrying dockerd", func() {
-		session := putWithEnv(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := putWithEnv(map[string]any{
+			"source": map[string]any{
 				"repository": "test",
 			},
-			"params": map[string]interface{}{
+			"params": map[string]any{
 				"build": "/docker-image-resource/tests/fixtures/build",
 			},
 		}, map[string]string{
 			"STARTUP_TIMEOUT": "1",
-			"FAIL_ONCE": "true",
+			"FAIL_ONCE":       "true",
 		})
 
 		Expect(session.Err).To(gbytes.Say(".*Docker failed to start.*"))
 	})
 
 	It("starts dockerd with --data-root under /scratch", func() {
-		session := put(map[string]interface{}{
-			"source": map[string]interface{}{
+		session := put(map[string]any{
+			"source": map[string]any{
 				"repository": "test",
 			},
-			"params": map[string]interface{}{
+			"params": map[string]any{
 				"build": "/docker-image-resource/tests/fixtures/build",
 			},
 		})
@@ -110,11 +110,11 @@ var _ = Describe("Out", func() {
 
 	Context("when build arguments are provided", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 					"build_args": map[string]string{
 						"arg1": "arg with space",
@@ -135,22 +135,22 @@ var _ = Describe("Out", func() {
 
 	Context("when secrets are provided", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
-					"secrets": map[string]interface{}{
-						"secret1": map[string]interface{}{
-              "env": "GITHUB_TOKEN",
-            },
-						"secret2": map[string]interface{}{
-              "source": "/a/file/path.txt",
-            },
-						"secret3": map[string]interface{}{
-              "source": "/a/file/path with a space in it.txt",
-            },
+					"secrets": map[string]any{
+						"secret1": map[string]any{
+							"env": "GITHUB_TOKEN",
+						},
+						"secret2": map[string]any{
+							"source": "/a/file/path.txt",
+						},
+						"secret3": map[string]any{
+							"source": "/a/file/path with a space in it.txt",
+						},
 					},
 				},
 			})
@@ -166,11 +166,11 @@ var _ = Describe("Out", func() {
 
 	Context("when labels are provided", func() {
 		It("passes the labels correctly to the docker daemon", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 					"labels": map[string]string{
 						"label1": "foo",
@@ -191,11 +191,11 @@ var _ = Describe("Out", func() {
 
 	Context("when build arguments file is provided", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":           "/docker-image-resource/tests/fixtures/build",
 					"build_args_file": "/docker-image-resource/tests/fixtures/build_args",
 				},
@@ -213,11 +213,11 @@ var _ = Describe("Out", func() {
 	// this is close, but this test is broken. Not sure look for output
 	Context("when build arguments file is malformed", func() {
 		It("provides a useful error message", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":           "/docker-image-resource/tests/fixtures/build",
 					"build_args_file": "/docker-image-resource/tests/fixtures/build_args_malformed",
 				},
@@ -229,11 +229,11 @@ var _ = Describe("Out", func() {
 
 	Context("when build arguments contain envvars", func() {
 		It("expands envvars and passes the arguments correctly to the docker daemon", func() {
-			session := putWithEnv(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := putWithEnv(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 					"build_args": map[string]string{
 						"arg01": "no envvars",
@@ -250,14 +250,13 @@ var _ = Describe("Out", func() {
 					},
 				},
 			}, map[string]string{
-				"BUILD_ID":		"value of the:\nBUILD_ID envvar",
-				"BUILD_NAME":		"value of the:\nBUILD_NAME envvar",
-				"BUILD_JOB_NAME":	"value of the:\nBUILD_JOB_NAME envvar",
-				"BUILD_PIPELINE_NAME":	"value of the:\nBUILD_PIPELINE_NAME envvar",
-				"BUILD_TEAM_NAME":	"value of the:\nBUILD_TEAM_NAME envvar",
-				"ATC_EXTERNAL_URL":	"value of the:\nATC_EXTERNAL_URL envvar",
+				"BUILD_ID":            "value of the:\nBUILD_ID envvar",
+				"BUILD_NAME":          "value of the:\nBUILD_NAME envvar",
+				"BUILD_JOB_NAME":      "value of the:\nBUILD_JOB_NAME envvar",
+				"BUILD_PIPELINE_NAME": "value of the:\nBUILD_PIPELINE_NAME envvar",
+				"BUILD_TEAM_NAME":     "value of the:\nBUILD_TEAM_NAME envvar",
+				"ATC_EXTERNAL_URL":    "value of the:\nATC_EXTERNAL_URL envvar",
 			})
-
 
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--build-arg`)))
 			Expect(session.Err).To(gbytes.Say(dockerarg(`arg01=no envvars`)))
@@ -286,13 +285,13 @@ var _ = Describe("Out", func() {
 
 	Context("when configured with limited up and download", func() {
 		It("passes them to dockerd", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository":               "test",
 					"max_concurrent_downloads": 7,
 					"max_concurrent_uploads":   1,
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 				},
 			})
@@ -303,10 +302,10 @@ var _ = Describe("Out", func() {
 
 	Context("when configured with additional private registries", func() {
 		It("passes them to docker login", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
-					"additional_private_registries": []interface{}{
+					"additional_private_registries": []any{
 						map[string]string{
 							"registry": "example.com/my-private-docker-registry",
 							"username": "my-username",
@@ -319,7 +318,7 @@ var _ = Describe("Out", func() {
 						},
 					},
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 				},
 			})
@@ -339,12 +338,12 @@ var _ = Describe("Out", func() {
 
 	Context("when configured with a insecure registries", func() {
 		It("passes them to dockerd", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository":          "test",
 					"insecure_registries": []string{"my-registry.gov", "other-registry.biz"},
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 				},
 			})
@@ -355,12 +354,12 @@ var _ = Describe("Out", func() {
 
 	Context("when configured with a registry mirror", func() {
 		It("passes it to dockerd", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository":      "test",
 					"registry_mirror": "some-mirror",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 				},
 			})
@@ -371,11 +370,11 @@ var _ = Describe("Out", func() {
 
 	Context("when configured with a target build stage", func() {
 		It("passes it to dockerd", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"target_name": "test",
 					"build":       "/docker-image-resource/tests/fixtures/build",
 				},
@@ -388,11 +387,11 @@ var _ = Describe("Out", func() {
 
 	Context("When using ECR", func() {
 		It("calls docker pull with the ECR registry", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/ecr",
 					"dockerfile": "/docker-image-resource/tests/fixtures/ecr/Dockerfile",
 				},
@@ -402,11 +401,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("calls docker pull for an ECR image in a multi build docker file", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/ecr",
 					"dockerfile": "/docker-image-resource/tests/fixtures/ecr/Dockerfile.multi",
 				},
@@ -416,11 +415,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("calls docker pull for all ECR images in a multi build docker file", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/ecr",
 					"dockerfile": "/docker-image-resource/tests/fixtures/ecr/Dockerfile.multi-ecr",
 				},
@@ -433,11 +432,11 @@ var _ = Describe("Out", func() {
 
 	Context("When all proxy settings are provided with build args", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
-			session := putWithEnv(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := putWithEnv(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 					"build_args": map[string]string{
 						"arg1": "arg with space",
@@ -468,11 +467,11 @@ var _ = Describe("Out", func() {
 
 	Context("When passing tag ", func() {
 		It("should pull tag from file", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 					"tag":   "/docker-image-resource/tests/fixtures/tag",
 				},
@@ -484,11 +483,11 @@ var _ = Describe("Out", func() {
 
 	Context("When passing tag_file", func() {
 		It("should pull tag from file", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":    "/docker-image-resource/tests/fixtures/build",
 					"tag_file": "/docker-image-resource/tests/fixtures/tag",
 				},
@@ -500,11 +499,11 @@ var _ = Describe("Out", func() {
 
 	Context("When passing tag and tag_file", func() {
 		It("should pull tag from file (prefer tag_file param)", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":    "/docker-image-resource/tests/fixtures/build",
 					"tag":      "/docker-image-resource/tests/fixtures/doesnotexist",
 					"tag_file": "/docker-image-resource/tests/fixtures/tag",
@@ -517,11 +516,11 @@ var _ = Describe("Out", func() {
 
 	Context("When passing additional_tags ", func() {
 		It("should push add the additional_tags", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":           "/docker-image-resource/tests/fixtures/build",
 					"additional_tags": "/docker-image-resource/tests/fixtures/tags",
 				},
@@ -539,11 +538,11 @@ var _ = Describe("Out", func() {
 
 	Context("When only http_proxy setting is provided, with no build arguments", func() {
 		It("passes the arguments correctly to the docker daemon", func() {
-			session := putWithEnv(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := putWithEnv(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build": "/docker-image-resource/tests/fixtures/build",
 				},
 			}, map[string]string{
@@ -584,11 +583,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("passes the arguments correctly to the docker daemon", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/build",
 					"load_bases": []string{"expected_base_1", "expected_base_2"},
 				},
@@ -607,13 +606,13 @@ var _ = Describe("Out", func() {
 
 	Context("when cache is specified are specified", func() {
 		It("adds argument to cache_from", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
-					"build":      "/docker-image-resource/tests/fixtures/build",
-					"cache":      "true",
+				"params": map[string]any{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"cache": "true",
 				},
 			})
 			Expect(session.Err).To(gbytes.Say(dockerarg(`--cache-from`)))
@@ -621,13 +620,13 @@ var _ = Describe("Out", func() {
 		})
 
 		It("does not add cache_from if pull fails", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "broken-repo",
 				},
-				"params": map[string]interface{}{
-					"build":     "/docker-image-resource/tests/fixtures/build",
-					"cache":      "true",
+				"params": map[string]any{
+					"build": "/docker-image-resource/tests/fixtures/build",
+					"cache": "true",
 				},
 			})
 
@@ -636,7 +635,7 @@ var _ = Describe("Out", func() {
 			Expect(session.Err).To(gbytes.Say(dockerarg(`build`)))
 
 		})
-	});
+	})
 
 	Context("when cache_from images are specified", func() {
 		BeforeEach(func() {
@@ -660,11 +659,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("calls docker load to load the cache_from images", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
-				}, 
-				"params": map[string]interface{}{
+				},
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/build",
 					"cache_from": []string{"cache_from_1", "cache_from_2"},
 				},
@@ -677,11 +676,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("loads both cache_from and load_bases images", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/build",
 					"load_bases": []string{"cache_from_1"},
 					"cache_from": []string{"cache_from_2"},
@@ -695,11 +694,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("passes the arguments correctly to the docker build command", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/build",
 					"cache_from": []string{"cache_from_1", "cache_from_2"},
 				},
@@ -712,11 +711,11 @@ var _ = Describe("Out", func() {
 		})
 
 		It("does not remove the arguments generated by cache:true", func() {
-			session := put(map[string]interface{}{
-				"source": map[string]interface{}{
+			session := put(map[string]any{
+				"source": map[string]any{
 					"repository": "test",
 				},
-				"params": map[string]interface{}{
+				"params": map[string]any{
 					"build":      "/docker-image-resource/tests/fixtures/build",
 					"cache":      "true",
 					"cache_from": []string{"cache_from_1", "cache_from_2"},

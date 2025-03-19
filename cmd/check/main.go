@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/lager/v3"
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
@@ -338,12 +337,9 @@ func isInsecure(hostOrCIDR string, hostPort string) bool {
 
 func retryRoundTripper(logger lager.Logger, rt http.RoundTripper) http.RoundTripper {
 	return &retryhttp.RetryRoundTripper{
-		Logger:  logger,
-		Sleeper: clock.NewClock(),
-		RetryPolicy: retryhttp.ExponentialRetryPolicy{
-			Timeout: 5 * time.Minute,
-		},
-		RoundTripper: rt,
+		Logger:         logger,
+		BackOffFactory: retryhttp.NewExponentialBackOffFactory(5 * time.Minute),
+		RoundTripper:   rt,
 	}
 }
 

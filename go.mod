@@ -5,7 +5,6 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	code.cloudfoundry.org/clock v1.31.0
 	code.cloudfoundry.org/lager/v3 v3.30.0
 	github.com/awslabs/amazon-ecr-credential-helper/ecr-login v0.9.1
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
@@ -13,7 +12,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo/v2 v2.23.1
 	github.com/onsi/gomega v1.36.2
 	github.com/opencontainers/go-digest v1.0.0
 )
@@ -40,7 +39,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.9.3 // indirect
 	github.com/docker/go-metrics v0.0.2-0.20221207153146-523432a393ef // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e // indirect
@@ -49,8 +48,6 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
-	github.com/onsi/ginkgo/v2 v2.23.1 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/prometheus/client_golang v1.21.1 // indirect
@@ -63,6 +60,5 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
