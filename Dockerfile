@@ -29,7 +29,8 @@ RUN apk --no-cache add \
     jq \
     ca-certificates \
     xz \
-    iproute2
+    iproute2 \
+    mount
 
 COPY --from=builder /assets /opt/resource
 RUN mkdir /usr/local/bin && ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
