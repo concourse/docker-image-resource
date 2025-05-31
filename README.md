@@ -358,7 +358,7 @@ will stop the build.
 Run the tests with the following command:
 
 ```sh
-docker build -t docker-image-resource --build-arg base_image=paketobuildpacks/run-jammy-base:latest .
+docker build -t docker-image-resource .
 ```
 
 To use the newly built image, push it to a docker registry that's accessible to
