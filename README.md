@@ -2,6 +2,10 @@
 
 Tracks and builds [Docker](https://docker.io) images.
 
+<a href="https://ci.concourse-ci.org/teams/main/pipelines/resource/jobs/build?vars.type=%22docker-image%22">
+  <img src="https://ci.concourse-ci.org/api/v1/teams/main/pipelines/resource/jobs/build/badge?vars.type=%22docker-image%22" alt="Build Status">
+</a>
+
 Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
 ## Source Configuration
