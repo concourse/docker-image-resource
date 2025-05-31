@@ -45,6 +45,7 @@ RUN apt update && apt install -y --no-install-recommends \
     docker-ce \
     docker-buildx-plugin \
     jq \
+    openssh-client \
     ca-certificates \
     xz-utils \
     iproute2 \
