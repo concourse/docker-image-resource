@@ -31,7 +31,7 @@ RUN apk --no-cache add \
     xz \
     iproute2 \
     mount \
-    mount \
+    umount \
     cmd:tar \
     sed
 
