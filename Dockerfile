@@ -27,6 +27,7 @@ RUN apk --no-cache add \
     docker \
     docker-cli-buildx \
     jq \
+    openssh-client \
     ca-certificates \
     xz \
     iproute2 \
