@@ -33,7 +33,8 @@ RUN apk --no-cache add \
     mount \
     umount \
     cmd:tar \
-    sed
+    sed \
+    uutils
 
 COPY --from=builder /assets /opt/resource
 RUN mkdir /usr/local/bin && ln -s /opt/resource/ecr-login /usr/local/bin/docker-credential-ecr-login
