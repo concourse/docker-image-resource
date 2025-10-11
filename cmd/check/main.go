@@ -340,6 +340,7 @@ func retryRoundTripper(logger lager.Logger, rt http.RoundTripper) http.RoundTrip
 		Logger:         logger,
 		BackOffFactory: retryhttp.NewExponentialBackOffFactory(5 * time.Minute),
 		RoundTripper:   rt,
+		Retryer:        &retryhttp.DefaultRetryer{},
 	}
 }
 
