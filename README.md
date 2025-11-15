@@ -362,7 +362,7 @@ will stop the build.
 Run the tests with the following command:
 
 ```sh
-docker build -t docker-image-resource .
+docker build -t docker-image-resource --target tests .
 ```
 
 To use the newly built image, push it to a docker registry that's accessible to
