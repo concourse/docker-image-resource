@@ -66,14 +66,14 @@ var _ = Describe("Out", func() {
 	It("retries starting dockerd if it fails", func() {
 		session := putWithEnv(map[string]any{
 			"source": map[string]any{
-				"repository": "test",
+				"repository":      "test",
+				"startup_timeout": "5",
 			},
 			"params": map[string]any{
 				"build": "/docker-image-resource/tests/fixtures/build",
 			},
 		}, map[string]string{
-			"STARTUP_TIMEOUT": "5",
-			"FAIL_ONCE":       "true",
+			"FAIL_ONCE": "true",
 		})
 
 		Expect(session.Err).To(gbytes.Say("(?s:DOCKERD.*DOCKERD.*)"))
@@ -82,14 +82,14 @@ var _ = Describe("Out", func() {
 	It("times out retrying dockerd", func() {
 		session := putWithEnv(map[string]any{
 			"source": map[string]any{
-				"repository": "test",
+				"repository":      "test",
+				"startup_timeout": "1",
 			},
 			"params": map[string]any{
 				"build": "/docker-image-resource/tests/fixtures/build",
 			},
 		}, map[string]string{
-			"STARTUP_TIMEOUT": "1",
-			"FAIL_ONCE":       "true",
+			"FAIL_ONCE": "true",
 		})
 
 		Expect(session.Err).To(gbytes.Say(".*Docker failed to start.*"))
