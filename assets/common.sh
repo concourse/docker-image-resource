@@ -1,6 +1,5 @@
 LOG_FILE=${LOG_FILE:-/tmp/docker.log}
 SKIP_PRIVILEGED=${SKIP_PRIVILEGED:-false}
-STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-120}
 
 sanitize_cgroups() {
   if [ -e /sys/fs/cgroup/cgroup.controllers ]; then
@@ -70,12 +69,14 @@ start_docker() {
 
   server_args="${server_args} --max-concurrent-downloads=$1 --max-concurrent-uploads=$2"
 
-  for registry in $3; do
+  local timeout=$3
+
+  for registry in $4; do
     server_args="${server_args} --insecure-registry ${registry}"
   done
 
-  if [ -n "$4" ]; then
-    server_args="${server_args} --registry-mirror $4"
+  if [ -n "$5" ]; then
+    server_args="${server_args} --registry-mirror $5"
   fi
 
   try_start() {
@@ -97,9 +98,9 @@ start_docker() {
   declare -fx try_start
   trap stop_docker EXIT
 
-  if ! timeout ${STARTUP_TIMEOUT} bash -ce 'while true; do try_start && break; done'; then
+  if ! timeout ${timeout} bash -ce 'while true; do try_start && break; done'; then
     [ -f "$LOG_FILE" ] && cat "${LOG_FILE}"
-    echo Docker failed to start within ${STARTUP_TIMEOUT} seconds.
+    echo Docker failed to start within ${timeout} seconds. Consider increasing 'startup_timeout' in source configuration.
     return 1
   fi
 }

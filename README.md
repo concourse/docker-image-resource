@@ -126,6 +126,10 @@ Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
    Limits the number of concurrent upload threads.
 
+ * `startup_timeout`: *Optional.* Default `120`. The timeout in seconds to wait 
+   for the Docker daemon to start. Increase this value if you're experiencing
+   timeouts during Docker daemon startup on slower systems.
+
 ## Behavior
 
 ### `check`: Check for new images.
