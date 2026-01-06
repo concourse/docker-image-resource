@@ -52,7 +52,7 @@ rootfs="$(jq -r '.params.rootfs // false' < $payload)"
 skip_download="$(jq -r '.params.skip_download // false' < $payload)"
 save="$(jq -r '.params.save // false' < $payload)"
 
-mkdir -p $destination
+mkdir -p "$destination"
 
 image_name="${repository}@${digest}"
 
@@ -71,13 +71,13 @@ if [ "$skip_download" = "false" ]; then
   docker_pull "$image_name"
 
   if [ "$save" = "true" ]; then
-    docker save -o ${destination}/image "$image_name"
+    docker save -o "${destination}/image" "$image_name"
   fi
 
   image_id="$(image_from_digest "$repository" "$digest")"
 
-  echo "$image_id" > ${destination}/image-id
-  docker inspect $image_id > ${destination}/docker_inspect.json
+  echo "$image_id" > "${destination}/image-id"
+  docker inspect $image_id > "${destination}/docker_inspect.json"
 
   docker run \
     --cidfile=/tmp/container.cid \
@@ -85,7 +85,7 @@ if [ "$skip_download" = "false" ]; then
     --entrypoint /tmp/print-metadata  \
     "$image_name" > ${destination}/metadata.json
 
-  mkdir -p ${destination}/rootfs/
+  mkdir -p "${destination}/rootfs/"
   docker export $(cat /tmp/container.cid) | tar --anchored --exclude="dev" -xf - -C ${destination}/rootfs/
 
   if [ "$rootfs" = "true" ]; then
