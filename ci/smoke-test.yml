@@ -10,16 +10,16 @@ params:
   REPOSITORY: ~
 
 outputs:
-- name: fetched-image
+  - name: fetched-image
 
 run:
   path: /bin/bash
   args:
-  - -exc
-  - |
-    pushd fetched-image
-      jq -n '{source: {repository: $repo}}' --arg repo $REPOSITORY | \
-        /opt/resource/check | \
-        jq '{source: {repository: $repo}, version: last}' --arg repo $REPOSITORY | \
-        /opt/resource/in .
-    popd
+    - -exc
+    - |
+      pushd fetched-image
+        jq -n '{source: {repository: $repo}}' --arg repo $REPOSITORY | \
+          /opt/resource/check | \
+          jq '{source: {repository: $repo}, version: last}' --arg repo $REPOSITORY | \
+          /opt/resource/in .
+      popd
