@@ -26,12 +26,10 @@ var _ = Describe("Out", func() {
 
 		// Get current process environment variables
 		newEnv := os.Environ()
-		if extraEnv != nil {
-			// Append each extra environment variable to new process environment
-			// variable list
-			for name, value := range extraEnv {
-				newEnv = append(newEnv, fmt.Sprintf("%s=%s", name, value))
-			}
+		// Append each extra environment variable to new process environment
+		// variable list
+		for name, value := range extraEnv {
+			newEnv = append(newEnv, fmt.Sprintf("%s=%s", name, value))
 		}
 
 		command.Env = newEnv
