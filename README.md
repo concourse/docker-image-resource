@@ -8,6 +8,20 @@ Tracks and builds [Docker](https://docker.io) images.
 
 Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
 
+## Maintainer Note
+
+The Concourse project does not recommend using this resource-type. You should
+use the [registry-image](https://github.com/concourse/registry-image-resource)
+for downloading/uploading container images.
+
+For building, we recommend using the [oci-build
+task](https://github.com/concourse/oci-build-task/), which uses Docker's buildx
+to build images.
+
+Together, these tools have proven to be more robust than this resource-type. We
+would like to eventually deprecate this resource-type but have no timeline for
+whan that will happen.
+
 ## Source Configuration
 
 * `repository`: *Required.* The name of the repository, e.g.
@@ -353,7 +367,7 @@ jobs:
 
 * golang is *required* - version 1.9.x is tested; earlier versions may also
   work.
-* docker is *required* - version 17.06.x is tested; earlier versions may also
+* docker is *required* - version 23.x is tested; earlier versions may also
   work.
 
 ### Running the tests
