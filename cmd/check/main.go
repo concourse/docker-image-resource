@@ -114,11 +114,15 @@ func main() {
 }
 
 func headDigest(client *http.Client, manifestURL, repository, tag string) (string, bool) {
-	manifestRequest, err := http.NewRequest("HEAD", manifestURL, nil)
+	manifestRequest, err := http.NewRequest(http.MethodHead, manifestURL, nil)
 	fatalIf("failed to build manifest request", err)
 	manifestRequest.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	manifestRequest.Header.Add("Accept", "application/vnd.oci.image.index.v1+json")
 	manifestRequest.Header.Add("Accept", "application/json")
+	// Setting User-Agent helps avoid the Cloudflare challenge page. The
+	// go-containerregistry sets this and we never get the challenge page with that
+	// resource-type
+	manifestRequest.Header.Add("User-Agent", "concourse/docker-image-resource")
 
 	manifestResponse, err := client.Do(manifestRequest)
 	fatalIf("failed to fetch manifest", err)
