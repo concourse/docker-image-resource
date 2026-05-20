@@ -6,9 +6,7 @@ Tracks and builds [Docker](https://docker.io) images.
   <img src="https://ci.concourse-ci.org/api/v1/teams/main/pipelines/resource/jobs/build/badge?vars.type=%22docker-image%22" alt="Build Status">
 </a>
 
-Note: docker registry must be [v2](https://docs.docker.com/registry/spec/api/).
-
-## Maintainer Note
+## ⚠️ Note From Maintainers
 
 The Concourse project does not recommend using this resource-type. You should
 use the [registry-image](https://github.com/concourse/registry-image-resource)
