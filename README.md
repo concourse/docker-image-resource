@@ -12,7 +12,7 @@ The Concourse project does not recommend using this resource-type. You should
 use the [registry-image](https://github.com/concourse/registry-image-resource)
 for downloading/uploading container images.
 
-For building, we recommend using the [oci-build
+For building container images, we recommend using the [oci-build
 task](https://github.com/concourse/oci-build-task/), which uses Docker's buildx
 to build images.
 
