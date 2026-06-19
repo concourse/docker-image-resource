@@ -32,7 +32,7 @@ RUN apk --no-cache add \
     iproute2 \
     mount \
     umount \
-    cmd:tar \
+    gnutar \
     sed \
     uutils
 
